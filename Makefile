@@ -1,20 +1,30 @@
 CONTAINER_NAME = pong-game
+
 IMAGE = pong-image
 
-all: build
+PORT = 3000
+
+all: run
 
 build:
 	docker build -t $(IMAGE) .
 	
-run: build
-	docker run --name=$(CONTAINER_NAME) $(IMAGE)
+run: delete
+	docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
 
 stop:
 	docker container stop $(CONTAINER_NAME)
 
-restart: stop run
+delete: stop
+	docker container rm $(CONTAINER_NAME)
+
+restart: delete run
 
 shell:
 	docker exec -it $(CONTAINER_NAME) sh
 
-.PHONY: build run clean
+update:
+	docker cp pong-game $(CONTAINER_NAME):.
+
+watch:
+	docker container logs --follow $(CONTAINER_NAME)
