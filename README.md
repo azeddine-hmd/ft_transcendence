@@ -31,4 +31,4 @@ $ make run
 - Author - [Azeddine Hamdaoui](https://azeddine.xyz)
 
 ## License
-[MIT licensed](LICENSE).
+[MIT licensed](LICENSE)
