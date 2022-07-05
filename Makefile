@@ -8,14 +8,14 @@ all: build
 
 build:
 	docker build -t $(IMAGE) .
-	
-run: 
+
+run:
 	sudo docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
 
 stop:
 	docker container stop $(CONTAINER_NAME)
 
-delete: stop
+delete:
 	docker container rm $(CONTAINER_NAME)
 
 restart: delete run

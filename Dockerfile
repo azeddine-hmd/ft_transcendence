@@ -7,7 +7,7 @@ RUN apk upgrade && apk update \
 
 COPY scripts/run.sh .
 RUN chmod +x run.sh
-COPY pong-game pong-game
+COPY . pong-game
 
 EXPOSE 3000
 
