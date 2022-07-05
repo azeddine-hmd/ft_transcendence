@@ -4,13 +4,13 @@ IMAGE = pong-image
 
 PORT = 3000
 
-all: run
+all: build
 
 build:
 	docker build -t $(IMAGE) .
 	
-run: delete
-	docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
+run: 
+	sudo docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
 
 stop:
 	docker container stop $(CONTAINER_NAME)
