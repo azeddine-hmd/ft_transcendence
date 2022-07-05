@@ -2,14 +2,14 @@ CONTAINER_NAME = pong-game
 
 IMAGE = pong-image
 
-PORT = 3000
+PORT = 8080
 
 all: run
 
 build:
 	docker build -t $(IMAGE) .
 
-run: build
+run: delete build
 	docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
 
 stop:
