@@ -19,10 +19,3 @@ $ make run
 
 ## Test
 > for now **no test** available
-
-## Stay in touch
-
-- Author - [Azeddine Hamdaoui](https://azeddine.xyz)
-
-## License
-[MIT licensed](LICENSE)
