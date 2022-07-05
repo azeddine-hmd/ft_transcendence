@@ -11,12 +11,6 @@ ft_transcendence is project about creating **Pong Game Online** that based on **
 ## Dependencies
 - Docker
 
-## Installation
-
-```bash
-$ make
-```
-
 ## Running the app
 
 ```bash
