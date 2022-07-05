@@ -14,7 +14,7 @@ ft_transcendence is project about creating **Pong Game Online** that based on **
 ## Running the app
 
 ```bash
-$ make run
+make run
 ```
 
 ## Test
