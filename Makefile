@@ -7,16 +7,13 @@ PORT = 8080
 all: run
 
 build:
-	docker build -t $(IMAGE) .
+	npm install
 
-run: delete build
-	docker run -d -p $(PORT):$(PORT) --name=$(CONTAINER_NAME) $(IMAGE)
+run: build
+	npm run start:dev
 
-stop:
-	@docker container stop $(CONTAINER_NAME) 2> /dev/null || true
-
-delete: stop
-	@docker container rm $(CONTAINER_NAME) 2> /dev/null || true
+delete: 
+	npm uninstall
 
 restart: delete run
 
