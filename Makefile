@@ -24,6 +24,7 @@ shell:
 	docker exec -it $(CONTAINER_NAME) sh
 
 update:
+	docker exec --workdir="/pong-game" $(CONTAINER_NAME) npm install
 	docker cp . $(CONTAINER_NAME):pong-game
 
 watch:

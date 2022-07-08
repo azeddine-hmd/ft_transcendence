@@ -13,8 +13,6 @@ RUN cd pong-game; npm install
 # debugging tools
 RUN apk add vim
 
-#EXPOSE 3000
-
 COPY run.sh .
 RUN chmod +x run.sh
 CMD ["sh", "run.sh"]
