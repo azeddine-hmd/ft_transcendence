@@ -7,10 +7,13 @@ PORT = 8080
 all: run
 
 build:
-	npm install
+	@npm install .
 
 run: build
-	npm run start:dev
+	@clear
+	@npm run start
 
-delete: 
-	npm uninstall --no-save .
+clean: 
+	@rm -rf dist/ node_modules/ package-lock.json
+
+.PHONY: all build run delete
