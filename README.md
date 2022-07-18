@@ -8,14 +8,8 @@
 
 ft_transcendence is project about creating **Pong Game Online** that based on **Nestjs** freamwork as backend
 
-## Dependencies
-- Docker
-
 ## Running the app
 
 ```bash
 make run
 ```
-
-## Test
-> for now **no test** available
