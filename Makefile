@@ -11,7 +11,7 @@ build:
 
 run: build
 	@clear
-	@npm run start
+	@npm run start:dev
 
 clean: 
 	@rm -rf dist/ node_modules/ package-lock.json
