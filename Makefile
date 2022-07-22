@@ -11,6 +11,10 @@ build:
 
 run: build
 	@clear
+	@npm run start
+
+dev: build
+	@clear
 	@npm run start:dev
 
 clean: 
