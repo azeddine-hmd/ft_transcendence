@@ -10,14 +10,17 @@ build:
 	@npm install .
 
 run: build
+	@docker-compose up -d
 	@clear
 	@npm run start
 
 dev: build
+	@docker-compose up -d
 	@clear
 	@npm run start:dev
 
 clean: 
-	@rm -rf dist/ node_modules/ package-lock.json
+	rm -rf dist/ node_modules/ package-lock.json
+	docker-compose down
 
 .PHONY: all build run delete
