@@ -31,17 +31,19 @@ export class CoffeesController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string)
+    findOne(@Param('id') id: number)
     {
         // return `This action ruturns #${id} coffee`
-        return this.coffeesService.findOne(id);
+        console.log(typeof id);
+        return this.coffeesService.findOne('' + id);
     }
 
     @Post()
-    create(@Body() CreateCoffeeDto: CreateCoffeeDto)
+    create(@Body() createCoffeeDto: CreateCoffeeDto)
     {
         // return body;
-        return this.coffeesService.create(CreateCoffeeDto);
+        console.log(createCoffeeDto instanceof CreateCoffeeDto);
+        return this.coffeesService.create(createCoffeeDto);
     }
 
     @Patch(':id')
