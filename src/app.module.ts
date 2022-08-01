@@ -14,7 +14,7 @@ import { UsersModule } from './users/users.module';
         host: configService.get('POSTGRES_HOST'),
         port: configService.get('POSTGRES_PORT'),
         database: configService.get('POSTGRES_DATABASE'),
-        username: configService.get('POSTGRES_USERNAME'),
+        username: configService.get('POSTGRES_USER'),
         password: configService.get('POSTGRES_PASSWORD'),
         entities: [],
         //TODO: turn off sychronization in production
