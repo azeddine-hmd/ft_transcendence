@@ -13,3 +13,9 @@ ft_transcendence is project about creating **Pong Game Online** that based on **
 ```bash
 make run
 ```
+
+## Node modules used
+* passport
+* @nestjs/typeorm
+* typeorm
+* pg
