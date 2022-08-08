@@ -10,7 +10,7 @@ build:
 	@npm install .
 
 run: build
-	# @docker-compose up -d
+	@docker-compose up -d
 	@npm run start:dev
 
 clean: 
