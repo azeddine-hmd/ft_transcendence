@@ -1,7 +1,7 @@
 {
-  "name": "pong-game",
+  "name": "ping-pong",
   "version": "0.0.1",
-  "description": "pong game online",
+  "description": "ping pong online game works on browser",
   "author": "Azeddine Hamdaoui",
   "private": true,
   "license": "UNLICENSED",
