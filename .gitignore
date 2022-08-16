@@ -35,4 +35,4 @@ coverage/
 !.vscode/extensions.json
 
 # Credentials
-.env
+#.env
