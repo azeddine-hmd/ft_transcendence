@@ -1,11 +1,14 @@
 version: '3'
+
 services:
+
   database:
     image: 'postgres:latest'
     ports:
       - 5432:5432
     env_file:
       - ./backend/.env
+
   backend:
     image: 'alpine:latest'
     ports:
@@ -17,4 +20,3 @@ services:
     volumes:
       - ./backend:/backend
     entrypoint: [""]
-
