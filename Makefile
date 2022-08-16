@@ -8,4 +8,4 @@ clean:
 	# docker volumes prune
 	docker-compose down
 
-.PHONY: run restart
+.PHONY: run clean
