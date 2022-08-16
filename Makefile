@@ -1,20 +1,10 @@
-CONTAINER_NAME = pong-game
-
-IMAGE = pong-image
-
-PORT = 8080
-
 all: run
 
-build:
-	@npm install .
-
-run: build
-	@docker-compose up -d
-	@npm run start:dev
+run: 
+	@docker-compose up --build
 
 clean: 
-	rm -rf dist/ node_modules/ package-lock.json
+	rm -rf backend/dist backend/node_modules backend/package-lock.json
 	docker-compose down
 
-.PHONY: all build run delete
+.PHONY: run restart

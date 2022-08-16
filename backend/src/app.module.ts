@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthenticationController } from './authentication/authentication.controller';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,11 +19,10 @@ import { UsersModule } from './users/users.module';
         username: configService.get('POSTGRES_USER'),
         password: configService.get('POSTGRES_PASSWORD'),
         entities: [],
-        //TODO: turn off sychronization in production
-        synchronize: true,
       }),
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AuthenticationController],
   providers: [],
