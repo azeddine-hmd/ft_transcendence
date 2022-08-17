@@ -1,6 +1,9 @@
 # compiled output
 dist/
 node_modules/
+/.pnp
+.pnp.js
+/build
 
 # Logs
 logs
