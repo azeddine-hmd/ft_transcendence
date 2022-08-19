@@ -3,6 +3,7 @@ version: '3'
 services:
 
   database:
+    container_name: database
     image: 'postgres:latest'
     ports:
       - 5432:5432
@@ -10,13 +11,15 @@ services:
       - ./backend/.env
 
   backend:
-    image: 'alpine:latest'
-    ports:
-      - 8080:8080
-    env_files:
-      - ./backend/.env
-    depends_on:
-      - database
+    container_name: backend
+    build:
+      context: ./docker
+      dockerfile: backend.dockerfile
     volumes:
       - ./backend:/backend
-    entrypoint: [""]
+    depends_on:
+      - database
+    ports:
+      - 8080:8080
+    env_file:
+      - ./backend/.env

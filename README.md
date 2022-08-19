@@ -11,5 +11,5 @@ ft_transcendence is last project in common core of 42 projects which requires cr
 ## Running the app
 
 ```bash
-make run
+docker compose up --build
 ```
