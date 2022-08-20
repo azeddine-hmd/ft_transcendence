@@ -17,9 +17,8 @@ import { UsersModule } from './users/users.module';
         database: configService.get('POSTGRES_DATABASE'),
         username: configService.get('POSTGRES_USER'),
         password: configService.get('POSTGRES_PASSWORD'),
-        //entities: [],
-        // TODO: remove it in production
-        synchronize: true,
+        autoLoadEntities: true,
+        synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
     UsersModule,
@@ -28,4 +27,4 @@ import { UsersModule } from './users/users.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
