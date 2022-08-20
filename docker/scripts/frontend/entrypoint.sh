@@ -1,5 +1,4 @@
 #!/bin/bash
 
-npm run build
-
-serve -s build
+npm i
+npm run dev
