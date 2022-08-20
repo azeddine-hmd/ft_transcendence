@@ -1,11 +1,14 @@
 all: run
 
 run: 
-	@docker-compose up --build
+	docker-compose up --build
 
-clean: 
-	rm -rf backend/dist backend/node_modules backend/package-lock.json
-	# docker volumes prune
-	docker-compose down
+down:
+	@docker-compose down
 
-.PHONY: run clean
+restart: down run
+
+reset: down
+	@docker volume rm $(shell docker volume ls -q)
+
+.PHONY: run down restart reset

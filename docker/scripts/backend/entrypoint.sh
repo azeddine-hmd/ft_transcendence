@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 npm install .
-npm run start
+
+npm run build
+
+npm run start:$MODE
