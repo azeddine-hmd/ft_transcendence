@@ -1,4 +1,4 @@
-import style from '../styles/Card.module.css'
+import style from '../../styles/chat/Card.module.css'
 
 interface props {
     title : string;
