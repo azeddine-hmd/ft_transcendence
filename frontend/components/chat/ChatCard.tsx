@@ -1,4 +1,4 @@
-import style from '../styles/ChatCard.module.css'
+import style from '../../styles/chat/ChatCard.module.css'
 
 interface props {
     id : string;

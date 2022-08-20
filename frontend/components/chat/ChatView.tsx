@@ -1,6 +1,6 @@
-import style from '../styles/ChatView.module.css'
+import style from '../../styles/chat/ChatView.module.css'
 import Card from './ChatCard';
-import messages from '../messages.json'
+import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 
 interface props {
