@@ -3,7 +3,7 @@ dist/
 node_modules/
 /.pnp
 .pnp.js
-/build
+build/
 
 # Logs
 logs
