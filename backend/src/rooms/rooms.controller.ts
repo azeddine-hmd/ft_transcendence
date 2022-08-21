@@ -12,7 +12,7 @@ export class RoomsController {
 
 
     @Get()
-    findAll(@Query() paginationQuery)
+    findAll()
     {
         return this.roomsService.findAll();
     }

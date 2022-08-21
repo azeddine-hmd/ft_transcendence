@@ -15,19 +15,19 @@ export class RoomsService {
 
     async findAll()
     {
-        const users = await this.roomRepository
-        .createQueryBuilder("room")
-        .leftJoinAndSelect("room.owner", "owner") 
-        // .andWhere("room.id = :r", {r: 5})
-        // .where("owner.id = :id", { id: 5 })
-        .where("room.privacy = :p", { p: false })
-        .andWhere("owner.id = :r", {r: 5})
-        .getOne();
-        console.log("users ==> ", users)
-        return users;
-        // const users = await this.roomRepository.find({
-        //     relations: ['owner'],
-        // });
+        // const users = await this.roomRepository
+        // .createQueryBuilder("room")
+        // .leftJoinAndSelect("room.owner", "owner") 
+        // // .andWhere("room.id = :r", {r: 5})
+        // // .where("owner.id = :id", { id: 5 })
+        // .where("room.privacy = :p", { p: false })
+        // .andWhere("owner.id = :r", {r: 5})
+        // .getOne();
+        // console.log("users ==> ", users)
+        // return users;
+        const users = await this.roomRepository.find({
+            relations: ['owner'],
+        });
 
         // const res = new Array();
 
