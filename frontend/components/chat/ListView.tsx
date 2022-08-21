@@ -1,6 +1,6 @@
 import Card from "./Card";
-import rooms from '../rooms.json'
-import style from '../styles/ListView.module.css'
+import rooms from '../../rooms.json'
+import style from '../../styles/chat/ListView.module.css'
 
 interface props {
     title: string;

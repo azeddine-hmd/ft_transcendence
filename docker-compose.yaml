@@ -23,3 +23,15 @@ services:
       - 8080:8080
     env_file:
       - ./backend/.env
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./docker
+      dockerfile: frontend.dockerfile
+    volumes:
+      - ./frontend:/frontend
+    depends_on:
+      - backend
+    ports:
+      - 3000:3000

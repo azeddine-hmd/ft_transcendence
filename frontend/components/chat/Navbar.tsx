@@ -1,4 +1,4 @@
-import style from '../styles/Navbar.module.css'
+import style from '../../styles/chat/Navbar.module.css'
 
 function NavBar() {
     return (
