@@ -1,20 +1,80 @@
+.login {
+    background: url("https://cdn.dribbble.com/users/768427/screenshots/3901413/media/258a98e5bb139389a545ed652d9f3eb7.gif") no-repeat center center;
+    position: absolute;
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    opacity: .5;
+}
+
 .btn_login {
+    position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    /* background-color: blue; */
+    
 }
 
-.btn_login > button {
-    background-color: #e5e5e5;
+.Login {
+    background-color: #f4a261;
     color:black;
-    padding: 40px 100px;
+    padding: 20px 60px;
     border-radius: 10px;
     border: none;
     box-shadow: 5px 3px 8px  #888888;
     cursor: pointer;
     font-size: 25px;
     letter-spacing: 5px;
+    font-weight: bold;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-transform: uppercase;
+    /* width: 100%; */
+    /* width: 70%;
+    height: 10vh; */
 
+}
 
+.img42 {
+    width: 200px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    /* filter: invert(100%); */
+}
+.login_logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    /* background-color: aqua; */
+}
+
+@media screen and (max-width: 480px){
+    .Login {
+        padding: 9px 20px;
+        letter-spacing: 2px;
+    }
+    .login_logo {
+        width: 50%;
+    }
+    .img42 {
+        width: 120px;
+    }
+}
+@media screen and (max-width: 765px){
+    .Login {
+        padding: 9px 20px;
+        letter-spacing: 2px;
+    }
+    .login_logo {
+        width: 50%;
+    }
+    .img42 {
+        width: 120px;
+    }
 }
