@@ -1,7 +1,7 @@
 all: run
 
 run: 
-	docker-compose up --build
+	docker-compose up
 
 down:
 	@docker-compose down
