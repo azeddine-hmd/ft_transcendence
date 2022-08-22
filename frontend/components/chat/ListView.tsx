@@ -18,7 +18,9 @@ export default function ListView() {
                 <button className={style.button}>Rooms</button>
                 <button className={style.button}>DM</button>
             </div>
-            <input className={style.searchBar} type="text" placeholder="Search.."></input>
+            <div className={style.searchHolder}>
+                <input className={style.searchBar} type="text" placeholder="Search.."></input>
+            </div>
             <div className={style.scroll}>
                 {data.map(room => {
                     return (

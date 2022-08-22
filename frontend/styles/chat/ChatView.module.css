@@ -1,12 +1,15 @@
 .chat {
-    flex-grow: 1;
-    height: 93vh;
-    min-width: 40vh;
-    margin: 1vh;
-    padding: 0vh 0vh 2.5% 0vh;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    background-color: #efefef;
-
+    height: 100%;
+    width: 70%;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-left: 30px;
+    border-radius: 10px;
+    align-items: center;
+    overflow: hidden;
 }
 
 #messageBar {
@@ -14,32 +17,45 @@
     height: 40px;
     padding: 1vh;
     border-radius: 5px;
-    border-color: #04AA6D;
-    border-width: 1px;
+    border: none;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
 }
 
 .messageBarHolder {
     padding: 1vh;
+    width: 100%;
     display: flex;
 }
 
 #messageBarSendBtn {
-    color: #fff;
-    background-color: #04AA6D;
-    border-radius: 5px;
-    margin-left: 5px;
+color: rgb(54, 137, 24);
+  background-color: #ffffff;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-left: 5px;
+  border: none;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
+    
 }
 
 .chatBoard {
-    height: 94%;
+    height: 100%;
+    width: 100%;
     padding: 1vh;
+    overflow-y: scroll;
 }
 
-#roomTitle {
-    width: 100%;
+.roomTitle {
+    width: 80%;
+    margin: 10px;
     background-color: #fff;
-    margin: 0;
-    padding: 10px 10px 10px 25px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.roomTitle > h2 {
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 17px;
+    
 }

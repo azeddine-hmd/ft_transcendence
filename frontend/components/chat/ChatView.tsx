@@ -14,7 +14,9 @@ const data: props[] = messages;
 export default function ChatView() {
     return (
         <div className={style.chat}>
-            <h2 id={style.roomTitle}>Lobby😃</h2>
+            <div className={style.roomTitle}>
+            <h2>Lobby😃</h2>
+            </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
                     {data.map(messages => {

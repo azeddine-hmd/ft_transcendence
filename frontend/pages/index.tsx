@@ -1,17 +1,20 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import styles from '../styles/Home.module.css'
-import NavBar from '../components/chat/Navbar'
+import styles from '../styles/chat/Layout.module.css'
+import NavBar from '../components/utils/Navbar'
 import Card from '../components/chat/Card'
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
 
 function Layout() {
   return (
-    <div className={styles.layout}>
-      <ListView/>
-      <ChatView/>
+    <div className={styles.parent}>
+      <NavBar/>
+      <div className={styles.layout}>
+        <ListView/>
+        <ChatView/>
+      </div>
     </div>
   );
 }
@@ -22,7 +25,7 @@ function Home() {
       <Head>
         <title>Chat</title>
       </Head>
-      <NavBar/>
+      
       <Layout/>
     </div>
   );  

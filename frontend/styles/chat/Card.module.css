@@ -20,12 +20,14 @@
 /* Style the counter cards */
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  margin: 1px;
+  border-radius: 10px;
   /* this adds the "card" effect */
   padding: 3px 15px 3px 15px;
   text-align: left;
   background-color: #fff;
   position: relative;
-  margin: 5px 0px 0px 0px;
+  
 }
 
 #Counter {

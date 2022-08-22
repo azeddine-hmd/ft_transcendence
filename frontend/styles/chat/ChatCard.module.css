@@ -23,7 +23,7 @@
     /* this adds the "card" effect */
     padding: 3px 15px 3px 15px;
     text-align: left;
-    background-color: #fff;
+    background-color: #f6f7fb;
     position: relative;
     margin: 5px 0px 0px 0px;
   }
@@ -42,10 +42,10 @@
   
   .chatcard {
     width: 100%;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
     padding: 0.5px 15px 3px 15px;
     text-align: left;
-    background-color: #fff;
+    background-color: #f6f7fb;
     position: relative;
     border-radius: 10px;
   }

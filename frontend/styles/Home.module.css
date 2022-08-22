@@ -10,6 +10,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  
 }
 
 .footer {
@@ -108,9 +109,7 @@
   margin-left: 0.5rem;
 }
 
-.layout {
-  display: flex;
-}
+
 
 @media (max-width: 600px) {
   .grid {

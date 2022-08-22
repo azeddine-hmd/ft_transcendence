@@ -1,0 +1,11 @@
+.layout {
+    display: flex;
+    padding: 50px;
+    height: 90vh;
+    
+}
+
+.parent {
+    height: 100vh;
+    background-color: #f6f7fb;
+}
