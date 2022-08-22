@@ -25,7 +25,7 @@ export class RoomsService {
         // .getOne();
         // console.log("users ==> ", users)
         // return users;
-        const users = await this.roomRepository.find({
+        return await this.roomRepository.find({
             relations: ['owner'],
         });
 

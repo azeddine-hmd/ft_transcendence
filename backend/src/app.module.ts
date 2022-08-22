@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { RoomsModule } from './rooms/rooms.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -14,15 +15,17 @@ import { UsersModule } from './users/users.module';
         type: 'postgres',
         host: configService.get('POSTGRES_HOST'),
         port: configService.get('POSTGRES_PORT'),
-        database: configService.get('POSTGRES_DATABASE'),
+        database: configService.get('POSTGRES_DB'),
         username: configService.get('POSTGRES_USER'),
         password: configService.get('POSTGRES_PASSWORD'),
-        autoLoadEntities: true,
+        autoLoadEntities: configService.get('AUTOLOADENTITIES'),
         synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
     UsersModule,
     AuthModule,
+    RoomsModule,
+
   ],
   controllers: [],
   providers: [],
