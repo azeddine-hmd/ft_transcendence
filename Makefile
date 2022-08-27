@@ -14,4 +14,13 @@ restart: down run
 reset: down
 	docker volume rm $(shell docker volume ls -q)
 
-.PHONY: build run down restart reset
+back:
+	docker exec -it backend bash
+
+front:
+	docker exec -it frontend bash
+
+db:
+	docker exec -it database bash
+
+.PHONY: build run down restart reset back front db
