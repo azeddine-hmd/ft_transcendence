@@ -9,8 +9,15 @@ export class CreateRoomDto {
     description: string;
 
     @IsBoolean()
-    readonly privacy: boolean;
+    privacy: boolean;
 
-    @IsNumber()
-    readonly owner: Users;
+    @IsString()
+    password: string;
+
+    date: Date;
+
+    owner: {
+        id: number,
+        name: string,
+    };
 }

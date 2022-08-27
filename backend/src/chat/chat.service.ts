@@ -23,14 +23,21 @@ export class ChatService {
   }
 
   async createRoom(createRoomDto: CreateRoomDto) {
-      let check =  await this.usersRepository.createQueryBuilder('users')
-      .select()
-      .where("users.id = :id", { id: createRoomDto.owner })
-      .getOne()
-      const room = this.roomRepository.create(createRoomDto);
-      if(check == null)
-        return check;
-    return (await this.roomRepository.save(room));
+    let check = await this.usersRepository.createQueryBuilder('users')
+    .select()
+    .where("users.id = :id", { id: createRoomDto.owner.id })
+    .getOne()
+    createRoomDto.date = new Date();
+    const room = this.roomRepository.create(createRoomDto);
+    if(check == null)
+      return check;
+    await this.roomRepository.save(room);
+    let ret = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner", "owner")
+    .where("owner.id = :id", { id: createRoomDto.owner.id })
+    .where("room.date = :date", { date: createRoomDto.date })
+    .getOne()
+    return (ret);
   }
 
   // create(createRoomDto: CreateRoomDto) {

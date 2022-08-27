@@ -1,4 +1,4 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-rooms.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
@@ -26,14 +26,14 @@ export class ChatGateway {
     if(test == null)
       this.server.emit('createRoom', { create: false });
     else
-      this.server.emit('createRoom', { create: true });
+      this.server.emit('createRoom', {  create: true, test });
   }
 
   
   @SubscribeMessage('findAllRooms')
-  async getRooms() {
+  async getRooms(@ConnectedSocket() client: Socket) {
     const rooms = await this.chatService.getRooms();
-    this.server.emit('findAllRooms', { rooms });
+    this.server.to(client.id).emit('findAllRooms', { rooms });
   }
   
   // @SubscribeMessage('message')

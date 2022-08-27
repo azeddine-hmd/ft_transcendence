@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <ul id="messages"></ul>
+    </div>
+
+    <div>
+        <input type="text" id="message">
+        <button onclick="handleSubmitNewMessage()">Submit</button>
+    </div>
+
+<br><br><br><br><br>
+
+    <div id="creat_room">
+        <h1>create new room</h1>
+        <input type="text" id="createNewRoom">
+        <button onclick="handleSubmitCreateNewRoom()">Submit</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
+    <script src="./chat-socket.js"></script>
+</body>
+</html>
