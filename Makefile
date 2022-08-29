@@ -6,8 +6,16 @@ build:
 run: 
 	docker-compose up
 
+run_with_build: build run
+
 down:
 	docker-compose down
+
+clean:
+	rm -rf backend/node_modules frontend/node_modules
+	rm -rf backend/dist frontend/dist
+	rm -rf frontend/.next
+	rm -rf backend/package-lock.json frontend/package-lock.json
 
 restart: down run
 
@@ -23,4 +31,4 @@ front:
 db:
 	docker exec -it database bash
 
-.PHONY: build run down restart reset back front db
+.PHONY: build run down restart reset back front db run_with_build clean

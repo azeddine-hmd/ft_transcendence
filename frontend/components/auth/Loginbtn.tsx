@@ -1,14 +1,15 @@
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { NextRouter, useRouter } from 'next/router';
 import { apiService } from '../../network/api.service';
 import style from "../../styles/auth/Loginbtn.module.css";
 
 function login(router: NextRouter) {
-    apiService.get("/auth").then(function(res: AxiosResponse) {
+    apiService.post("/auth/login", { username: 'john', password: 'changeme', },
+    ).then((res: AxiosResponse) => {
         alert(res.data);
-        router.push("/auth");
-    }).catch(err => {
-        alert('something went wrong while connecting to backend');
+        router.push("/home");
+    }).catch((err: AxiosError) => {
+        alert(err);
     })
 }
 
