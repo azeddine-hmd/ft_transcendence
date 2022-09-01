@@ -1,4 +1,5 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { join } from "path";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Rooms } from "./rooms.entity";
 
 
@@ -9,4 +10,8 @@ export class Users {
 
     @Column()
     name: string;
+
+    // @JoinTable()
+    @ManyToMany(type => Rooms, (room) => room.id)
+    room: Rooms[];
 }

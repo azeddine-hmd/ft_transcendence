@@ -34,7 +34,7 @@ socket.on('createRoom', ({ test, create }) => {
     console.log(create);
     if (create)
     {
-        console.log("room => " + test.id + " " + test.title + " " + test.description + " " + test.privacy + " " + " " + " " + test.owner.id + " " + test.owner.name + " " + test.title);
+        console.log("room => " + test.id + " " + test.title + " " + test.description + " " + test.privacy + " " + " " + " " + test.owner.id + " " + test.owner.name);
     }
 })
 
@@ -51,7 +51,7 @@ socket.on('findAllRooms', ({ rooms }) => {
     for (let index = 0; index < rooms.length; index++) {
         const element = rooms[index];
         
-        console.log("room => " + element.id + " " + element.title + " " + element.description + " " + element.privacy + " " + " " + " " + element.owner.id + " " + element.owner.name + " " + element.title);
+        console.log("room => " + element.id + " " + element.title + " " + element.description + " " + element.privacy + " " + " " + " " + element.owner.id + " " + element.owner.name);
     }
 })
 

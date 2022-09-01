@@ -7,7 +7,7 @@ import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 
 
-
+let users:Map<string, string> = new Map();
 
 @WebSocketGateway({
   cors: {
@@ -60,9 +60,25 @@ export class ChatGateway {
   // update(@MessageBody() updateChatDto: UpdateChatDto) {
   //   return this.chatService.update(updateChatDto.id, updateChatDto);
   // }
+  async handleConnection(socket: Socket)
+  {
+    let number:any =  socket.handshake.headers.number;
 
-  // @SubscribeMessage('removeChat')
-  // remove(@MessageBody() id: number) {
-  //   return this.chatService.remove(id);
-  // }
+    number = parseInt(number);
+    if(number > 3)
+    {
+      socket.join("right")
+    }
+    else{
+      socket.join("left");
+    }
+    this.server.emit("greeting", {msg: "hello form faical server"});
+  }
+
+  @SubscribeMessage('message')
+  remove(@MessageBody() message: string) {
+    console.log("message is recieved :" + message )
+    this.server.to("right").emit("message", {msg: "right"})
+  }
+
 }

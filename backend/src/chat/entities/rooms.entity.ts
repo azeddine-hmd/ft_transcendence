@@ -1,4 +1,4 @@
-import { Column, Entity, Index, Long, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./users.entity";
 
 @Entity()
@@ -24,4 +24,8 @@ export class Rooms {
 
     @ManyToOne(type => Users, (user) => user.id)
     owner: Users;
+
+    @JoinTable()
+    @ManyToMany(type => Users, (user) => user.room, { cascade: true, })
+    joined_users: Users[];
 }
