@@ -12,12 +12,11 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-    Logger.debug(`validating user credentials...`);
     const user = await this.usersService.findOne(username);
 
     if (user && user.password === pass) {
+      Logger.log(`validation was success!`);
       const { password, ...result } = user;
-      Logger.debug(`user exist, result: \`${result}\``);
       return result;
     }
 
@@ -25,17 +24,18 @@ export class AuthService {
   }
 
   async registerUser(createLoginDto: CreateLoginDto): Promise<User> {
-    const user = await this.usersService.findOne(createLoginDto.username);
-    if (user) {
+    const userFound = await this.usersService.findOne(createLoginDto.username);
+    if (userFound) {
+      Logger.error(`registerUser: failed user exist!`);
       throw new ForbiddenException();
     }
-    const newUser = this.usersService.create(createLoginDto);
-
-    return newUser;
+    const user = this.usersService.create(createLoginDto);
+    Logger.log(`user '${user.username}' register successfully!`);
+    return user;
   }
 
   async login(user: any) {
-    Logger.log(`generating jwt token for user(${user})...`);
+    Logger.log(`user '${user.username}' logged-in!`);
     const payload = { username: user.username, sub: user.userId };
     return {
       access_token: this.jwtService.sign(payload),

@@ -6,9 +6,6 @@ export class CreateLoginDto {
   username: string;
 
   @Length(8, 16)
-  @Matches(
-    //TODO: find the right regex for password validation
-    /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/,
-  )
+  @Matches(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/)
   password: string;
 }

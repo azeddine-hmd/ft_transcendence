@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { RoomsModule } from './rooms/rooms.module';
+import { AuthModule } from '../auth/auth.module';
+import { RoomsModule } from '../rooms/rooms.module';
+import { UsersModule } from '../users/users.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -21,10 +23,10 @@ import { RoomsModule } from './rooms/rooms.module';
         synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
+    UsersModule,
     AuthModule,
     RoomsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
 })
 export class AppModule {}

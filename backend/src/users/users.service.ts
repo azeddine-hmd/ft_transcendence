@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateLoginDto } from 'src/auth/dto/create-login.dto';
+import { CreateLoginDto } from '../auth/dto/create-login.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 

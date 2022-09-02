@@ -1,4 +1,12 @@
-import { Body, Controller, Injectable, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Injectable,
+  Post,
+  Redirect,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateLoginDto } from './dto/create-login.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -9,7 +17,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @LocalAuthGuard
-  @Post('/auth/login')
+  @Post('/login')
   async login(@Request() req: any) {
     return this.authService.login(req.user);
   }
@@ -17,5 +25,13 @@ export class AuthController {
   @Post('/register')
   async register(@Body() CreateLoginDto: CreateLoginDto) {
     return this.authService.registerUser(CreateLoginDto);
+  }
+
+  @Get()
+  @Redirect('http://localhost:3000/logout')
+  logout() {
+    return {
+      redirection: true,
+    };
   }
 }
