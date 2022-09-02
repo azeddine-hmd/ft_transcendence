@@ -27,7 +27,7 @@ const handleSubmitNewMessage = () => {
         
         
 const handleSubmitCreateNewRoom = () => {
-    socket.emit('createRoom', { title: "topic#", description: "desc topic#", privacy: true, password: "pass123", owner: { id: +createNewRoom.value, name: null } });
+    socket.emit('createRoom', { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } });
 }
 
 socket.on('createRoom', ({ test, create }) => {

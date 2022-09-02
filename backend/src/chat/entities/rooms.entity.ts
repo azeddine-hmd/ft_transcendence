@@ -24,8 +24,4 @@ export class Rooms {
 
     @ManyToOne(type => Users, (user) => user.id)
     owner: Users;
-
-    @JoinTable()
-    @ManyToMany(type => Users, (user) => user.room, { cascade: true, })
-    joined_users: Users[];
 }

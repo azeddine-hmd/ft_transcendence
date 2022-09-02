@@ -10,8 +10,4 @@ export class Users {
 
     @Column()
     name: string;
-
-    // @JoinTable()
-    @ManyToMany(type => Rooms, (room) => room.id)
-    room: Rooms[];
 }
