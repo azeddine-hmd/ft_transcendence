@@ -1,16 +1,20 @@
-import { AxiosError, AxiosResponse } from 'axios';
 import { NextRouter, useRouter } from 'next/router';
-import { apiService } from '../../network/api.service';
+import { useEffect } from 'react';
+import { Api } from '../../network/api/api.request';
+import { ErrorResponse } from '../../network/dto/error-response.dto';
 import style from "../../styles/auth/Loginbtn.module.css";
 
 function login(router: NextRouter) {
-    apiService.post("/auth/login", { username: 'john', password: 'changeme', },
-    ).then((res: AxiosResponse) => {
-        alert(res.data);
-        router.push("/home");
-    }).catch((err: AxiosError) => {
-        alert(err);
-    })
+    Api.login({
+        user: { username: 'john', password: '123' },
+        onSuccess: () => {
+            router.push('/home');
+        },
+        onFailure: (err: ErrorResponse) => {
+            if (err)
+                alert(err.message);
+        }
+    });
 }
 
 export default function LoginBtn() {

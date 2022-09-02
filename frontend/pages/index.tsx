@@ -14,6 +14,10 @@ function Login() {
 }
 
 function Home() {
+    useEffect(() => {
+        if (localStorage.getItem('access_token'))
+            router.push('/home');
+    });
   return (
     <div>
       <Login/>
