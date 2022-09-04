@@ -6,6 +6,10 @@ import { DataSource, Repository } from 'typeorm';
 import { Users } from './entities/users.entity';
 import { stringify } from 'querystring';
 import { JoinRoomDto } from './dto/join-room.dto';
+import { CreateMsgDto } from './dto/create-msg.dto';
+import { Msg } from './entities/msg.entity';
+
+let roomsusers = new Map<number, number[]>();
 
 @Injectable()
 export class ChatService {
@@ -13,7 +17,9 @@ export class ChatService {
     @InjectRepository(Rooms)
     private readonly roomRepository: Repository<Rooms>,
     @InjectRepository(Users)
-    private readonly usersRepository: Repository<Users>,
+    private readonly userRepository: Repository<Users>,
+    @InjectRepository(Msg)
+    private readonly msgRepository: Repository<Msg>,
   )
   {}
   
@@ -22,7 +28,7 @@ export class ChatService {
       relations: ['owner'],
     });
     
-    // let check = await this.usersRepository.createQueryBuilder('users')
+    // let check = await this.userRepository.createQueryBuilder('users')
     // .select()
     // .getOne();
     
@@ -30,16 +36,16 @@ export class ChatService {
     // .relation(Users, 'rooms')
     // .of(rooms[0])
     // .add(check);
-    // let user = this.usersRepository.createQueryBuilder().select().getOneOrFail();
+    // let user = this.userRepository.createQueryBuilder().select().getOneOrFail();
     // let room = this.roomRepository.createQueryBuilder().select().getOneOrFail();
     // (await room).joined_users.push(user);
     // (await room).joined_users.forEach(element => {
     //   console.log(element.id + " " + element.name);
       
     // });
-    // var usr: any = await this.usersRepository.createQueryBuilder().select().where("id = :id", { id: 5 }).getOne();
+    // var usr: any = await this.userRepository.createQueryBuilder().select().where("id = :id", { id: 5 }).getOne();
     // this.roomRepository.createQueryBuilder("room").leftJoinAndSelect("room.joined_users", "ju").getOneOrFail().then((room60) => {
-    //     this.usersRepository.createQueryBuilder().select().getOneOrFail().then((user5: Users) => {
+    //     this.userRepository.createQueryBuilder().select().getOneOrFail().then((user5: Users) => {
         
     //     if (usr !== null)
     //     {
@@ -64,7 +70,7 @@ export class ChatService {
   }
 
   async createRoom(createRoomDto: CreateRoomDto) {
-    let check = await this.usersRepository.createQueryBuilder('users')
+    let check = await this.userRepository.createQueryBuilder('users')
     .select()
     .where("users.id = :id", { id: createRoomDto.owner.id })
     .getOne()
@@ -82,13 +88,12 @@ export class ChatService {
   }
 
   async joinRoom(joinRoomDto: JoinRoomDto) {
-    console.log(joinRoomDto);
     
-    let checkuser = await this.usersRepository.createQueryBuilder('users')
+    let checkuser = await this.userRepository.createQueryBuilder('users')
     .select()
     .where("users.id = :id", { id: joinRoomDto.userId })
     .getOne();
-    let checkroom = await this.usersRepository.createQueryBuilder('rooms')
+    let checkroom = await this.roomRepository.createQueryBuilder('rooms')
     .select()
     .where("rooms.id = :id", { id: joinRoomDto.roomId })
     .getOne()
@@ -96,9 +101,31 @@ export class ChatService {
       return 1;
     else if (checkroom == null)
       return 2;
+
     return (0);
   }
 
+
+  async createMsg(createMsgDto: CreateMsgDto) {
+    let checkuser = await this.userRepository.createQueryBuilder('users')
+    .select()
+    .where("users.id = :id", { id: createMsgDto.user })
+    .getOne();
+
+    
+    if(checkuser == null)
+      return 1;
+    let checkroom = await this.roomRepository.createQueryBuilder('rooms')
+      .select()
+      .where("rooms.id = :id", { id: createMsgDto.room })
+      .getOne();
+    if(checkroom == null)
+      return 2;
+    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg});
+    
+    await this.msgRepository.save(msg);
+    return (3);
+  }
 
   // create(createRoomDto: CreateRoomDto) {
   //   return 'This action adds a new chat';

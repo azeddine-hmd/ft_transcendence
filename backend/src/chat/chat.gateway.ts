@@ -6,6 +6,7 @@ import { Server, Socket } from 'socket.io';
 import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Users } from './entities/users.entity';
 import { JoinRoomDto } from './dto/join-room.dto';
+import { CreateMsgDto } from './dto/create-msg.dto';
 
 
 let users:Map<string, string> = new Map();
@@ -25,14 +26,22 @@ export class ChatGateway {
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto) {
     let test =  await this.chatService.createRoom(createRoomDto);
     if(test == null)
-      this.server.emit('createRoom', { create: false });
+      this.server.emit('createRoom', { created: false });
     else
-      this.server.emit('createRoom', {  create: true, test });
+      this.server.emit('createRoom', {  created: true });
+
+
+
+
+
+
+
+      // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
   }
 
   
   @SubscribeMessage('joinRoom')
-  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, socket: Socket) {
+  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() socket: Socket) {
     let join =  await this.chatService.joinRoom(joinRoomDto);
     if (join == 1)
       this.server.emit('joinRoom', { joined: false, error: "user not found" });
@@ -40,9 +49,14 @@ export class ChatGateway {
       this.server.emit('joinRoom', { joined: false, error: "room not found" });
     else
     {
+      
       socket.join(joinRoomDto.roomId.toString());
       // this.server.to(joinRoomDto.roomId.toString()).emit("message", {msg: "right"})
+      
       this.server.emit('joinRoom', { joined: true, error: "" });
+
+
+      // { "userId": 4, "roomId": 2 }
     }
   }
 
@@ -52,30 +66,6 @@ export class ChatGateway {
     this.server.to(client.id).emit('findAllRooms', { rooms });
   }
   
-  // @SubscribeMessage('message')
-  // handleMessage(@MessageBody() message: string): void {
-  //   this.server.emit('message', message);
-  // }
-
-  // @SubscribeMessage('createChat')
-  // create(@MessageBody() createRoomDto: CreateRoomDto) {
-  //   return this.chatService.create(CreateRoomDto);
-  // }
-
-  // @SubscribeMessage('findAllChat')
-  // findAll() {
-  //   return this.chatService.findAll();
-  // }
-
-  // @SubscribeMessage('findOneChat')
-  // findOne(@MessageBody() id: number) {
-  //   return this.chatService.findOne(id);
-  // }
-
-  // @SubscribeMessage('updateChat')
-  // update(@MessageBody() updateChatDto: UpdateChatDto) {
-  //   return this.chatService.update(updateChatDto.id, updateChatDto);
-  // }
 
 
 
@@ -83,6 +73,21 @@ export class ChatGateway {
 
 
 
+
+
+  @SubscribeMessage('createMsg')
+  async  createMsg(@MessageBody() createMsgDto: CreateMsgDto) {
+    
+    let test =  await this.chatService.createMsg(createMsgDto);
+    if(test == 1)
+      this.server.emit('createMsg', { created: false, error: "user not found" });
+    else if (test == 2)
+      this.server.emit('createMsg', { created: false, error: "room not found" });
+    else
+      this.server.emit('createMsg', { created: true, error: "" });
+
+      // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
+  }
 
 
 
@@ -111,8 +116,11 @@ export class ChatGateway {
     //   socket.join("left");
     // }
     // this.server.emit("greeting", {msg: "hello form faical server"});
-    const rooms = await this.chatService.getRooms();
-    this.server.to(socket.id).emit('findAllRooms', { rooms });
+
+
+
+    // const rooms = await this.chatService.getRooms();
+    // this.server.to(socket.id).emit('findAllRooms', { rooms });
   }
 
   // @SubscribeMessage('message')
