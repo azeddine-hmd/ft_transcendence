@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm'
 import { AuthModule } from './auth/auth.module';
-import { RoomsModule } from './rooms/rooms.module';
+import { ChatModule } from './chat/chat.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -24,8 +24,7 @@ import { UsersModule } from './users/users.module';
     }),
     UsersModule,
     AuthModule,
-    RoomsModule,
-
+    ChatModule,
   ],
   controllers: [],
   providers: [],
