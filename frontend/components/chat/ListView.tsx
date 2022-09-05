@@ -5,8 +5,8 @@ import style from '../../styles/chat/ListView.module.css'
 import { io } from "socket.io-client";
 import stylee from '../../styles/chat/Card.module.css'
 
-
 var socket = io('http://localhost:8080', { transports: ['websocket'] });
+
 
 
 function CreateNewRoom() {
@@ -14,21 +14,18 @@ function CreateNewRoom() {
     const [password, setPassword] = useState('');
     const handlePasswordChange = (event:React.KeyboardEvent<HTMLInputElement>) => {
         setPassword(event.currentTarget.value);
-        console.log(password);
         
     };
     
     const [description, setDescription] = useState('');
     const handleDescriptionChange = (event:React.KeyboardEvent<HTMLInputElement>) => {
         setDescription(event.currentTarget.value);
-        console.log(description);
         
     };
     
     const [title, setTitle] = useState('');
     const handleTitleChange = (event:React.KeyboardEvent<HTMLInputElement>) => {
         setTitle(event.currentTarget.value);
-        console.log(title);
         
     };
     
@@ -38,8 +35,8 @@ function CreateNewRoom() {
             alert('all fields marked (*) must ne filled');
             return;
         }
+    
         socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password, "owner": { "id": 1, "name": null } });
-        socket.emit('findAllRooms');
     }
     
     return (
@@ -63,16 +60,17 @@ function CreateNewRoom() {
 export default function ListView() {
     const [data, setData] = useState(rooms);
 
-    useEffect(() => {
-        socket.emit('findAllRooms')
-        socket.on('createRoom', ({created}) => {
-            console.log('created=' + created);
-            
-        })
-        socket.on('findAllRooms', ({ rooms }) => {
-            setData(rooms)
-        })
-    }, []);
+    socket.emit('findAllRooms')
+    socket.on('createRoom', ({ created }) => {
+        console.log(created);
+        if (created)
+            socket.emit('findAllRooms');
+        else
+            alert('something went wrong :(');
+    })
+    socket.on('findAllRooms', ({ rooms }) => {
+        setData(rooms)
+    })
 
     return (
         <div className={style.list}>
@@ -85,11 +83,11 @@ export default function ListView() {
             </div>
             <div className={style.scroll}>
             <div>
-                <CreateNewRoom />
+                <CreateNewRoom/>
             </div>
                 {data.map(room => {
                     return (
-                        <Card title={room.title} description={room.description} members={room.members} uri={room.uri} />
+                        <Card title={room.title} description={room.description} members={room.members} id={room.uri} />
                     );
                 })}
             </div>
