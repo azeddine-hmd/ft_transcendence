@@ -1,7 +1,10 @@
 import style from '../../styles/chat/ChatView.module.css'
-import Card from './ChatCard';
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
+import { useState } from 'react';
+import { io } from "socket.io-client";
+
+var socket = io('http://localhost:8080', { transports: ['websocket'] });
 
 interface props {
     id: string;
@@ -9,9 +12,12 @@ interface props {
     message: string;
     date: string;
 }
-const data: props[] = messages;
 
-export default function ChatView() {
+interface Props {
+    data: props[]
+}
+
+function Layout({data}:Props) {
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
@@ -30,6 +36,23 @@ export default function ChatView() {
                 <input type="text" id={style.messageBar} placeholder="Aa"></input>
                 <button id={style.messageBarSendBtn}>Send</button>
             </div>
+        </div>
+    );
+}
+
+
+export default function ChatView() {
+    const [data, setData] = useState(messages);
+    const [visible, setVisibility] = useState(false)
+    // on card clicked setVisibility(true);
+    socket.on('joinRoom', (data:props[]) => {
+        setVisibility(true);
+        setData(data);
+    })
+
+    return (
+        <div>
+            {visible ? <Layout data={data} /> : null}
         </div>
     );
 }
