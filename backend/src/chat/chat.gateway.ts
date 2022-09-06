@@ -41,22 +41,21 @@ export class ChatGateway {
 
   
   @SubscribeMessage('joinRoom')
-  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() socket: Socket) {
+  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
     let join =  await this.chatService.joinRoom(joinRoomDto);
     if (join == 1)
-      this.server.emit('joinRoom', { joined: false, error: "user not found" });
+      this.server.to(client.id).emit('joinRoom', { joined: false, error: "user not found" });
     else if (join == 2)
-      this.server.emit('joinRoom', { joined: false, error: "room not found" });
+      this.server.to(client.id).emit('joinRoom', { joined: false, error: "room not found" });
     else
     {
-      
-      socket.join(joinRoomDto.roomId.toString());
+
+      client.join(joinRoomDto.roomId.toString());
       // this.server.to(joinRoomDto.roomId.toString()).emit("message", {msg: "right"})
-      
-      this.server.emit('joinRoom', { joined: true, error: "" });
+      const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
+      this.server.to(client.id).emit('joinRoom', { joined: true, msgs });
 
-
-      // { "userId": 4, "roomId": 2 }
+      // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
     }
   }
 
@@ -76,17 +75,25 @@ export class ChatGateway {
 
 
   @SubscribeMessage('createMsg')
-  async  createMsg(@MessageBody() createMsgDto: CreateMsgDto) {
+  async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
     
     let test =  await this.chatService.createMsg(createMsgDto);
     if(test == 1)
-      this.server.emit('createMsg', { created: false, error: "user not found" });
+      this.server.to(client.id).emit('createMsg', { created: false, error: "user not found!" });
     else if (test == 2)
-      this.server.emit('createMsg', { created: false, error: "room not found" });
+      this.server.to(client.id).emit('createMsg', { created: false, error: "room not found!" });
+    else if (test == 3)
+      this.server.to(client.id).emit('createMsg', { created: false, error: "u didn't join this room!" });
     else
-      this.server.emit('createMsg', { created: true, error: "" });
+    {
+      // this.server.emit('createMsg', { created: true, error: "" });
+      // client.broadcast('', {});
+      client.join(createMsgDto.room.toString());
+      this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
+    }
 
-      // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
+  
+      // { "user": 1, "room": 1, "msg": "hello" }
   }
 
 
@@ -103,9 +110,22 @@ export class ChatGateway {
 
 
 
-  async handleConnection(socket: Socket)
+  async handleConnection(@ConnectedSocket() client: Socket)
   {
-    // let number:any =  socket.handshake.headers.number;
+    
+    let auth:any =  client.handshake.headers.auth;
+    
+    let checkUserJoined =  await this.chatService.joinToAllUrRooms(auth);
+    
+    
+    
+    checkUserJoined.forEach(element => {
+      client.join(element.rid.toString());
+    });
+    
+    
+    
+    
 
     // number = parseInt(number);
     // if(number > 3)
