@@ -20,7 +20,7 @@ function CreateNewRoom() {
     const handleSubmitCreateNewRoom = () => {
 
         if (title === '' || description === '')
-            return alert('all fields marked (*) must ne filled');
+            return alert('all fields marked (*) must be filled');
         socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password, "owner": { "id": 1, "name": null } });
     }
 
