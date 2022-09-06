@@ -11,6 +11,8 @@ interface props {
     name: string;
     message: string;
     date: string;
+    roomID: string;
+    roomTitle: string;
 }
 
 interface Props {
@@ -21,7 +23,7 @@ function Layout({data}:Props) {
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
-            <h2>Lobby😃</h2>
+            <h2>{data[0].roomTitle}</h2>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
