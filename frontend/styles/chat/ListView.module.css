@@ -20,7 +20,7 @@
 }
 
 .buttonsHolder > button {
-  flex-grow: 1;
+  width: 48%;
   margin: auto;
 }
 
@@ -45,6 +45,11 @@
   font-size: 15px;
   border-radius: 8px;
   border: none;
-  margin: 10px;
   height: 35px;
+}
+
+.button:hover {
+  background-color:rgb(54, 137, 24);
+  color: #ffffff;
+  transition: 0.3s;
 }
