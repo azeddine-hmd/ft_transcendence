@@ -7,7 +7,7 @@
 
 /* Remove extra left and right margins, due to padding in columns */
 .row {
-  margin: 40;
+  margin-top: 5px;
 }
 
 /* Clear floats after the columns */
@@ -30,6 +30,18 @@
   
 }
 
+.noHoverCard {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  margin: 1px;
+  border-radius: 10px;
+  /* this adds the "card" effect */
+  padding: 3px 15px 3px 15px;
+  text-align: left;
+  background-color: #fff;
+  position: relative;
+  
+}
+
 #Counter {
   color: #04AA6D;
 }
@@ -40,4 +52,16 @@
   height: 100%;
   top: 0px;
   left: 0px;
+}
+
+.card:hover {
+  background-color: rgb(54, 137, 24);;
+  transition: 0.2s;
+  color: #fff;
+}
+
+.input {
+  width: 100%;
+  margin: 5px;
+  padding: 3px;
 }
