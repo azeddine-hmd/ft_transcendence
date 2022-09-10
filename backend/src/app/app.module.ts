@@ -24,6 +24,9 @@ import { ChatModule } from './chat/chat.module';
       }),
     }),
     UsersModule,
+    RoomsModule,
+    AuthModule,
     ChatModule,
+  ],
 })
 export class AppModule {}
