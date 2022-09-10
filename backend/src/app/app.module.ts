@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { ChatModule } from '../chat/chat.module';
 import { UsersModule } from '../users/users.module';
-import { RoomsModule } from '../rooms/rooms.module';
-import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -24,8 +22,6 @@ import { ChatModule } from './chat/chat.module';
       }),
     }),
     UsersModule,
-    RoomsModule,
-    AuthModule,
     ChatModule,
   ],
 })
