@@ -67,4 +67,34 @@ export class Api {
         }
         return args.onFailure({ message: "something went wrong!" });
     }
+
+    static async autherizeFortytwo(args: {
+        onSuccess: (data: any) => void;
+        onFailure: (err: ErrorResponse) => void;
+    }) {
+        try {
+            const res = await axios.get(
+                "https://api.intra.42.fr/oauth/authorize",
+                {
+                    params: {
+                        client_id: process.env.NEXT_PUBLIC_CLIENT_ID,
+                        redirect_uri: process.env.NEXT_PUBLIC_REDIRECT_URI,
+                        response_type: process.env.NEXT_PUBLIC_RESPONSE_TYPE,
+                    },
+                    headers: {
+                            'Sec-Fetch-Modes': 'no-cors',
+                    },
+                }
+            );
+            return args.onSuccess(res.data);
+        } catch (err: any) {
+            if (axios.isAxiosError(err)) {
+                const error = err as AxiosError<ErrorResponse>;
+                if (error && error.response && error.response.data) {
+                    return args.onFailure(error.response.data);
+                }
+            }
+        }
+        return args.onFailure({ message: "something went wrong!" });
+    }
 }

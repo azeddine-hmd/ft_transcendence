@@ -11,8 +11,8 @@ async function bootstrap() {
 
   // swagger setup
   const config = new DocumentBuilder()
-    .setTitle('Ping Pong online Game')
-    .setDescription('Ping Pong online backend service api')
+    .setTitle('Ping Pong Game')
+    .setDescription('Ping Pong online game')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

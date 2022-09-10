@@ -78,11 +78,11 @@ export default function Sidebar({isopen,setisopen}:any) {
 
                 <li className="list py-9">
                             {isopen ? 
-                            <Link href={"/"}><a className="flex justify-center items-center">
+                            <Link href={"/logout"}><a className="flex justify-center items-center">
                                 <i className="px-3"><BiLogOut size={30}/></i>
                                 Log Out
                             </a></Link>
-                            :<Link href={"/"}><a href="#">
+                            :<Link href={"/logout"}><a href="#">
                                 <i><BiLogOut size={30}/></i>
                             </a></Link>}                    </li>
                 </div>

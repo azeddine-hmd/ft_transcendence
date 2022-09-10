@@ -1,17 +1,22 @@
-import { Button } from "@mui/material";
-import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 export default function Callback() {
   const router = useRouter();
-  function handltest()
-  {
-    router.push('/home');
-  }
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search)
+    const access_token = queryParams.get('access_token');
+    if (access_token) {
+      localStorage.setItem('access_token', access_token);
+    } else {
+      //TODO: display error for receiving invalid access_token
+    }
+    router.push('/');
+  })
+
   return (
     <>
-      <h1 onClick={handltest}>callback</h1>
-      <Link href={'/home'}><Button>Go Home</Button></Link>
     </>
   );
 }

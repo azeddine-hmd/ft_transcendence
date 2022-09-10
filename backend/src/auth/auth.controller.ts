@@ -5,10 +5,12 @@ import {
   Injectable,
   Post,
   Redirect,
-  Request,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateLoginDto } from './dto/create-login.dto';
+import { FTAuthGuard } from './guards/ft.guard';
+import { CreateUserDto } from './dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Injectable()
@@ -18,20 +20,30 @@ export class AuthController {
 
   @LocalAuthGuard
   @Post('/login')
-  async login(@Request() req: any) {
+  async login(@Req() req: any) {
     return this.authService.login(req.user);
   }
 
   @Post('/register')
-  async register(@Body() CreateLoginDto: CreateLoginDto) {
+  async register(@Body() CreateLoginDto: CreateUserDto) {
     return this.authService.registerUser(CreateLoginDto);
   }
 
   @Get()
   @Redirect('http://localhost:3000/logout')
   logout() {
+    return '';
+  }
+
+  @FTAuthGuard
+  @Get('/42/callback')
+  @Redirect()
+  async FTCallback(@Req() req: any) {
+    const loginDto = await this.authService.login(req.user);
     return {
-      redirection: true,
+      url:
+        'http://localhost:3000/auth/42/callback?access_token=' +
+        loginDto.access_token,
     };
   }
 }

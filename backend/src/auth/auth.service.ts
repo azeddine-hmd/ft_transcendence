@@ -2,7 +2,9 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import { CreateLoginDto } from './dto/create-login.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginPayloadDto } from './dto/login-payload.dto';
+import { UserPayloadDto } from './dto/user-payload.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +17,7 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
 
     if (user && user.password === pass) {
-      Logger.log(`validation was success!`);
+      Logger.log(`AuthService#validateUser: validation was success!`);
       const { password, ...result } = user;
       return result;
     }
@@ -23,22 +25,23 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(createLoginDto: CreateLoginDto): Promise<User> {
+  async registerUser(createLoginDto: CreateUserDto): Promise<User> {
     const userFound = await this.usersService.findOne(createLoginDto.username);
     if (userFound) {
-      Logger.error(`registerUser: failed user exist!`);
+      Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException();
     }
     const user = this.usersService.create(createLoginDto);
-    Logger.log(`user '${user.username}' register successfully!`);
+    Logger.log(
+      `AuthService#registerUser: user '${user.username}' register is successful!`,
+    );
     return user;
   }
 
-  async login(user: any) {
-    Logger.log(`user '${user.username}' logged-in!`);
-    const payload = { username: user.username, sub: user.userId };
+  async login(user: UserPayloadDto): Promise<LoginPayloadDto> {
+    Logger.log(`AuthService#login: user '${user.username}' logged-in!`);
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(user),
     };
   }
 }

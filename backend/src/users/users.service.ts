@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateLoginDto } from '../auth/dto/create-login.dto';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { FtProfileDto } from 'src/auth/dto/ft-profile.dto';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -11,7 +13,7 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  create(createLoginDto: CreateLoginDto) {
+  create(createLoginDto: CreateUserDto) {
     const user: User = this.userRepository.create(createLoginDto);
     this.userRepository.save(user);
     Logger.debug(`user \`${user.username}\` is created and saved to database`);
@@ -25,6 +27,17 @@ export class UsersService {
   async findOne(username: string): Promise<User | null> {
     const user = await this.userRepository.findOneBy({ username: username });
     return user;
+  }
+
+  async findOrCreate(ftProfileDto: FtProfileDto): Promise<User> {
+    const foundUser = await this.userRepository.findOneBy({
+      ftId: +ftProfileDto.ftId,
+    });
+    if (!foundUser) {
+      const user = plainToInstance(User, ftProfileDto);
+      return this.userRepository.save(user);
+    }
+    return foundUser;
   }
 
   async remove(username: string): Promise<void> {
