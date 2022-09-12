@@ -1,0 +1,25 @@
+.hi {
+    font-family: 'Snippet', sans-serif;
+    color: #087E8B;
+}
+
+.username{
+    font-family: 'Langar', cursive;
+    color: #087E8B;
+
+}
+.last_matches1{
+    font-family: 'Roboto Serif', serif;
+    font-weight: 600;
+    color: #0B3954;
+}
+
+.infouser {
+    box-shadow: 10px 5px 15px  rgb(72, 72, 72);
+}
+.allcart{
+    box-shadow: 10px 5px 15px  rgb(72, 72, 72);
+}
+.userone{
+    font-family: 'Langar', cursive;
+}

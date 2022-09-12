@@ -1,0 +1,21 @@
+.uploadvd{
+    background-image: url(./44.gif);
+    background-repeat: no-repeat;
+    /* background-attachment: fixed; */
+    background-position: center;
+    background-size: cover;
+    box-shadow: 10px 5px 15px  rgb(72, 72, 72);
+    border-radius: 0 123px 123px 0;
+    opacity: 1;
+
+}
+.btnplaynow {
+    background-color: #087E8B;
+    color: #fff;
+    border: 2px solid  rgb(222, 219, 219);
+    border-radius: 47px;
+    width: 336px;
+    height: 117px;
+    font-size: 40px;
+
+}

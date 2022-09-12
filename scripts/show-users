@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker-compose exec database bash -c 'psql -U postgres -d transcendence -c "TABLE game_user;"'

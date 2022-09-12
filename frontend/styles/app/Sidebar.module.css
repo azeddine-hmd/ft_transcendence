@@ -1,8 +1,9 @@
-.sidebar {
-    background-color: #002642;
-    /* width: 10vw;
-    color: white;
-    height: 100vh;
-    margin: 0; */
+.linknav {
+    transition: all 0.5s ease;
+    background-color: aquamarine;
+    color: black;
+}
 
+.list {
+    transition: all 0.5s ease-in-out;
 }

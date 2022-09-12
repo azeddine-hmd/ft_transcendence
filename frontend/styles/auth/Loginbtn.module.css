@@ -21,11 +21,12 @@
 }
 
 .Login {
-    background-color: #f4a261;
-    color:black;
+    background-color: rgb(8, 126, 139);
+    color: white;
     padding: 20px 60px;
+    border: 2px solid #fff;
     border-radius: 10px;
-    border: none;
+    /* border: none; */
     box-shadow: 5px 3px 8px  #888888;
     cursor: pointer;
     font-size: 25px;
