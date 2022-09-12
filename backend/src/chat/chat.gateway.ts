@@ -8,6 +8,7 @@ import { Users } from './entities/users.entity';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
+import { PrivateMsgDto } from './dto/privateMsg.dto';
 
 
 let users:Map<string, string> = new Map();
@@ -171,6 +172,37 @@ export class ChatGateway {
     // { "user": 1, "room": 1, "msg": "hello" }
   }
 
+
+  @SubscribeMessage('createMsgPrivate')
+  async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
+    let auth:any =  client.handshake.headers.auth;
+    let test =  await this.chatService.createMsgPrivate(privateMsgDto, auth);
+
+    let arr: Users[] = [];
+    
+    // if (test > 0)
+    // {
+      // test.forEach(element => {
+        
+        // if (element.user1.id == auth)
+        // arr.push(element.user2);
+        // else
+        // arr.push(element.user1);
+      // });
+    // }
+    
+    // this.server.to(client.id).emit('createMsgPrivate', test);
+
+
+    // client.broadcast('', {});
+    // client.join(createMsgDto.room.toString());
+
+    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
+
+
+
+    // { "user": 1, "room": 1, "msg": "hello" }
+  }
 
   // last practice
 

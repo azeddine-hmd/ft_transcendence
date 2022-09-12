@@ -13,6 +13,7 @@ import { Join } from './entities/join.entity';
 import { ConversationDto } from './dto/conversation.dto';
 import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
+import { PrivateMsgDto } from './dto/privateMsg.dto';
 
 let roomsusers = new Map<number, number[]>();
 
@@ -221,6 +222,31 @@ export class ChatService {
     .innerJoinAndSelect("dm.receiver", "receiver")
     .where("(sender.id = :id AND receiver.id = :id2) OR (sender.id = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
     .getMany();
+    // .where("sender.id = :id", { id: auth })
+    // .andWhere("receiver.id = :id2", { id2: conversationDto.user })
+    // .orWhere("sender.id = :id3", { id3: conversationDto.user })
+    // .andWhere("receiver.id = :id4", { id4: auth })
+    // .getMany();
+
+    // console.log(conversationDto.user, auth, ret);
+    
+    return (ret);
+  }
+
+  async createMsgPrivate(privateMsgDto: PrivateMsgDto, auth: any) {
+    
+    let ret = await this.conversationRepository.createQueryBuilder('conversation')
+    .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("conversation.user2", "user2")
+    .where("(user1.id = :id AND user2.id = :id2) OR (user1.id = :id2 AND user2.id = :id)", { id: auth, id2: privateMsgDto.user })
+    .getMany();
+    if (ret)
+    {
+      const cnv = this.conversationRepository.create({ user1: { id: auth, name: ""}, user2: { id: privateMsgDto.user, name: ""} });
+      await this.conversationRepository.save(cnv);
+    }
+    const msg = this.dmRepository.create({ sender: { id: auth, name: ""}, receiver: { id: privateMsgDto.user, name: ""}, message: privateMsgDto.msg });
+    await this.dmRepository.save(msg);
     // .where("sender.id = :id", { id: auth })
     // .andWhere("receiver.id = :id2", { id2: conversationDto.user })
     // .orWhere("sender.id = :id3", { id3: conversationDto.user })
