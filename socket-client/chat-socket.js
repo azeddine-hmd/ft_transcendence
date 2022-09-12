@@ -27,15 +27,15 @@ const handleSubmitNewMessage = () => {
         
         
 const handleSubmitCreateNewRoom = () => {
-    socket.emit('createRoom', { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } });
+    socket.emit('createRoom', { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": 2, "name": null } });
 }
 
-socket.on('createRoom', ({ test, create }) => {
-    console.log(create);
-    if (create)
-    {
-        console.log("room => " + test.id + " " + test.title + " " + test.description + " " + test.privacy + " " + " " + " " + test.owner.id + " " + test.owner.name);
-    }
+socket.on('createRoom', ({ created }) => {
+    console.log(created);
+    // if (create)
+    // {
+    //     console.log("room => " + test.id + " " + test.title + " " + test.description + " " + test.privacy + " " + " " + " " + test.owner.id + " " + test.owner.name);
+    // }
 })
 
 
