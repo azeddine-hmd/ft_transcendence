@@ -179,7 +179,6 @@ export class ChatGateway {
   @SubscribeMessage('createMsgPrivate')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
     let auth:any =  client.handshake.headers.auth;
-    console.log("hellog");
     await this.chatService.createMsgPrivate(privateMsgDto, auth);
 
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
