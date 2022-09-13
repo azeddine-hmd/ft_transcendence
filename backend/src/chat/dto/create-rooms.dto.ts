@@ -16,8 +16,6 @@ export class CreateRoomDto {
 
     date: Date;
 
-    owner: {
-        id: number,
-        name: string,
-    };
+    // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123" }
+
 }
