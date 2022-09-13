@@ -9,9 +9,10 @@ import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
+import { arrayBuffer } from 'stream/consumers';
 
 
-let users:Map<string, string> = new Map();
+let usersClient:Map<string, string[] | undefined> = new Map();
 
 @WebSocketGateway({
   cors: {
@@ -144,6 +145,8 @@ export class ChatGateway {
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
     let auth:any =  client.handshake.headers.auth;
+   
+    
     let test =  await this.chatService.getPrivateMsg(conversationDto, auth);
 
     let arr: Users[] = [];
@@ -176,32 +179,21 @@ export class ChatGateway {
   @SubscribeMessage('createMsgPrivate')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
     let auth:any =  client.handshake.headers.auth;
-    let test =  await this.chatService.createMsgPrivate(privateMsgDto, auth);
+    console.log("hellog");
+    await this.chatService.createMsgPrivate(privateMsgDto, auth);
 
-    let arr: Users[] = [];
-    
-    // if (test > 0)
-    // {
-      // test.forEach(element => {
+    if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
+    {
+      let u = await this.chatService.getUser(auth);
+
+      usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
         
-        // if (element.user1.id == auth)
-        // arr.push(element.user2);
-        // else
-        // arr.push(element.user1);
-      // });
-    // }
+        this.server.to(element).emit("receiveNewPrivateMsg", {sender: u, msg: privateMsgDto.msg});
+      });
     
-    // this.server.to(client.id).emit('createMsgPrivate', test);
+    }
+    // client.broadcast.emit("createMsgPrivate", { newMsg: privateMsgDto.msg })
 
-
-    // client.broadcast('', {});
-    // client.join(createMsgDto.room.toString());
-
-    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
-
-
-
-    // { "user": 1, "room": 1, "msg": "hello" }
   }
 
   // last practice
@@ -215,17 +207,22 @@ export class ChatGateway {
     this.server.to(client.id).emit('auth', { userId: auth });
     
     let checkUserJoined =  await this.chatService.joinToAllUrRooms(auth);
-    
-    
-    
+
     checkUserJoined.forEach(element => {
       client.join(element.rid.toString());
     });
-    
-    
-    
-    
+ 
+    if (usersClient.get((auth).toString()) === undefined)
+      usersClient.set(auth.toString(), [client.id]);
+    else
+    {
+      let arr: string[] | undefined = new Array();
+      arr = usersClient.get((auth).toString());
+      arr?.push(client.id);
+      usersClient.set(auth.toString(), arr);
+    }
 
+    
     // number = parseInt(number);
     // if(number > 3)
     // {

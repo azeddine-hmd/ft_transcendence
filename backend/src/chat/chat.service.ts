@@ -239,8 +239,8 @@ export class ChatService {
     .innerJoinAndSelect("conversation.user1", "user1")
     .innerJoinAndSelect("conversation.user2", "user2")
     .where("(user1.id = :id AND user2.id = :id2) OR (user1.id = :id2 AND user2.id = :id)", { id: auth, id2: privateMsgDto.user })
-    .getMany();
-    if (ret)
+    .getOne();
+    if (!ret)
     {
       const cnv = this.conversationRepository.create({ user1: { id: auth, name: ""}, user2: { id: privateMsgDto.user, name: ""} });
       await this.conversationRepository.save(cnv);
@@ -255,10 +255,19 @@ export class ChatService {
 
     // console.log(conversationDto.user, auth, ret);
     
-    return (ret);
+    
   }
 
-
+  async getUser(auth: any) {
+    
+    let checkuser = await this.userRepository.createQueryBuilder('users')
+    .select()
+    .where("users.id = :id", { id: auth })
+    .getOne();
+    if(checkuser == null)
+      return 1;
+    return checkuser;
+  }
   // create(createRoomDto: CreateRoomDto) {
   //   return 'This action adds a new chat';
   // }
