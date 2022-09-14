@@ -38,6 +38,11 @@ color: rgb(54, 137, 24);
     
 }
 
+#messageBarSendBtn:hover {
+    color: #ffffff;
+    background-color: rgb(54, 137, 24);
+}
+
 .chatBoard {
     height: 100%;
     width: 100%;

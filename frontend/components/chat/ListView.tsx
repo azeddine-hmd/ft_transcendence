@@ -12,15 +12,15 @@ function CreateNewRoom() {
     const [password, setPassword] = useState('');
     const [description, setDescription] = useState('');
     const [title, setTitle] = useState('');
-    
-    const handlePasswordChange = (event:React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
-    const handleDescriptionChange = (event:React.KeyboardEvent<HTMLInputElement>) => { setDescription(event.currentTarget.value); };
-    const handleTitleChange = (event:React.KeyboardEvent<HTMLInputElement>) => { setTitle(event.currentTarget.value); };
-    
+
+    const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
+    const handleDescriptionChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setDescription(event.currentTarget.value); };
+    const handleTitleChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setTitle(event.currentTarget.value); };
+
     const handleSubmitCreateNewRoom = () => {
 
         if (title === '' || description === '')
-            return alert('all fields marked (*) must ne filled');
+            return alert('all fields marked (*) must be filled');
         socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password, "owner": { "id": 1, "name": null } });
     }
 
@@ -54,7 +54,7 @@ export default function ListView() {
     const [tmp, setTMP] = useState(rooms);
     const [channel, setChannel] = useState('rooms');
 
-    if (!pageLoaded){
+    if (!pageLoaded) {
         socket.emit('findAllRooms');
         pageLoaded = true;
     }
@@ -63,7 +63,7 @@ export default function ListView() {
         if (created)
             socket.emit('findAllRooms');
         else
-            alert('something went wrong :(');
+            alert('went wrong :(');
     });
 
     socket.on('findFriends', ({ friends }) => {
@@ -78,10 +78,9 @@ export default function ListView() {
         setChannel('rooms');
     });
 
-    const onSearch = (event:React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.currentTarget.value.trim() != '')
-        {
-            const result = tmp.filter(function(data){
+    const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.currentTarget.value.trim() != '') {
+            const result = tmp.filter(function (data) {
                 return data.title.includes(event.currentTarget.value);
             });
             setData(result);
@@ -101,9 +100,9 @@ export default function ListView() {
                 <input className={style.searchBar} type="text" placeholder="Search.." onInput={onSearch}></input>
             </div>
             <div className={style.scroll}>
-            <div>
-                { channel === 'rooms' ? <CreateNewRoom/> : null }
-            </div>
+                <div>
+                    {channel === 'rooms' ? <CreateNewRoom /> : null}
+                </div>
                 {data.map(data => {
                     return (
                         <Card title={data.title} description={data.description} members={data.members} id={data.id} />
