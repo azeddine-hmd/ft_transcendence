@@ -1,10 +1,10 @@
 [
     {
-        "id": "78984",
-        "name": "Taha Khabouss",
-        "message": "helloooo guys",
-        "date": "01:13",
-        "roomID": "string",
-        "roomTitle": "string"
+        "id":"id",
+        "name":"name",
+        "message":"message",
+        "date":"date",
+        "roomID":"roomID",
+        "roomTitle":"roomTitle"
     }
 ]

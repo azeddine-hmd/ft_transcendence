@@ -45,7 +45,7 @@ function Layout({data}:Props) {
 
 export default function ChatView() {
     const [data, setData] = useState(messages);
-    const [visible, setVisibility] = useState(false)
+    const [visible, setVisibility] = useState(true)
     // on card clicked setVisibility(true);
     socket.on('joinRoom', (data:props[]) => {
         setVisibility(true);
@@ -53,8 +53,8 @@ export default function ChatView() {
     })
 
     return (
-        <div>
+        <>
             {visible ? <Layout data={data} /> : null}
-        </div>
+        </>
     );
 }
