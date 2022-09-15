@@ -5,7 +5,7 @@ import profilePic from "../../styles/avatar.png"
 import style from "../../styles/app/User_matches.module.css"
 
 
-export default function User_matches({isopen} :any) {
+export default function User_matches({user, imageUrl, isopen} :any) {
     const [username,setusername] = useState('samurai');
     const todos = [
         { id: 1, user1: "Samurai",user2:"majdahim",imguser1:profilePic,imguser2:profilePic ,results:"5:2" },
@@ -23,11 +23,11 @@ export default function User_matches({isopen} :any) {
             <div className="allinfo grow flex justify-center my-28">
                 <div className={`infouser w-[290px] shadow-2xl h-16 rounded-3xl bg-white relative ${style.infouser}`}>
                     <div className="avatar absolute left-[-10px] top-[-5px] ">
-                        <Image src={profilePic} width={80} height={70} className={` rounded-full  `} />
+                        <Image src={imageUrl} width={80} height={70} className={` rounded-full  `} />
                     </div>
                     <div className="username flex h-full justify-between  mx-[80px] items-center ">
                         <span  className={`text-[30px] relative ${style.hi}`}>hi,</span>
-                        <span className={`text-[30px] p-4 ${style.username}`}>{username}</span>
+                        <span className={`text-[30px] p-4 ${style.username}`}>{user}</span>
                     </div>
                     <div className="last_matches flex justify-center my-[90px]">
                         <div className="title">

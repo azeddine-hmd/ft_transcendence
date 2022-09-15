@@ -1,4 +1,5 @@
 export interface UserDto {
   username: string;
-  profileImageUrl: string;
+  avatar: string;
+  displayName: string;
 }

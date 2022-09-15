@@ -5,13 +5,16 @@ import {
   NotFoundException,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger/dist';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @JwtAuthGuard
-@Controller('users')
 @Injectable()
+@Controller('api/users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
@@ -23,7 +26,8 @@ export class UsersController {
     }
     return {
       username: user.username,
-      profileImageUrl: user.profileImageUrl,
+      avatar: user.avatar,
+      displayName: user.displayName,
     };
   }
 }
