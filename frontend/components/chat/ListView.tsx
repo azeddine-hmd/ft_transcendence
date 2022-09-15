@@ -2,10 +2,8 @@ import Card from "./Card";
 import React, { useEffect, useState } from 'react';
 import rooms from '../../rooms.json'
 import style from '../../styles/chat/ListView.module.css'
-import { io } from "socket.io-client";
 import stylee from '../../styles/chat/Card.module.css'
-
-var socket = io('http://localhost:8080', { transports: ['websocket'] });
+import {socket} from '../../pages/chat'
 
 function CreateNewRoom() {
 
@@ -21,7 +19,7 @@ function CreateNewRoom() {
 
         if (title === '' || description === '')
             return alert('all fields marked (*) must be filled');
-        socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password, "owner": { "id": 1, "name": null } });
+        socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password});
     }
 
     return (
@@ -60,6 +58,7 @@ export default function ListView() {
     }
 
     socket.on('createRoom', ({ created }) => {
+        console.log('oncreate=' + created);
         if (created)
             socket.emit('findAllRooms');
         else
@@ -73,6 +72,9 @@ export default function ListView() {
     });
 
     socket.on('findAllRooms', ({ rooms }) => {
+        console.log('findallrooms');
+        console.log('clientID=', socket.id);
+        
         setData(rooms);
         setTMP(rooms);
         setChannel('rooms');

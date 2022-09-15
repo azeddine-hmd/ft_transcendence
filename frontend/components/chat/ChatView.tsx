@@ -2,9 +2,7 @@ import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 import { useState } from 'react';
-import { io } from "socket.io-client";
-
-var socket = io('http://localhost:8080', { transports: ['websocket'] });
+import {socket} from '../../pages/chat'
 
 interface props {
     id: string;
@@ -19,24 +17,30 @@ interface Props {
     data: props[]
 }
 
+var roomID = -1;
+
 function Layout({data}:Props) {
+    const [msg, setMsg] = useState('');
+    const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
+    function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); }
+
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
-            <h2>{data[0].roomTitle}</h2>
+            <h2>{(data !== undefined) ? data[0].roomTitle : ".."}</h2>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
-                    {data.map(messages => {
+                    {(data !== undefined) ? data.map(messages => {
                         return (
                             <ChatCard id={messages.id} date={messages.date} name={messages.name} message={messages.message} />
                         );
-                    })}
+                    }) : null}
                 </div>
             </div>
             <div className={style.messageBarHolder}>
-                <input type="text" id={style.messageBar} placeholder="Aa"></input>
-                <button id={style.messageBarSendBtn}>Send</button>
+                <input type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
+                <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
             </div>
         </div>
     );
@@ -45,11 +49,18 @@ function Layout({data}:Props) {
 
 export default function ChatView() {
     const [data, setData] = useState(messages);
-    const [visible, setVisibility] = useState(true)
-    // on card clicked setVisibility(true);
-    socket.on('joinRoom', (data:props[]) => {
+    const [visible, setVisibility] = useState(false)
+    
+    socket.on('createMsg', ({created, newmsg}) => {
+        
+    })
+
+    socket.on('joinRoom', ({roomId, msg}) => {
+        roomID = roomId;
+        console.log(roomID);
+        
         setVisibility(true);
-        setData(data);
+        setData(msg);
     })
 
     return (
