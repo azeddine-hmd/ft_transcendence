@@ -18,6 +18,11 @@ export class User {
   @Column({
     nullable: true,
   })
+  displayName: string;
+
+  @Column({
+    nullable: true,
+  })
   password: string;
 
   @Column({

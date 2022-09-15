@@ -5,7 +5,7 @@ const nextConfig = {
 }
 module.exports = {
   images: {
-    domains: ['miro.medium.com'],
+    domains: ['miro.medium.com', 'cdn.intra.42.fr'],
   },
 }
 

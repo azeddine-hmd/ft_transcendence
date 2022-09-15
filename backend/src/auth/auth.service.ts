@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginPayloadDto } from './dto/login-payload.dto';
 import { UserPayloadDto } from './dto/user-payload.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,8 @@ export class AuthService {
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOne(username);
 
-    if (user && user.password === pass) {
+    if (user && (await bcrypt.compare(pass, user.password))) {
+      //TODO: encrypt password before storing it in database
       Logger.log(`AuthService#validateUser: validation was success!`);
       const { password, ...result } = user;
       return result;
@@ -25,13 +27,20 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(createLoginDto: CreateUserDto): Promise<User> {
-    const userFound = await this.usersService.findOne(createLoginDto.username);
+  async registerUser(createUserDto: CreateUserDto): Promise<User> {
+    const userFound = await this.usersService.findOne(createUserDto.username);
     if (userFound) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException();
     }
-    const user = this.usersService.create(createLoginDto);
+
+    // hashing password
+    createUserDto.password = await bcrypt.hash(
+      createUserDto.password,
+      await bcrypt.genSalt(),
+    );
+
+    const user = this.usersService.create(createUserDto);
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );

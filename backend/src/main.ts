@@ -1,12 +1,14 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe({
+  app.useGlobalPipes(
+    new ValidationPipe({
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
@@ -17,9 +19,12 @@ async function bootstrap() {
     .setTitle('Ping Pong Game')
     .setDescription('Ping Pong online game')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  app.use(helmet());
 
   app.enableCors({
     origin: ['http://localhost:3000', 'http://localhost:8080'],
