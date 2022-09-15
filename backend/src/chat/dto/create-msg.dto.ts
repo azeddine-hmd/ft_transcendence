@@ -7,4 +7,6 @@ export class CreateMsgDto {
 
     @IsString()
     msg: string;
+
+    date: Date;
 }

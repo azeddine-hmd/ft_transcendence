@@ -155,10 +155,13 @@ export class ChatService {
     
     if(checkUserJoined == null)
       return 3;
-
-    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg});
-      
-    await this.msgRepository.save(msg);
+    createMsgDto.date = new Date();
+    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date});
+    try{
+      await this.msgRepository.save(msg);
+    }
+    catch(e)
+    {}
     
     
 
@@ -199,7 +202,17 @@ export class ChatService {
     return (room);
   }
 
+  async getUserById(auth:any) {
 
+    let user = await this.userRepository.createQueryBuilder('user')
+    .where("user.id = :id", { id: auth })
+    .select()
+    .getOne();
+    
+    if(user == null)
+      return null;
+    return (user);
+  }
 
   async joinToAllUrRooms(uid: number) {
     let checkUserJoined = await this.joinRepository.createQueryBuilder('join') // for password rooms
