@@ -1,16 +1,12 @@
 import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
-import { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {socket} from '../../pages/chat'
 
 interface props {
-    id: string;
-    name: string;
-    message: string;
-    date: string;
-    roomID: string;
-    roomTitle: string;
+    msg: string;
+    user: { id: number, name: string };
 }
 
 interface Props {
@@ -18,8 +14,17 @@ interface Props {
 }
 
 var roomID = -1;
+var roomTitle ='..';
 
 function Layout({data}:Props) {
+    const bottom = useRef<null | HTMLDivElement>(null);
+    const scrollToBottom = () => {
+        if (bottom.current)
+            bottom.current.scrollIntoView({ behavior: "smooth" })
+    }
+    useEffect(() => {
+        scrollToBottom()
+    }, [data]);
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
     function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); }
@@ -27,15 +32,16 @@ function Layout({data}:Props) {
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
-            <h2>{(data !== undefined) ? data[0].roomTitle : ".."}</h2>
+            <h2>{roomTitle}</h2>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.id} date={messages.date} name={messages.name} message={messages.message} />
+                            <ChatCard id={messages.user.id.toString()} date={'messages.date'} name={messages.user.name} message={messages.msg} />
                         );
                     }) : null}
+                    <div ref={bottom}></div>
                 </div>
             </div>
             <div className={style.messageBarHolder}>
@@ -52,15 +58,25 @@ export default function ChatView() {
     const [visible, setVisibility] = useState(false)
     
     socket.on('createMsg', ({created, newmsg}) => {
+        console.log('** A Message has been added to the DATABASE ** Created=', created, ' newmsg=', newmsg);
+        if (created)
+        {
+            let newData = [...data];
+            let dd = {
+                msg: newmsg,
+                user: { id: +socket.id, name: "string" }
+            }
+            newData.push(dd);
+            setData(newData);
+        }
         
     })
 
-    socket.on('joinRoom', ({roomId, msg}) => {
-        roomID = roomId;
-        console.log(roomID);
-        
+    socket.on('joinRoom', ({room, msgs}) => {
+        roomID = room.id;
+        roomTitle = room.title;
         setVisibility(true);
-        setData(msg);
+        setData(msgs);
     })
 
     return (

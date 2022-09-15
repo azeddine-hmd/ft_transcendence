@@ -1,8 +1,6 @@
 [
     {
-        "id":"id",
-        "name":"name",
-        "message":"message",
-        "date":"date"
+        "msg":"message",
+        "user": { "id": 1, "name": "user1" }
     }
 ]
