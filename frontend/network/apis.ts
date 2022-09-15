@@ -13,7 +13,7 @@ export namespace Apis {
   }) {
     try {
       const res = await localService.post<LoginResponse>(
-        "api/auth/login",
+        "api/auth/signin",
         args.user
       );
       localStorage.setItem("access_token", res.data.access_token);
@@ -29,13 +29,13 @@ export namespace Apis {
     return args.onFailure({ message: "something went wrong!" });
   }
 
-  export async function Register(args: {
+  export async function SignUp(args: {
     user: User;
     onSuccess: (user: User) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.post<User>("api/auth/register", args.user);
+      const res = await localService.post<User>("api/auth/signup", args.user);
       return args.onSuccess(res.data);
     } catch (err: any) {
       if (axios.isAxiosError(err)) {

@@ -26,7 +26,7 @@ export class UsersController {
     }
     return {
       username: user.username,
-      profileImageUrl: user.profileImageUrl,
+      avatar: user.avatar,
       displayName: user.displayName,
     };
   }

@@ -21,6 +21,7 @@ const Home: NextPage = () => {
         console.log(userResponse);
         setUser(userResponse.username);
         setImageUrl(userResponse.profileImageUrl);
+        userResponse.username
       },
       onFailure: (err: ErrorResponse) => {
         alert("couldn't fetch user");

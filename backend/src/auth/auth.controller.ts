@@ -51,7 +51,7 @@ export class AuthController {
   }
 
   @LocalAuthGuard
-  @Post('/login')
+  @Post('/signin')
   async login(@Req() req: any) {
     return this.authService.login(req.user);
   }
@@ -60,9 +60,9 @@ export class AuthController {
   @Redirect('http://localhost:3000/logout')
   logout() {}
 
-  @Post('/register')
+  @Post('/signup')
   async register(@Body() CreateLoginDto: CreateUserDto) {
-    return this.authService.registerUser(CreateLoginDto);
+    return await this.authService.registerUser(CreateLoginDto);
   }
 
   @ApiExcludeEndpoint()

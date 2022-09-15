@@ -28,5 +28,5 @@ export class User {
   @Column({
     nullable: true,
   })
-  profileImageUrl: string;
+  avatar: string;
 }

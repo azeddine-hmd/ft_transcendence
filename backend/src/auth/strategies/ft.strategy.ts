@@ -23,7 +23,7 @@ export class FtStrategy extends PassportStrategy(Strategy) {
       profileFields: {
         ftId: (obj: any) => String(obj.id),
         username: 'login',
-        profileImageUrl: 'image_url',
+        avatar: 'image_url',
       },
     });
   }
