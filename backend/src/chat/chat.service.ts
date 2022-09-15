@@ -121,7 +121,13 @@ export class ChatService {
     // if(checkUserJoined == null)
     //   return 3;
     const joinuser = this.joinRepository.create({ "uid": auth, "rid": joinRoomDto.roomId, "user": auth, "room": joinRoomDto.roomId });
-    await this.joinRepository.save(joinuser);
+
+    try 
+    {
+      await this.joinRepository.save(joinuser);
+    }
+    catch(e)
+    {}
     return (0);
   }
 
@@ -171,22 +177,26 @@ export class ChatService {
 
   async getAllMsgsPerRoom(joinRoomDto: JoinRoomDto) {
 
-    let checkUserJoined = await this.msgRepository.createQueryBuilder('msg') // for password rooms
+    let checkUserJoined = await this.msgRepository.createQueryBuilder('msg')
+    .innerJoinAndSelect("msg.user", "user")
     .where("msg.room = :rid", { rid: joinRoomDto.roomId })
-    .select()
     .getMany();
     
     if(checkUserJoined == null)
       return null;
-    // let ret = await this.roomRepository.createQueryBuilder('room')
-    //   .select()
-    //   .where("room.id = :id", { id: createMsgDto.room })
-    //   .innerJoinAndSelect("room.members", "members")
-    //   .where("members.id = :id", { id: createMsgDto.user })
-    //   .getOne();
-    //   console.log(checkuser);
-    //   console.log(ret);
     return (checkUserJoined);
+  }
+
+  async getRoomById(joinRoomDto: JoinRoomDto) {
+
+    let room = await this.roomRepository.createQueryBuilder('room')
+    .where("room.id = :rid", { rid: joinRoomDto.roomId })
+    .select()
+    .getOne();
+    
+    if(room == null)
+      return null;
+    return (room);
   }
 
 

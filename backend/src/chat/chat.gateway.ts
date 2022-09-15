@@ -61,10 +61,11 @@ export class ChatGateway {
 
       client.join(joinRoomDto.roomId.toString());
       // this.server.to(joinRoomDto.roomId.toString()).emit("message", {msg: "right"})
+
+      const roomInfo = await this.chatService.getRoomById(joinRoomDto);
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
-      console.log('msg=', msgs);
-      
-      this.server.to(client.id).emit('joinRoom', { roomId: joinRoomDto.roomId, msgs });
+
+      this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: msgs });
 
       // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
     }
