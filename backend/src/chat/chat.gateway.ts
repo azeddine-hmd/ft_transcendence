@@ -106,8 +106,8 @@ export class ChatGateway {
       // this.server.emit('createMsg', { created: true, error: "" });
       // client.broadcast('', {});
       client.join(createMsgDto.room.toString());
-
-      this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newmsg: createMsgDto.msg });
+      const userInfo = await this.chatService.getUserById(auth);
+      this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, userId: userInfo, room: createMsgDto.room, newmsg: createMsgDto.msg });
     }
 
   

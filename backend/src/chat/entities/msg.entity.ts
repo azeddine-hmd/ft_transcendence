@@ -17,4 +17,8 @@ export class Msg {
 
     @Column()
     msg: string;
+
+    @Column()
+    @Index()
+    date: Date;
 }
