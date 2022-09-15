@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
 
+
 var socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
     token: 1
 }});

@@ -17,6 +17,7 @@ var roomID = -1;
 var roomTitle ='..';
 
 function Layout({data}:Props) {
+    const [text, setText] = useState('');
     const bottom = useRef<null | HTMLDivElement>(null);
     const scrollToBottom = () => {
         if (bottom.current)
@@ -27,7 +28,11 @@ function Layout({data}:Props) {
     }, [data]);
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
-    function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); }
+    function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); setText('');}
+
+    useEffect(() => {
+        setText(msg);
+    }, [msg])
 
     return (
         <div className={style.chat}>
@@ -45,7 +50,13 @@ function Layout({data}:Props) {
                 </div>
             </div>
             <div className={style.messageBarHolder}>
-                <input type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
+                <input value={text} autoComplete='off' onKeyDown={(e) => {
+                    if (e.key === 'Enter'){
+                        SendMessage();
+                        console.log('messgae sent');
+                        setText('');
+                    }
+                }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
                 <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
             </div>
         </div>
@@ -57,14 +68,13 @@ export default function ChatView() {
     const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
     
-    socket.on('createMsg', ({created, newmsg}) => {
-        console.log('** A Message has been added to the DATABASE ** Created=', created, ' newmsg=', newmsg);
-        if (created)
+    socket.on('createMsg', ({created, user, room, newmsg}) => {
+        if (created && room === roomID)
         {
             let newData = [...data];
             let dd = {
                 msg: newmsg,
-                user: { id: +socket.id, name: "string" }
+                user: { id: user.id, name: user.name }
             }
             newData.push(dd);
             setData(newData);
