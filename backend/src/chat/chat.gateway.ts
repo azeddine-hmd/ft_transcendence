@@ -82,18 +82,12 @@ export class ChatGateway {
   
 
 
-
-
-
-
-
-
-
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
-    console.log(createMsgDto);
     
     let auth:any =  client.handshake.auth.token;
+    
+
     let test =  await this.chatService.createMsg(createMsgDto, auth);
     if(test == 1)
       this.server.to(client.id).emit('createMsg', { created: false, error: "user not found!" });
@@ -206,14 +200,13 @@ export class ChatGateway {
 
   }
 
+
   // last practice
-
-
-
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
     let auth:any =  client.handshake.auth.token;
+    console.log(auth);
     if (auth === undefined)
       return;
     this.server.to(client.id).emit('auth', { userId: auth });

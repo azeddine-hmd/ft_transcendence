@@ -5,12 +5,18 @@ import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
 
+let socket = null;
 
-var socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
+if (typeof window !== "undefined")
+{
+  socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
     token: 1
-}});
+  }});
 
+}
 export {socket};
+
+
 
 function Layout() {
   return (

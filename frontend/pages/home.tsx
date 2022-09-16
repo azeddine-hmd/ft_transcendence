@@ -20,7 +20,7 @@ const Home: NextPage = () => {
       onSuccess: (userResponse: UserResponse) => {
         console.log(userResponse);
         setUser(userResponse.username);
-        setImageUrl(userResponse.profileImageUrl);
+        setImageUrl(userResponse.avatar);
         userResponse.username
       },
       onFailure: (err: ErrorResponse) => {
