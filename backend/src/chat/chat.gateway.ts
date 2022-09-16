@@ -23,6 +23,14 @@ function getClientId(client: Socket): number
   return (tmp.userId);
 }
 
+class msgObject{
+  username:string | undefined;
+  avatar:string | undefined;
+  date:string;
+  msg:string;
+  currentUser:boolean;
+};
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -49,7 +57,6 @@ export class ChatGateway {
   
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
-    console.log(joinRoomDto);
     
     let clientId:any =  getClientId(client);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
@@ -65,9 +72,26 @@ export class ChatGateway {
 
       const roomInfo = await this.chatService.getRoomById(joinRoomDto);
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
-      console.log(msgs);
+      try{
+        let messages:any = new Array();
+        let tmp:msgObject;
+        msgs?.forEach(element => {
+          let date = element.date.toString().split(':');
+          let dateMsg = date[1] + ':' + date[2].split(' ')[0];
+          tmp.date = dateMsg;
+          tmp.msg = element.msg;
+          tmp.username = element.user.username;
+          tmp.avatar = element.user.avatar;
+          tmp.currentUser = (element.id == clientId) ? true : false;
+          messages.push(tmp);
+        });
+        console.log(messages);
+        this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
+
+
+      }
+      catch(e){}
       
-      this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: msgs });
 
       // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
     }
@@ -100,10 +124,24 @@ export class ChatGateway {
     {
       // this.server.emit('createMsg', { created: true, error: "" });
       // client.broadcast('', {});
-
+      // let date = createMsgDto.date.toString().split(':');
+      // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
       const userInfo = await this.chatService.getUserById(clientId);
-      this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, user: userInfo, room: createMsgDto.room, newmsg: createMsgDto.msg });
+      try{
+        let tmp:msgObject = new msgObject();
+        let date = createMsgDto.date.toString().split(':');
+        let dateMsg = date[1] + ':' + date[2].split(' ')[0];
+        tmp.date = dateMsg;
+        tmp.msg = createMsgDto.msg;
+        tmp.username = userInfo?.username;
+        tmp.avatar = userInfo?.avatar;
+        tmp.currentUser = false;
+        client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        tmp.currentUser = true;
+        this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+      }
+      catch(e){}
     }
 
   
