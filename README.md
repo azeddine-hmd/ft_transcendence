@@ -6,7 +6,7 @@
 
 ## Description
 
-ft_transcendence is last project in common core of 42 projects which requires creating online **Ping Pong Game** with many other features (e.g chat rooms, authentication, user profile...). that based on **Nestjs** freamwork as backend and frontend freamwork of choise (**React** in my case).
+ft_transcendence is last project in common core of 42 projects which requires creating online **Ping Pong Game** with many other features (e.g chat rooms, authentication, user profile...). that based on **Nestjs** freamwork as backend and frontend freamwork of a choise (**React** in my case).
 
 ## Quick start
 
