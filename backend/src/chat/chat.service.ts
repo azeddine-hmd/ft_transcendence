@@ -8,6 +8,12 @@ import { stringify } from 'querystring';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { Msg } from './entities/msg.entity';
+import { join } from 'path';
+import { Join } from './entities/join.entity';
+import { ConversationDto } from './dto/conversation.dto';
+import { Conversation } from './entities/conversation.entity';
+import { DM } from './entities/DM.entity';
+import { PrivateMsgDto } from './dto/privateMsg.dto';
 
 let roomsusers = new Map<number, number[]>();
 
@@ -18,8 +24,14 @@ export class ChatService {
     private readonly roomRepository: Repository<Rooms>,
     @InjectRepository(Users)
     private readonly userRepository: Repository<Users>,
+    @InjectRepository(Join)
+    private readonly joinRepository: Repository<Join>,
     @InjectRepository(Msg)
     private readonly msgRepository: Repository<Msg>,
+    @InjectRepository(Conversation)
+    private readonly conversationRepository: Repository<Conversation>,
+    @InjectRepository(DM)
+    private readonly dmRepository: Repository<DM>,
   )
   {}
   
@@ -69,29 +81,29 @@ export class ChatService {
     // let datasource = new DataSource();
   }
 
-  async createRoom(createRoomDto: CreateRoomDto) {
+  async createRoom(createRoomDto: CreateRoomDto, auth: any) {
     let check = await this.userRepository.createQueryBuilder('users')
     .select()
-    .where("users.id = :id", { id: createRoomDto.owner.id })
+    .where("users.id = :id", { id: auth })
     .getOne()
     createRoomDto.date = new Date();
-    const room = this.roomRepository.create(createRoomDto);
+    const room = this.roomRepository.create({ ...createRoomDto, owner: { id: auth, name: "" }});
     if(check == null)
       return check;
     await this.roomRepository.save(room);
     let ret = await this.roomRepository.createQueryBuilder('room')
     .leftJoinAndSelect("room.owner", "owner")
-    .where("owner.id = :id", { id: createRoomDto.owner.id })
+    .where("owner.id = :id", { id: auth })
     .where("room.date = :date", { date: createRoomDto.date })
     .getOne()
     return (ret);
   }
 
-  async joinRoom(joinRoomDto: JoinRoomDto) {
+  async joinRoom(joinRoomDto: JoinRoomDto, auth: any) {
     
     let checkuser = await this.userRepository.createQueryBuilder('users')
     .select()
-    .where("users.id = :id", { id: joinRoomDto.userId })
+    .where("users.id = :id", { id: auth })
     .getOne();
     let checkroom = await this.roomRepository.createQueryBuilder('rooms')
     .select()
@@ -101,18 +113,30 @@ export class ChatService {
       return 1;
     else if (checkroom == null)
       return 2;
+    // let checkUserJoined = await this.joinRepository.createQueryBuilder('join') // for password rooms
+    //   .select()
+    //   .where("join.uid = :id", { id: joinRoomDto.userId })
+    //   .where("join.rid = :id", { id: joinRoomDto.roomId })
+    //   .getOne()
+    // if(checkUserJoined == null)
+    //   return 3;
+    const joinuser = this.joinRepository.create({ "uid": auth, "rid": joinRoomDto.roomId, "user": auth, "room": joinRoomDto.roomId });
 
+    try 
+    {
+      await this.joinRepository.save(joinuser);
+    }
+    catch(e)
+    {}
     return (0);
   }
 
 
-  async createMsg(createMsgDto: CreateMsgDto) {
+  async createMsg(createMsgDto: CreateMsgDto, auth: any) {
     let checkuser = await this.userRepository.createQueryBuilder('users')
     .select()
-    .where("users.id = :id", { id: createMsgDto.user })
+    .where("users.id = :id", { id: auth })
     .getOne();
-
-    
     if(checkuser == null)
       return 1;
     let checkroom = await this.roomRepository.createQueryBuilder('rooms')
@@ -121,12 +145,152 @@ export class ChatService {
       .getOne();
     if(checkroom == null)
       return 2;
-    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg});
+    let checkUserJoined = await this.joinRepository.createQueryBuilder('join') // for password rooms
+    .where("join.uid = :uid", { uid: auth })
+    .andWhere("join.rid = :rid", { rid: createMsgDto.room })
+    .select()
+    .getOne();
     
-    await this.msgRepository.save(msg);
-    return (3);
+    console.log(checkUserJoined);
+    
+    if(checkUserJoined == null)
+      return 3;
+    createMsgDto.date = new Date();
+    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date});
+    try{
+      await this.msgRepository.save(msg);
+    }
+    catch(e)
+    {}
+    
+    
+
+
+    // let ret = await this.roomRepository.createQueryBuilder('room')
+    //   .select()
+    //   .where("room.id = :id", { id: createMsgDto.room })
+    //   .innerJoinAndSelect("room.members", "members")
+    //   .where("members.id = :id", { id: createMsgDto.user })
+    //   .getOne();
+    //   console.log(checkuser);
+    //   console.log(ret);
+    return (0);
   }
 
+
+  async getAllMsgsPerRoom(joinRoomDto: JoinRoomDto) {
+
+    let checkUserJoined = await this.msgRepository.createQueryBuilder('msg')
+    .innerJoinAndSelect("msg.user", "user")
+    .where("msg.room = :rid", { rid: joinRoomDto.roomId })
+    .getMany();
+    
+    if(checkUserJoined == null)
+      return null;
+    return (checkUserJoined);
+  }
+
+  async getRoomById(joinRoomDto: JoinRoomDto) {
+
+    let room = await this.roomRepository.createQueryBuilder('room')
+    .where("room.id = :rid", { rid: joinRoomDto.roomId })
+    .select()
+    .getOne();
+    
+    if(room == null)
+      return null;
+    return (room);
+  }
+
+  async getUserById(auth:any) {
+
+    let user = await this.userRepository.createQueryBuilder('user')
+    .where("user.id = :id", { id: auth })
+    .select()
+    .getOne();
+    
+    if(user == null)
+      return null;
+    return (user);
+  }
+
+  async joinToAllUrRooms(uid: number) {
+    let checkUserJoined = await this.joinRepository.createQueryBuilder('join') // for password rooms
+      .select()
+      .where("join.uid = :id", { id: uid })
+      .getMany();
+    return checkUserJoined;
+  }
+
+
+
+
+  async conversation(auth: any) {
+    
+    let ret = await this.conversationRepository.createQueryBuilder('conversation')
+    .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("conversation.user2", "user2")
+    .where("user1.id = :id", { id: auth })
+    .orWhere("user2.id = :id2", { id2: auth })
+    .getMany();
+
+    return (ret);
+  }
+
+
+  async getPrivateMsg(conversationDto: ConversationDto, auth: any) {
+    
+    let ret = await this.dmRepository.createQueryBuilder('dm')
+    .innerJoinAndSelect("dm.sender", "sender")
+    .innerJoinAndSelect("dm.receiver", "receiver")
+    .where("(sender.id = :id AND receiver.id = :id2) OR (sender.id = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
+    .getMany();
+    // .where("sender.id = :id", { id: auth })
+    // .andWhere("receiver.id = :id2", { id2: conversationDto.user })
+    // .orWhere("sender.id = :id3", { id3: conversationDto.user })
+    // .andWhere("receiver.id = :id4", { id4: auth })
+    // .getMany();
+
+    // console.log(conversationDto.user, auth, ret);
+    
+    return (ret);
+  }
+
+  async createMsgPrivate(privateMsgDto: PrivateMsgDto, auth: any) {
+    
+    let ret = await this.conversationRepository.createQueryBuilder('conversation')
+    .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("conversation.user2", "user2")
+    .where("(user1.id = :id AND user2.id = :id2) OR (user1.id = :id2 AND user2.id = :id)", { id: auth, id2: privateMsgDto.user })
+    .getOne();
+    if (!ret)
+    {
+      const cnv = this.conversationRepository.create({ user1: { id: auth, name: ""}, user2: { id: privateMsgDto.user, name: ""} });
+      await this.conversationRepository.save(cnv);
+    }
+    const msg = this.dmRepository.create({ sender: { id: auth, name: ""}, receiver: { id: privateMsgDto.user, name: ""}, message: privateMsgDto.msg });
+    await this.dmRepository.save(msg);
+    // .where("sender.id = :id", { id: auth })
+    // .andWhere("receiver.id = :id2", { id2: conversationDto.user })
+    // .orWhere("sender.id = :id3", { id3: conversationDto.user })
+    // .andWhere("receiver.id = :id4", { id4: auth })
+    // .getMany();
+
+    // console.log(conversationDto.user, auth, ret);
+    
+    
+  }
+
+  async getUser(auth: any) {
+    
+    let checkuser = await this.userRepository.createQueryBuilder('users')
+    .select()
+    .where("users.id = :id", { id: auth })
+    .getOne();
+    if(checkuser == null)
+      return 1;
+    return checkuser;
+  }
   // create(createRoomDto: CreateRoomDto) {
   //   return 'This action adds a new chat';
   // }

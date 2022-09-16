@@ -1,11 +1,21 @@
-import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/chat/Layout.module.css'
 import NavBar from '../components/utils/Navbar'
-import Card from '../components/chat/Card'
+import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
+
+let socket = null;
+
+if (typeof window !== "undefined")
+{
+  socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
+    token: 1
+  }});
+
+}
+export {socket};
+
 
 
 function Layout() {

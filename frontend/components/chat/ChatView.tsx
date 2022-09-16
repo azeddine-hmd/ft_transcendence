@@ -1,42 +1,63 @@
 import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
-import { useState } from 'react';
-import { io } from "socket.io-client";
-
-var socket = io('http://localhost:8080', { transports: ['websocket'] });
+import React, { useEffect, useRef, useState } from 'react';
+import {socket} from '../../pages/chat'
 
 interface props {
-    id: string;
-    name: string;
-    message: string;
-    date: string;
-    roomID: string;
-    roomTitle: string;
+    msg: string;
+    user: { id: number, name: string };
 }
 
 interface Props {
     data: props[]
 }
 
+var roomID = -1;
+var roomTitle ='..';
+
 function Layout({data}:Props) {
+    const [text, setText] = useState('');
+    const bottom = useRef<null | HTMLDivElement>(null);
+    const scrollToBottom = () => {
+        if (bottom.current)
+            bottom.current.scrollIntoView({ behavior: "smooth" })
+    }
+    useEffect(() => {
+        scrollToBottom()
+    }, [data]);
+    const [msg, setMsg] = useState('');
+    const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
+    function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); setText('');}
+
+    useEffect(() => {
+        setText(msg);
+    }, [msg])
+
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
-            <h2>{data[0].roomTitle}</h2>
+            <h2>{roomTitle}</h2>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
-                    {data.map(messages => {
+                    {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.id} date={messages.date} name={messages.name} message={messages.message} />
+                            <ChatCard id={messages.user.id.toString()} date={'messages.date'} name={messages.user.name} message={messages.msg} />
                         );
-                    })}
+                    }) : null}
+                    <div ref={bottom}></div>
                 </div>
             </div>
             <div className={style.messageBarHolder}>
-                <input type="text" id={style.messageBar} placeholder="Aa"></input>
-                <button id={style.messageBarSendBtn}>Send</button>
+                <input value={text} autoComplete='off' onKeyDown={(e) => {
+                    if (e.key === 'Enter'){
+                        SendMessage();
+                        console.log('messgae sent');
+                        setText('');
+                    }
+                }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
+                <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
             </div>
         </div>
     );
@@ -46,15 +67,31 @@ function Layout({data}:Props) {
 export default function ChatView() {
     const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
-    // on card clicked setVisibility(true);
-    socket.on('joinRoom', (data:props[]) => {
+    
+    socket.on('createMsg', ({created, user, room, newmsg}) => {
+        if (created && room === roomID)
+        {
+            let newData = [...data];
+            let dd = {
+                msg: newmsg,
+                user: { id: user.id, name: user.name }
+            }
+            newData.push(dd);
+            setData(newData);
+        }
+        
+    })
+
+    socket.on('joinRoom', ({room, msgs}) => {
+        roomID = room.id;
+        roomTitle = room.title;
         setVisibility(true);
-        setData(data);
+        setData(msgs);
     })
 
     return (
-        <div>
+        <>
             {visible ? <Layout data={data} /> : null}
-        </div>
+        </>
     );
 }

@@ -1,19 +1,20 @@
 import style from '../../styles/chat/Card.module.css'
-import { io } from "socket.io-client";
-
-var socket = io('http://localhost:8080', { transports: ['websocket'] });
+import {socket} from '../../pages/chat'
 
 interface props {
     title : string;
     description : string;
     members : string;
-    id: string;
+    id: number;
 }
 
 export default function Card({title, description, members, id}:props) {
 
     function OnCardClicked() {
-        socket.emit('joinRoom', {roomId: id, userID: 1});
+        console.log('send joinRoom flag');
+        
+        socket.emit('joinRoom', {roomId: id});
+
     }
 
     return (

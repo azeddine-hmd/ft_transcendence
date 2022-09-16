@@ -7,13 +7,18 @@ export class Msg {
 
     @PrimaryGeneratedColumn()
     id: number;
-    
+
     @ManyToOne(type => Users, (user) => user.id)
     user: Users;
     
+    @Index()
     @ManyToOne(type => Rooms, (room) => room.id)
     room: Rooms;
 
     @Column()
     msg: string;
+
+    @Column()
+    @Index()
+    date: Date;
 }
