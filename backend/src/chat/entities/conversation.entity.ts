@@ -1,3 +1,4 @@
+import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./users.entity";
 
@@ -6,9 +7,9 @@ export class Conversation {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Users, (user) => user.id)
-    user1: Users;
+    @ManyToOne(() => User, (user) => user.id)
+    user1: User;
 
-    @ManyToOne(() => Users, (user) => user.id)
-    user2: Users;
+    @ManyToOne(() => User, (user) => user.id)
+    user2: User;
 }
