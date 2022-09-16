@@ -6,17 +6,10 @@
 
 ## Description
 
-ft_transcendence is last project in common core of 42 projects which requires creating online **Ping Pong Game** with many other features (e.g chat rooms, authentication, user profile...). that based on **Nestjs** freamwork as backend and frontend freamwork of choise (**React** in my case).
+ft_transcendence is last project in common core of 42 projects which requires creating online **Ping Pong Game** with many other features (e.g chat rooms, authentication, user profile...). that based on **Nestjs** freamwork as backend and frontend freamwork of a choise (**Nextjs** in this case).
 
 ## Quick start
 
 ```bash
 docker compose up --build
 ```
-
-## Development
-
-**backend development**
-
-- change `MODE` env variable in *backend/.env* to `dev` to keep watching changes
-- set `SYCHRONIZE` env variable in *backend/.env* to `true` to sychronize entities with database
