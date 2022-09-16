@@ -7,7 +7,7 @@ import { UsersModule } from '../users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.postgres.env', '.env'],
+      envFilePath: ['.env', '.postgres.env'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

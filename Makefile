@@ -6,31 +6,29 @@ build:
 run: 
 	docker-compose up
 
-run_with_build: build run
+run-with-build: build run
 
 down:
 	docker-compose down
 
 clean: reset
 	@echo "removing project's heavy dependencies..."
-	rm -rf backend/node_modules frontend/node_modules
-	rm -rf backend/dist frontend/dist
-	rm -rf frontend/.next
-	rm -rf backend/package-lock.json frontend/package-lock.json
+	rm -rf backend/dist frontend/dist backend/package-lock.json
+	rm -rf frontend/.next frontend/package-lock.json
 
-restart: down reset run
+restart: clean run
 
-reset: down
+reset: down clean
 	@echo "removing all docker volumes..."
 	@docker volume rm $(shell docker volume ls -q) 2> /dev/null || true
 
-back:
+exec-back:
 	docker exec -it backend bash
 
-front:
+exec-front:
 	docker exec -it frontend bash
 
-db:
+exec-db:
 	docker exec -it database bash
 
 psql:

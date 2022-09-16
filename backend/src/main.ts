@@ -1,4 +1,5 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -26,12 +27,20 @@ async function bootstrap() {
 
   app.use(helmet());
 
+  const configService: ConfigService = app.get(ConfigService);
+
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:8080'],
+    origin: [
+      configService.get('FRONTEND_HOST') as string,
+      configService.get('BACKEND_HOST') as string,
+    ],
     credentials: true,
   });
 
-  await app.listen(8080);
+  await app.listen(configService.get('PORT') as string);
+
+  Logger.log(`FRONTEND_HOST: ${configService.get('FRONTEND_HOST') as string}`);
+  Logger.log(`BACKEND_HOST: ${configService.get('BACKEND_HOST') as string}`);
 }
 
 bootstrap();
