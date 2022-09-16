@@ -13,10 +13,3 @@ ft_transcendence is last project in common core of 42 projects which requires cr
 ```bash
 docker compose up --build
 ```
-
-## Development
-
-**backend development**
-
-- change `MODE` env variable in *backend/.env* to `dev` to keep watching changes
-- set `SYCHRONIZE` env variable in *backend/.env* to `true` to sychronize entities with database
