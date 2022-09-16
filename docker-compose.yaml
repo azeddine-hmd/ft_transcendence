@@ -21,12 +21,11 @@ services:
       - database
     ports:
       - 8080:8080
-    env_file:
-      - ./backend/.env
     environment:
+      - MODE=dev
       - PORT=8080
       - BACKEND_HOST="http://localhost:8080"
-      - FRONTEND_HOST="http://localhost:3001"
+      - FRONTEND_HOST="http://localhost:3000"
 
   frontend:
     container_name: frontend
@@ -36,6 +35,7 @@ services:
     volumes:
       - ./frontend:/frontend
     ports:
-      - 3001:3001
+      - 3000:3000
     environment:
-      - PORT=3001
+      - MODE=dev
+      - PORT=3000

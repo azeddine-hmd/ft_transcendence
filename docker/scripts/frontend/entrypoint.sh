@@ -1,4 +1,12 @@
 #!/bin/bash
 
-npm i
-npm run dev
+npm install .
+
+if [ "$MODE" == "dev" ]; then
+	echo "mode [dev]..."
+	npm run dev
+else
+	echo "mode [prod]..."
+	npm run build
+	npm run start
+fi

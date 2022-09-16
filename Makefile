@@ -6,7 +6,7 @@ build:
 run: 
 	docker-compose up
 
-run_with_build: build run
+run-with-build: build run
 
 down:
 	docker-compose down
