@@ -57,8 +57,12 @@ export class AuthController {
   }
 
   @Get('/logout')
-  @Redirect('http://localhost:3000/logout')
-  logout() {}
+  @Redirect()
+  logout() {
+    return {
+      url: this.configService.get('FRONTEND_HOST') + '/logout',
+    };
+  }
 
   @Post('/signup')
   async register(@Body() CreateLoginDto: CreateUserDto) {
@@ -72,7 +76,9 @@ export class AuthController {
   async FTCallback(@Req() req: any) {
     const loginDto = await this.authService.login(req.user);
     return {
-      url: `http://localhost:3000/auth/42/callback?access_token=${loginDto.access_token}`,
+      url:
+        this.configService.get('FRONTEND_HOST') +
+        `/auth/42/callback?access_token=${loginDto.access_token}`,
     };
   }
 }

@@ -18,7 +18,7 @@ export class FtStrategy extends PassportStrategy(Strategy) {
     super({
       clientID: configService.get('CLIENT_ID'),
       clientSecret: configService.get('SECRET'),
-      callbackURL: 'http://localhost:8080/api/auth/42/callback',
+      callbackURL: configService.get('BACKEND_HOST') + '/api/auth/42/callback',
       scope: 'public',
       profileFields: {
         ftId: (obj: any) => String(obj.id),
