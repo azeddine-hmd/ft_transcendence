@@ -1,3 +1,4 @@
+import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./users.entity";
 
@@ -6,11 +7,11 @@ export class DM {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Users, (user) => user.id)
-    sender: Users;
+    @ManyToOne(() => User, (user) => user.id)
+    sender: User;
 
-    @ManyToOne(() => Users, (user) => user.id)
-    receiver: Users;
+    @ManyToOne(() => User, (user) => user.id)
+    receiver: User;
 
     @Column()
     message: string;
