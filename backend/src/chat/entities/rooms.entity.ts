@@ -1,3 +1,4 @@
+import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./users.entity";
 
@@ -22,6 +23,6 @@ export class Rooms {
     @Index()
     date: Date;
 
-    @ManyToOne(type => Users, (user) => user.id)
-    owner: Users;
+    @ManyToOne(type => User, (user) => user.id)
+    owner: User;
 }

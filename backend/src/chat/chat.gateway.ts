@@ -10,9 +10,18 @@ import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
+import { atob } from 'buffer';
+import { User } from 'src/users/entities/user.entity';
 
 
 let usersClient:Map<string, string[] | undefined> = new Map();
+function getClientId(client: Socket): number
+{
+  let auth:any =  client.handshake.auth.token;
+  const claims = atob(auth.split('.')[1]);
+  let tmp = JSON.parse(claims);
+  return (tmp.userId);
+}
 
 @WebSocketGateway({
   cors: {
@@ -27,20 +36,12 @@ export class ChatGateway {
 
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
-    let auth:any =  client.handshake.auth.token;
-    console.log(createRoomDto);
-    
-    let test =  await this.chatService.createRoom(createRoomDto, auth);
+    let clientId:any =  getClientId(client);
+    let test =  await this.chatService.createRoom(createRoomDto, clientId);
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else
       this.server.emit('createRoom', {  created: true });
-
-
-
-
-
-
 
       // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
   }
@@ -50,8 +51,8 @@ export class ChatGateway {
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
     console.log(joinRoomDto);
     
-    let auth:any =  client.handshake.auth.token;
-    let join =  await this.chatService.joinRoom(joinRoomDto, auth);
+    let clientId:any =  getClientId(client);
+    let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
       this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
     else if (join == 2)
@@ -75,7 +76,7 @@ export class ChatGateway {
 
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
-    let auth:any =  client.handshake.auth.token;
+    let clientId:any =  getClientId(client);
     const rooms = await this.chatService.getRooms();
     this.server.to(client.id).emit('findAllRooms', { rooms });
   }
@@ -85,10 +86,10 @@ export class ChatGateway {
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
     
-    let auth:any =  client.handshake.auth.token;
+    let clientId:any =  getClientId(client);
     
 
-    let test =  await this.chatService.createMsg(createMsgDto, auth);
+    let test =  await this.chatService.createMsg(createMsgDto, clientId);
     if(test == 1)
       this.server.to(client.id).emit('createMsg', { created: false, error: "user not found!" });
     else if (test == 2)
@@ -101,7 +102,7 @@ export class ChatGateway {
       // client.broadcast('', {});
 
       client.join(createMsgDto.room.toString());
-      const userInfo = await this.chatService.getUserById(auth);
+      const userInfo = await this.chatService.getUserById(clientId);
       this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, user: userInfo, room: createMsgDto.room, newmsg: createMsgDto.msg });
     }
 
@@ -117,16 +118,16 @@ export class ChatGateway {
 
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
-    let auth:any =  client.handshake.auth.token;
-    let test =  await this.chatService.conversation(auth);
+    let clientId:any =  getClientId(client);
+    let test =  await this.chatService.conversation(clientId);
 
-    let arr: Users[] = [];
+    let arr: User[] = [];
     
     if (test.length > 0)
     {
       test.forEach(element => {
         
-        if (element.user1.id == auth)
+        if (element.user1.id == clientId)
         arr.push(element.user2);
         else
         arr.push(element.user1);
@@ -149,10 +150,10 @@ export class ChatGateway {
 
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
-    let auth:any =  client.handshake.auth.token;
+    let clientId:any =  getClientId(client);
    
     
-    let test =  await this.chatService.getPrivateMsg(conversationDto, auth);
+    let test =  await this.chatService.getPrivateMsg(conversationDto, clientId);
 
     let arr: Users[] = [];
     
@@ -183,12 +184,12 @@ export class ChatGateway {
 
   @SubscribeMessage('createMsgPrivate')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
-    let auth:any =  client.handshake.auth.token;
-    await this.chatService.createMsgPrivate(privateMsgDto, auth);
+    let clientId:any =  getClientId(client);
+    await this.chatService.createMsgPrivate(privateMsgDto, clientId);
 
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      let u = await this.chatService.getUser(auth);
+      let u = await this.chatService.getUser(clientId);
 
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
         
@@ -200,31 +201,30 @@ export class ChatGateway {
 
   }
 
-
   // last practice
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
-    let auth:any =  client.handshake.auth.token;
-    console.log(auth);
-    if (auth === undefined)
-      return;
-    this.server.to(client.id).emit('auth', { userId: auth });
+    let clientId:any =  getClientId(client);
+    if (!clientId)
+    return;
+    // clientId = claims
+    this.server.to(client.id).emit('clientId', { userId: clientId });
     
-    let checkUserJoined =  await this.chatService.joinToAllUrRooms(auth);
+    let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
 
     checkUserJoined.forEach(element => {
       client.join(element.rid.toString());
     });
  
-    if (auth !== undefined && usersClient.get((auth).toString()) === undefined)
-      usersClient.set(auth.toString(), [client.id]);
+    if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
+      usersClient.set(clientId.toString(), [client.id]);
     else
     {
       let arr: string[] | undefined = new Array();
-      arr = usersClient.get((auth).toString());
+      arr = usersClient.get((clientId).toString());
       arr?.push(client.id);
-      usersClient.set(auth.toString(), arr);
+      usersClient.set(clientId.toString(), arr);
     }
 
     
