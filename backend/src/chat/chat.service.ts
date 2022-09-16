@@ -14,6 +14,7 @@ import { ConversationDto } from './dto/conversation.dto';
 import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
+import { User } from 'src/users/entities/user.entity';
 
 let roomsusers = new Map<number, number[]>();
 
@@ -22,8 +23,8 @@ export class ChatService {
   constructor(
     @InjectRepository(Rooms)
     private readonly roomRepository: Repository<Rooms>,
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Join)
     private readonly joinRepository: Repository<Join>,
     @InjectRepository(Msg)
@@ -82,9 +83,9 @@ export class ChatService {
   }
 
   async createRoom(createRoomDto: CreateRoomDto, auth: any) {
-    let check = await this.userRepository.createQueryBuilder('users')
+    let check = await this.userRepository.createQueryBuilder('user')
     .select()
-    .where("users.id = :id", { id: auth })
+    .where("user.id = :id", { id: auth })
     .getOne()
     createRoomDto.date = new Date();
     const room = this.roomRepository.create({ ...createRoomDto, owner: { id: auth, name: "" }});
@@ -101,9 +102,9 @@ export class ChatService {
 
   async joinRoom(joinRoomDto: JoinRoomDto, auth: any) {
     
-    let checkuser = await this.userRepository.createQueryBuilder('users')
+    let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
-    .where("users.id = :id", { id: auth })
+    .where("user.id = :id", { id: auth })
     .getOne();
     let checkroom = await this.roomRepository.createQueryBuilder('rooms')
     .select()
@@ -133,9 +134,9 @@ export class ChatService {
 
 
   async createMsg(createMsgDto: CreateMsgDto, auth: any) {
-    let checkuser = await this.userRepository.createQueryBuilder('users')
+    let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
-    .where("users.id = :id", { id: auth })
+    .where("user.id = :id", { id: auth })
     .getOne();
     if(checkuser == null)
       return 1;
@@ -283,9 +284,9 @@ export class ChatService {
 
   async getUser(auth: any) {
     
-    let checkuser = await this.userRepository.createQueryBuilder('users')
+    let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
-    .where("users.id = :id", { id: auth })
+    .where("user.id = :id", { id: auth })
     .getOne();
     if(checkuser == null)
       return 1;

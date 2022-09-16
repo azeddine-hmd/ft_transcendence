@@ -10,6 +10,7 @@ import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
+import { atob } from 'buffer';
 
 
 let usersClient:Map<string, string[] | undefined> = new Map();
@@ -35,12 +36,6 @@ export class ChatGateway {
       this.server.emit('createRoom', { created: false });
     else
       this.server.emit('createRoom', {  created: true });
-
-
-
-
-
-
 
       // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
   }
@@ -200,14 +195,16 @@ export class ChatGateway {
 
   }
 
-
   // last practice
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
     let auth:any =  client.handshake.auth.token;
-    console.log(auth);
-    if (auth === undefined)
+    const claims = atob(auth.split('.')[1]);
+
+    console.log(claims);
+    return;
+    if (!auth)
       return;
     this.server.to(client.id).emit('auth', { userId: auth });
     

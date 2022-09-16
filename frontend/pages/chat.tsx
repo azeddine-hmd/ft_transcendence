@@ -4,16 +4,16 @@ import NavBar from '../components/utils/Navbar'
 import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
+// import localStorage from 'localStorage';
 
-let socket = null;
-
-if (typeof window !== "undefined")
-{
-  socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
-    token: 1
-  }});
-
+let token = null;
+if (typeof window !== 'undefined') {
+  token = localStorage.getItem('access_token');
 }
+
+let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
+  token: token
+}});
 export {socket};
 
 
