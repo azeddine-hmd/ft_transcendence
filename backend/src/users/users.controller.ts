@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Injectable,
-  Logger,
   NotFoundException,
   Req,
 } from '@nestjs/common';
@@ -21,7 +20,6 @@ export class UsersController {
 
   @Get()
   async getUserInfo(@Req() req: any): Promise<UserDto> {
-    Logger.debug('Reached');
     const user = await this.usersService.findOne(req.user.username);
     if (!user) {
       throw new NotFoundException();

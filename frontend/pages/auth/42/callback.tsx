@@ -9,10 +9,11 @@ export default function Callback() {
     const access_token = queryParams.get('access_token');
     if (access_token) {
       localStorage.setItem('access_token', access_token);
+      router.push('/home');
     } else {
       //TODO: display error for receiving invalid access_token
+      alert('received invalid access token')
     }
-    router.push('/home');
   })
 
   return (

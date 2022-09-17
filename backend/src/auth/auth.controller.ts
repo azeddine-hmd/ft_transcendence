@@ -44,8 +44,6 @@ export class AuthController {
       this.configService.get('RESPONSE_TYPE') as string,
     );
 
-    Logger.debug(fortytwoAuthUrl.toString());
-
     return {
       url: fortytwoAuthUrl.toString(),
     };
