@@ -11,8 +11,7 @@ interface props {
 export default function Card({title, description, members, id}:props) {
 
     function OnCardClicked() {
-        console.log('send joinRoom flag');
-        
+        console.log('send joinRoom flag roomID=', id);
         socket.emit('joinRoom', {roomId: id});
 
     }

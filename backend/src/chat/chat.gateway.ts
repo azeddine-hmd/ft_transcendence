@@ -4,7 +4,6 @@ import { CreateRoomDto } from './dto/create-rooms.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { Server, Socket } from 'socket.io';
 import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Users } from './entities/users.entity';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
@@ -54,10 +53,10 @@ export class ChatGateway {
       // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
   }
 
-  
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
-    
+
+    let messages:msgObject[] = [];
     let clientId:any =  getClientId(client);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
@@ -73,24 +72,30 @@ export class ChatGateway {
       const roomInfo = await this.chatService.getRoomById(joinRoomDto);
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{
-        let messages:any = new Array();
-        let tmp:msgObject;
-        msgs?.forEach(element => {
-          let date = element.date.toString().split(':');
-          let dateMsg = date[1] + ':' + date[2].split(' ')[0];
-          tmp.date = dateMsg;
-          tmp.msg = element.msg;
-          tmp.username = element.user.username;
-          tmp.avatar = element.user.avatar;
-          tmp.currentUser = (element.id == clientId) ? true : false;
-          messages.push(tmp);
-        });
-        console.log(messages);
-        this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
+        
+        if (msgs)
+        {
+          for (let index = 0; index < msgs.length; index++) {
+            let tmp:msgObject =new msgObject();
+            let date:string[] = msgs[index].date.toString().split(':');
+            let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
+    
+            tmp.msg = msgs[index].msg;
+            tmp.date = dateMsg;
+            tmp.username = msgs[index].user.username;
+            tmp.avatar = msgs[index].user.avatar;
+            
+            tmp.currentUser = (msgs[index].user.id == clientId);
+            messages.push(tmp);
+            
+          }
+          
+          this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
+        }
 
 
       }
-      catch(e){}
+      catch(e){ console.log(e); }
       
 
       // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
@@ -131,7 +136,7 @@ export class ChatGateway {
       try{
         let tmp:msgObject = new msgObject();
         let date = createMsgDto.date.toString().split(':');
-        let dateMsg = date[1] + ':' + date[2].split(' ')[0];
+        let dateMsg = date[0] + ':' + date[1].split(' ')[0];
         tmp.date = dateMsg;
         tmp.msg = createMsgDto.msg;
         tmp.username = userInfo?.username;
@@ -192,8 +197,6 @@ export class ChatGateway {
    
     
     let test =  await this.chatService.getPrivateMsg(conversationDto, clientId);
-
-    let arr: Users[] = [];
     
     // if (test > 0)
     // {

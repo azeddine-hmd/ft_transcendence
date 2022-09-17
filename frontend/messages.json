@@ -1,6 +1,9 @@
 [
     {
-        "msg":"message",
-        "user": { "id": 1, "name": "user1" }
+        "username" : "",
+        "avatar" : "",
+        "date" : "",
+        "msg" : "",
+        "currentUser" : false
     }
 ]
