@@ -12,7 +12,7 @@ export default function Callback() {
     } else {
       //TODO: display error for receiving invalid access_token
     }
-    router.push('/');
+    router.push('/home');
   })
 
   return (

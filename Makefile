@@ -11,7 +11,7 @@ run-with-build: build run
 down:
 	docker-compose down
 
-clean: reset
+clean:
 	@echo "removing project's heavy dependencies..."
 	rm -rf backend/dist frontend/dist backend/package-lock.json
 	rm -rf frontend/.next frontend/package-lock.json
