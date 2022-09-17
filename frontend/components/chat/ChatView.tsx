@@ -5,8 +5,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import {socket} from '../../pages/chat'
 
 interface props {
-    msg: string;
-    user: { id: number, name: string };
+    username:string | undefined;
+    avatar:string | undefined;
+    date:string;
+    msg:string;
+    currentUser:boolean;
 }
 
 interface Props {
@@ -43,7 +46,7 @@ function Layout({data}:Props) {
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.user.id.toString()} date={'messages.date'} name={messages.user.name} message={messages.msg} />
+                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} currentUser={messages.currentUser} />
                         );
                     }) : null}
                     <div ref={bottom}></div>
@@ -68,13 +71,16 @@ export default function ChatView() {
     const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
     
-    socket.on('createMsg', ({created, user, room, newmsg}) => {
+    socket.on('createMsg', ({created, room, tmp}) => {
         if (created && room === roomID)
         {
             let newData = [...data];
             let dd = {
-                msg: newmsg,
-                user: { id: user.id, name: user.name }
+                username: tmp.username,
+                avatar: tmp.avatar,
+                date: tmp.date,
+                msg: tmp.msg,
+                currentUser: tmp.currentUser
             }
             newData.push(dd);
             setData(newData);
@@ -83,6 +89,7 @@ export default function ChatView() {
     })
 
     socket.on('joinRoom', ({room, msgs}) => {
+        console.log('joinRoom flag returned');
         roomID = room.id;
         roomTitle = room.title;
         setVisibility(true);

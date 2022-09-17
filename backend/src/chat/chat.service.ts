@@ -154,7 +154,6 @@ export class ChatService {
     .select()
     .getOne();
     
-    console.log(checkUserJoined);
     
     if(checkUserJoined == null)
       return 3;
@@ -184,9 +183,11 @@ export class ChatService {
   async getAllMsgsPerRoom(joinRoomDto: JoinRoomDto) {
 
     let checkUserJoined = await this.msgRepository.createQueryBuilder('msg')
-    .innerJoinAndSelect("msg.user", "user")
+    .leftJoinAndSelect("msg.user", "user")
     .where("msg.room = :rid", { rid: joinRoomDto.roomId })
+    .orderBy('msg.id', 'ASC')
     .getMany();
+    
     
     if(checkUserJoined == null)
       return null;
