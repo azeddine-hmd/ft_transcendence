@@ -39,4 +39,4 @@ services:
     environment:
       - MODE=dev
       - PORT=3000
-      - FRONTEND_HOST=http://localhost:8080
+      - BACKEND_HOST=http://localhost:8080
