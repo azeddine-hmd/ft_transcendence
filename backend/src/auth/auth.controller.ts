@@ -36,7 +36,8 @@ export class AuthController {
     );
     fortytwoAuthUrl.searchParams.set(
       'redirect_uri',
-      this.configService.get('REDIRECT_URI') as string,
+      (this.configService.get('BACKEND_HOST') as string) +
+        (this.configService.get('REDIRECT_URI') as string),
     );
     fortytwoAuthUrl.searchParams.set(
       'response_type',

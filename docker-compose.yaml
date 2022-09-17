@@ -24,8 +24,8 @@ services:
     environment:
       - MODE=dev
       - PORT=8080
-      - BACKEND_HOST="http://localhost:8080"
-      - FRONTEND_HOST="http://localhost:3000"
+      - BACKEND_HOST=http://localhost:8080
+      - FRONTEND_HOST=http://localhost:3000
 
   frontend:
     container_name: frontend
@@ -39,3 +39,4 @@ services:
     environment:
       - MODE=dev
       - PORT=3000
+      - FRONTEND_HOST=http://localhost:8080
