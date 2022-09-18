@@ -19,7 +19,7 @@ function CreateNewRoom() {
 
         if (title === '' || description === '')
             return alert('all fields marked (*) must be filled');
-        socket.emit('createRoom', { "title": title, "description": description, "privacy": true, "password": password});
+        socket.emit('createRoom', { "title": title, "description": description, "privacy": (password !== ''), "password": password});
     }
 
     return (

@@ -11,9 +11,13 @@ if (typeof window !== 'undefined') {
   token = localStorage.getItem('access_token');
 }
 
+// let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
+//   token: token
+// }});
 let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
-  token: token
-}});
+    token: token,
+  },
+});
 export {socket};
 
 
