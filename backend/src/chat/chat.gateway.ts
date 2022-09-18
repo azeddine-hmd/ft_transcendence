@@ -11,12 +11,15 @@ import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
 import { atob } from 'buffer';
 import { User } from 'src/users/entities/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 
 let usersClient:Map<string, string[] | undefined> = new Map();
-function getClientId(client: Socket): number
+function getClientId(client: Socket, jwt: JwtService): number
 {
   let auth:any =  client.handshake.auth.token;
+  jwt.verify(auth);
   const claims = atob(auth.split('.')[1]);
   let tmp = JSON.parse(claims);
   return (tmp.userId);
@@ -39,11 +42,11 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService, private readonly jwtService: JwtService) {}
 
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
     if(test == null)
       this.server.emit('createRoom', { created: false });
@@ -57,7 +60,7 @@ export class ChatGateway {
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
 
     let messages:msgObject[] = [];
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
       this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
@@ -79,15 +82,12 @@ export class ChatGateway {
             let tmp:msgObject =new msgObject();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
-    
             tmp.msg = msgs[index].msg;
             tmp.date = dateMsg;
             tmp.username = msgs[index].user.username;
             tmp.avatar = msgs[index].user.avatar;
-            
             tmp.currentUser = (msgs[index].user.id == clientId);
             messages.push(tmp);
-            
           }
           
           this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
@@ -105,7 +105,7 @@ export class ChatGateway {
 
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     const rooms = await this.chatService.getRooms();
     this.server.to(client.id).emit('findAllRooms', { rooms });
   }
@@ -114,9 +114,7 @@ export class ChatGateway {
 
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
-    
-    let clientId:any =  getClientId(client);
-    
+    let clientId:any =  getClientId(client, this.jwtService);
 
     let test =  await this.chatService.createMsg(createMsgDto, clientId);
     if(test == 1)
@@ -147,9 +145,7 @@ export class ChatGateway {
         this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
       }
       catch(e){}
-    }
-
-  
+    }  
       // { "user": 1, "room": 1, "msg": "hello" }
   }
 
@@ -161,7 +157,7 @@ export class ChatGateway {
 
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.conversation(clientId);
 
     let arr: User[] = [];
@@ -193,7 +189,7 @@ export class ChatGateway {
 
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
    
     
     let test =  await this.chatService.getPrivateMsg(conversationDto, clientId);
@@ -225,7 +221,7 @@ export class ChatGateway {
 
   @SubscribeMessage('createMsgPrivate')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     await this.chatService.createMsgPrivate(privateMsgDto, clientId);
 
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
@@ -246,7 +242,7 @@ export class ChatGateway {
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
-    let clientId:any =  getClientId(client);
+    let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
     // clientId = claims

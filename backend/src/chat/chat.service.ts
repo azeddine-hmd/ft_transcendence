@@ -83,6 +83,8 @@ export class ChatService {
   }
 
   async createRoom(createRoomDto: CreateRoomDto, auth: any) {
+    console.log(createRoomDto);
+    
     let u1:User = new User();
     let check = await this.userRepository.createQueryBuilder('user')
     .select()
