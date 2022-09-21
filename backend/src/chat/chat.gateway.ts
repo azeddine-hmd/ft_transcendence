@@ -27,7 +27,7 @@ function getClientId(client: Socket, jwt: JwtService): number
 
 class msgObject{
   username:string | undefined;
-  avatar:string | undefined;
+  avatar:string | null | undefined;
   date:string;
   msg:string;
   currentUser:boolean;

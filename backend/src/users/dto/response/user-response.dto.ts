@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class FtProfileDto {
+export class UserResponseDto {
   @ApiProperty()
-  ftId: string;
+  id: number;
+
   @ApiProperty()
   username: string;
+
   @ApiProperty()
   avatar: string;
 }

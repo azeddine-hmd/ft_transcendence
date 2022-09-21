@@ -9,10 +9,19 @@ import {
   Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger/dist/decorators';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExcludeEndpoint,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger/dist/decorators';
+import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/payload/create-user.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @ApiTags('authentication')
@@ -20,10 +29,12 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 @Controller('api/auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
   ) {}
 
+  //TODO: refactor
   @Get('/intra')
   @Redirect()
   requestIntraAuth() {
@@ -49,18 +60,28 @@ export class AuthController {
     };
   }
 
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 200,
+    description: 'signin user with credentials',
+    type: LoginResponseDto,
+  })
   @LocalAuthGuard
   @Post('/signin')
   async login(@Req() req: any) {
     return this.authService.login(req.user);
   }
 
+  @ApiBearerAuth()
+  @JwtAuthGuard
   @Get('/logout')
-  @Redirect()
-  logout() {
-    return {
-      url: this.configService.get('FRONTEND_HOST') + '/logout',
-    };
+  async logout(@Req() req: any) {
+    Logger.debug(
+      `AuthController#logout: user ${req.user.username} logging-out!`,
+    );
+    const user = await this.usersService.updateUser(req.user.userId, {
+      token: null,
+    });
   }
 
   @Post('/signup')
