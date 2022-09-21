@@ -71,4 +71,22 @@ export namespace Apis {
     console.log(`redirecting to: ${authenticationUrl.toString()}`);
     window.location.assign(authenticationUrl);
   }
+
+  export async function Logout(args: {
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/auth/logout");
+      return args.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return args.onFailure(error.response.data);
+        }
+      }
+    }
+    return args.onFailure({ message: "something went wrong!" });
+  }
 }
