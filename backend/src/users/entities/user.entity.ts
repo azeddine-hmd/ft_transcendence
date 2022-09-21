@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserRelation } from './user-relation.entity';
 
 @Entity('game_user')
 export class User {
@@ -6,9 +13,12 @@ export class User {
   id: number;
 
   @Column({
+    type: 'int',
     nullable: true,
+    update: false,
+    default: null,
   })
-  ftId: number;
+  ftId?: number | null;
 
   @Column({
     unique: true,
@@ -16,17 +26,26 @@ export class User {
   username: string;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  displayName: string;
+  password?: string | null;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  password: string;
+  token?: string | null;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  avatar: string;
+  avatar?: string | null;
+
+  @OneToMany(() => UserRelation, (userRelation) => userRelation, {
+    cascade: true,
+  })
+  @JoinColumn()
+  relations: UserRelation[];
 }
