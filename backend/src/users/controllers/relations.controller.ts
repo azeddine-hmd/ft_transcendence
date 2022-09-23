@@ -15,7 +15,7 @@ import { AddUserRelationDto } from '../dto/payload/add-user-relation.dto';
 import { UserRelation } from '../entities/user-relation.entity';
 import { RelationsService } from '../services/relations.service';
 
-@ApiTags('users')
+@ApiTags('user relations')
 @ApiBearerAuth()
 @JwtAuthGuard
 @Injectable()

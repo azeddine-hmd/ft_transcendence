@@ -1,5 +1,6 @@
 import { Controller, Get, NotFoundException, Param, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ftProfileDtoToUserProfile } from 'src/auth/utils/entity-payload-converter';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfileResponseDto } from './dto/response/profile-response.dto';
 import { ProfilesService } from './profiles.service';
@@ -16,10 +17,10 @@ export class ProfilesController {
     description: `get current user's profile`,
   })
   @Get()
-  async getMyProfile(@Req() req: any) {
+  async getMyProfile(@Req() req: any): Promise<ProfileResponseDto> {
     const profile = await this.profilesService.getProfile(req.user.username);
     if (!profile) throw new NotFoundException();
-    return profile;
+    return profileToProfileResponse(profile);
   }
 
   @ApiResponse({

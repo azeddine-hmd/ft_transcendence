@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Injectable,
   Logger,
   Post,
@@ -62,9 +64,10 @@ export class AuthController {
     description: 'signup user using username and password',
     type: LoginResponseDto,
   })
+  @HttpCode(HttpStatus.OK)
   @Post('/signup')
   async signup(@Body() signupUserDto: SignupUserDto) {
-    return await this.authService.registerUser(signupUserDto);
+    await this.authService.registerUser(signupUserDto);
   }
 
   @ApiBody({ type: SigninUserDto })
