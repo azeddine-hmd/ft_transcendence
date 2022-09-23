@@ -25,8 +25,8 @@ import { UsersModule } from '../users/users.module';
         synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
-    UsersModule,
     ProfilesModule,
+    UsersModule,
     ChatModule,
   ],
 })
