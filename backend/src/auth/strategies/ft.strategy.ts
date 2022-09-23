@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common/decorators';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '../../users/services/users.service';
 import { AuthService } from '../auth.service';
-import { FtProfileDto } from '../dto/ft-profile.dto';
-import { UserPayloadDto } from '../dto/user-payload.dto';
+import { FtProfileDto } from '../dto/payload/ft-profile.dto';
+import { JwtPayload } from '../types/jwt-payload.dto';
 
 @Injectable()
 export class FtStrategy extends PassportStrategy(Strategy) {
@@ -24,6 +24,7 @@ export class FtStrategy extends PassportStrategy(Strategy) {
         ftId: (obj: any) => String(obj.id),
         username: 'login',
         avatar: 'image_url',
+        displayName: 'displayname',
       },
     });
   }
@@ -32,13 +33,13 @@ export class FtStrategy extends PassportStrategy(Strategy) {
     accessToken: string,
     refreshToken: string,
     profile: any,
-  ): Promise<UserPayloadDto> {
+  ): Promise<JwtPayload> {
     Logger.debug(`FtStrategy#validate: validating...`);
     const ftProfileDto = profile as FtProfileDto;
     Logger.debug(
       `FtStrategy#validate: processing profile of '${ftProfileDto.username}'`,
     );
     const user = await this.usersSerivce.findOrCreate(ftProfileDto);
-    return { username: user.username, userId: user.id };
+    return { username: user.username, userId: user.userId };
   }
 }

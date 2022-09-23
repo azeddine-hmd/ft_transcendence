@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/services/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const incomingToken = auth.split(' ')[1];
 
     // get stored token and verify expiration time
-    const user = await this.usersService.findOne(payload.userId);
+    const user = await this.usersService.findOneFromUserId(payload.userId);
     if (!user || !user.token) throw new UnauthorizedException();
     //verify token or not ?
 
