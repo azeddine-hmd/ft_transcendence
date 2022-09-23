@@ -1,3 +1,3 @@
-export interface ErrorResponseDto {
+export interface ErrorResponse {
     message: string;
 }
