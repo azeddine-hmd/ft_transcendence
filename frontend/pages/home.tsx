@@ -4,8 +4,9 @@ import Main from '../components/app/Main'
 import Sidebar from '../components/app/Sidebar'
 import User_matches from '../components/app/User_matches'
 import { Apis } from '../network/apis'
-import { ErrorResponse } from '../network/dto/error-response.dto'
-import { UserResponse } from '../network/dto/user-response.dto'
+import { ErrorResponse } from '../network/dto/response/error-response.dto'
+import { ProfileResponse } from '../network/dto/response/profile-response.dto'
+// import { UserResponse } from '../network/dto/user-response.dto'
 
 const Home: NextPage = () => {
   const [isopen, setisopen] = useState(false);
@@ -16,11 +17,12 @@ const Home: NextPage = () => {
 
   useEffect(() => {
 
-    Apis.fetchUser({
-      onSuccess: (userResponse: UserResponse) => {
+    Apis.CurrentProfile({
+      onSuccess: (userResponse: ProfileResponse) => {
         console.log(userResponse);
         setUser(userResponse.username);
         setImageUrl(userResponse.avatar);
+        console.log(userResponse.avatar);
         userResponse.username
       },
       onFailure: (err: ErrorResponse) => {

@@ -25,7 +25,7 @@ export default function LoginBtn() {
             
             <div className="contain bg-[#371867]  absolute z-10 w-full h-full min-w-full" >
 
-                    <img src="bg_home.jpeg" className="h-full  fixed w-full fixed opacity-30" alt="" />
+                    <img src="bg_home.jpeg" className="h-full  fixed w-full opacity-30" alt="" />
                 
                 {/* <img src="texture.png"  className=" h-full fixed w-full" alt="" /> */}
                 <div className="centrecontain flex h-full w-full relative justify-around  items-center  flex-wrap-reverse  ">

@@ -6,9 +6,9 @@ import { useRouter } from "next/router";
 import { color } from "@mui/system";
 
 import { Apis } from "../../network/apis"
-import {User} from "../../model/user"
-import {ErrorResponse} from "../../network/dto/error-response.dto"
-import {LoginResponse} from "../../network/dto/login-response.dto"
+import {ProfileResponse} from "../../network/dto/response/profile-response.dto"
+import {ErrorResponse} from "../../network/dto/response/error-response.dto"
+import {SigninResponse} from "../../network/dto/response/signin-response.dto"
 import styles from "../../styles/auth/C_signup.module.css"
 
 export default function C_signup(){
@@ -39,14 +39,14 @@ export default function C_signup(){
                        <form onSubmit={(e) =>{
                            e.preventDefault();
                            Apis.SignUp({
-                            user: {username:username,password:password},
-                            onSuccess: (user: User) => {
+                            signupDto: {username:username,displayName:Displayname,password:password},
+                            onSuccess: () => {
 
                                 
                                 // alert(user.username);
                                 Apis.Signin({
-                                    user: {username:username,password:password},
-                                    onSuccess: (user: LoginResponse) => {
+                                    signDto: {username:username,password:password},
+                                    onSuccess: (user: SigninResponse) => {
                                         // alert(user.access_token);
 
                                         router.push("/home");
