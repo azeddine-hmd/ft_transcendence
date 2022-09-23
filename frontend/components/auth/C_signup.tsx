@@ -14,6 +14,7 @@ import styles from "../../styles/auth/C_signup.module.css"
 export default function C_signup(){
     const [username,setusername] = useState('');
     const [password,setpassword] = useState('');
+    const [Displayname,setDisplayname] = useState('');
     const [signup,setsignup] = useState(true);
     const router = useRouter();
     useEffect(() => {
@@ -66,10 +67,16 @@ export default function C_signup(){
                         //    console.log(username);
                         //    console.log(password);
                             // console.log(`${username} your account has been created.`);
-                       }}> 
+                       }}>
+
                        <div className="input-container flex flex-col">
                            <label className="text-[15px]">Username </label>
                            <input className="  border-gray-400 border-[1px] rounded-md h-[34px] p-[15px] " onChange={(e) =>{setusername(e.target.value);}} placeholder="Enter your username" type="text" name="uname" required  />
+                       </div>
+                       <br />
+                       <div className="input-container flex flex-col">
+                           <label className="text-[15px]">Display name </label>
+                           <input className="  border-gray-400 border-[1px] rounded-md h-[34px] p-[15px] " onChange={(e) =>{setDisplayname(e.target.value);}} placeholder="Enter your Display name" type="text" name="uname" required  />
                        </div>
                        <br />
                        <div className="input-container flex flex-col">
@@ -105,7 +112,7 @@ export default function C_signup(){
                </div>
 
            </div>
-           <div className={`logo  sd:w-[50%] w-full sm:h-full sd:min-w-[500px] flex justify-center items-center flex-col text-start ${styles.rightside}`}>
+           <div className={`logo relative  sd:w-[50%] w-full sm:h-full sd:min-w-[500px] flex justify-center items-center flex-col text-start ${styles.rightside}`}>
                     <img src="auth/vector_Sing_up.png"  className="sd:w-[80%] md:w-[80%] rounded-[5px]" alt="" />
                     {/* <div className="backdrop-blur-md bg-white/30 sm:w-[80%] md:w-[80%] sd:min-w-[320px] sm:h-[20%] top-[50%] h-[50%] lg:h-[30%]  absolute"></div> */}
                 </div>
