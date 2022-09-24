@@ -27,7 +27,7 @@ function getClientId(client: Socket, jwt: JwtService): number
 
 class msgObject{
   username:string | undefined;
-  avatar:string | null | undefined;
+  // avatar:string | null | undefined;
   date:string;
   msg:string;
   currentUser:boolean;
@@ -85,7 +85,7 @@ export class ChatGateway {
             tmp.msg = msgs[index].msg;
             tmp.date = dateMsg;
             tmp.username = msgs[index].user.username;
-            tmp.avatar = msgs[index].user.avatar;
+            // tmp.avatar = msgs[index].user.avatar;
             tmp.currentUser = (msgs[index].user.id == clientId);
             messages.push(tmp);
           }
@@ -138,7 +138,7 @@ export class ChatGateway {
         tmp.date = dateMsg;
         tmp.msg = createMsgDto.msg;
         tmp.username = userInfo?.username;
-        tmp.avatar = userInfo?.avatar;
+        // tmp.avatar = userInfo?.;
         tmp.currentUser = false;
         client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
         tmp.currentUser = true;

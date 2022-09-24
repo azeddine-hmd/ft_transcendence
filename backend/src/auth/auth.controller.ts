@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Injectable,
   Logger,
   Post,
@@ -14,15 +16,18 @@ import {
   ApiBody,
   ApiExcludeEndpoint,
   ApiResponse,
+  ApiResponseProperty,
   ApiTags,
 } from '@nestjs/swagger/dist/decorators';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/services/users.service';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/payload/create-user.dto';
+import { SigninUserDto } from './dto/payload/signup-user.dt';
+import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { getIntraAuthUrl } from './utils/url-constructor';
 
 @ApiTags('authentication')
 @Injectable()
@@ -34,36 +39,41 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  //TODO: refactor
+  @ApiResponse({ description: 'redirect to 42 authorization page' })
   @Get('/intra')
   @Redirect()
-  requestIntraAuth() {
-    const fortytwoAuthUrl = new URL(
-      this.configService.get('INTRA_AUTH_URL') as string,
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'client_id',
-      this.configService.get('CLIENT_ID') as string,
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'redirect_uri',
-      (this.configService.get('BACKEND_HOST') as string) +
-        (this.configService.get('REDIRECT_URI') as string),
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'response_type',
-      this.configService.get('RESPONSE_TYPE') as string,
-    );
-
-    return {
-      url: fortytwoAuthUrl.toString(),
-    };
+  intraAuth() {
+    return { url: getIntraAuthUrl(this.configService) };
   }
 
-  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({ description: 'logout user and invalidate current token' })
+  @ApiBearerAuth()
+  @JwtAuthGuard
+  @Get('/logout')
+  async logout(@Req() req: any) {
+    Logger.debug(
+      `AuthController#logout: user ${req.user.username} logging-out!`,
+    );
+    await this.usersService.updateUser(req.user.userId, {
+      token: null,
+    });
+  }
+
+  @ApiResponseProperty({ type: SignupUserDto })
+  @ApiResponse({
+    description: 'signup user using username and password',
+    type: LoginResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/signup')
+  async signup(@Body() signupUserDto: SignupUserDto) {
+    await this.authService.registerUser(signupUserDto);
+  }
+
+  @ApiBody({ type: SigninUserDto })
   @ApiResponse({
     status: 200,
-    description: 'signin user with credentials',
+    description: 'signin user with username and password',
     type: LoginResponseDto,
   })
   @LocalAuthGuard
@@ -72,29 +82,13 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  @ApiBearerAuth()
-  @JwtAuthGuard
-  @Get('/logout')
-  async logout(@Req() req: any) {
-    Logger.debug(
-      `AuthController#logout: user ${req.user.username} logging-out!`,
-    );
-    const user = await this.usersService.updateUser(req.user.userId, {
-      token: null,
-    });
-  }
-
-  @Post('/signup')
-  async register(@Body() CreateLoginDto: CreateUserDto) {
-    return await this.authService.registerUser(CreateLoginDto);
-  }
-
   @ApiExcludeEndpoint()
   @FTAuthGuard
   @Get('/42/callback')
   @Redirect()
   async FTCallback(@Req() req: any) {
     const loginDto = await this.authService.login(req.user);
+
     return {
       url:
         this.configService.get('FRONTEND_HOST') +

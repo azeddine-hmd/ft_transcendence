@@ -1,92 +1,92 @@
 import axios, { AxiosError } from "axios";
-import { User } from "../model/user";
-import { ErrorResponse } from "./dto/error-response.dto";
-import { LoginResponse } from "./dto/login-response.dto";
-import { UserResponse } from "./dto/user-response.dto";
+import { SigninDto } from "./dto/payload/signin.dto";
+import { SignupDto } from "./dto/payload/signup.dto";
+import { ErrorResponse } from "./dto/response/error-response.dto";
+import { ProfileResponse } from "./dto/response/profile-response.dto";
+import { SigninResponse } from "./dto/response/signin-response.dto";
 import { localService } from "./local.service";
 
 export namespace Apis {
-  export async function Signin(args: {
-    user: User;
-    onSuccess: (data: LoginResponse) => void;
+  export async function Signin(options: {
+    signDto: SigninDto;
+    onSuccess: (data: SigninResponse) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.post<LoginResponse>(
+      const res = await localService.post<SigninResponse>(
         "api/auth/signin",
-        args.user
+        options.signDto
       );
       localStorage.setItem("access_token", res.data.access_token);
-      return args.onSuccess(res.data);
+      return options.onSuccess(res.data);
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
         if (error && error.response && error.response.data) {
-          return args.onFailure(error.response.data);
+          return options.onFailure(error.response.data);
         }
       }
     }
-    return args.onFailure({ message: "something went wrong!" });
+    return options.onFailure({ message: "something went wrong!" });
   }
 
-  export async function SignUp(args: {
-    user: User;
-    onSuccess: (user: User) => void;
+  export async function SignUp(options: {
+    signupDto: SignupDto;
+    onSuccess: () => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.post<User>("api/auth/signup", args.user);
-      return args.onSuccess(res.data);
+      const res = await localService.post("api/auth/signup", options.signupDto);
+      return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
         if (error && error.response && error.response.data) {
-          return args.onFailure(error.response.data);
+          return options.onFailure(error.response.data);
         }
       }
     }
-    return args.onFailure({ message: "something went wrong!" });
+    return options.onFailure({ message: "something went wrong!" });
   }
 
-  export async function fetchUser(args: {
-    onSuccess: (user: UserResponse) => void;
+  export async function CurrentProfile(options: {
+    onSuccess: (profile: ProfileResponse) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.get<UserResponse>("api/users");
-      return args.onSuccess(res.data);
+      const res = await localService.get<ProfileResponse>("api/profiles");
+      return options.onSuccess(res.data);
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
         if (error && error.response && error.response.data) {
-          return args.onFailure(error.response.data);
+          return options.onFailure(error.response.data);
         }
       }
     }
-    return args.onFailure({ message: "something went wrong!" });
+    return options.onFailure({ message: "something went wrong!" });
   }
 
   export async function autherizeFortytwo() {
     const authenticationUrl = process.env.NEXT_PUBLIC_API_BASE_URL + "/api/auth/intra";
-    console.log(`redirecting to: ${authenticationUrl.toString()}`);
     window.location.assign(authenticationUrl);
   }
 
-  export async function Logout(args: {
+  export async function Logout(options: {
     onSuccess: () => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
       await localService.get("/api/auth/logout");
-      return args.onSuccess();
+      return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
         if (error && error.response && error.response.data) {
-          return args.onFailure(error.response.data);
+          return options.onFailure(error.response.data);
         }
       }
     }
-    return args.onFailure({ message: "something went wrong!" });
+    return options.onFailure({ message: "something went wrong!" });
   }
 }

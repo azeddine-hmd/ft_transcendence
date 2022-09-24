@@ -8,16 +8,16 @@ export class UserRelation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user, {
+  @ManyToOne(() => User, {
     cascade: true,
   })
-  // @JoinColumn()
+  @JoinColumn()
   user1: User;
 
-  @ManyToOne(() => User, (user) => user, {
+  @ManyToOne(() => User, {
     cascade: true,
   })
-  // @JoinColumn()
+  @JoinColumn()
   user2: User;
 
   @Column()

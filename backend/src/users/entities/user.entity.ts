@@ -13,15 +13,22 @@ export class User {
   id: number;
 
   @Column({
+    unique: true,
+    update: false,
+    generated: 'uuid',
+  })
+  userId: string;
+
+  @Column({
     type: 'int',
     nullable: true,
     update: false,
-    default: null,
   })
-  ftId?: number | null;
+  ftId: number | null;
 
   @Column({
     unique: true,
+    update: false,
   })
   username: string;
 
@@ -29,22 +36,18 @@ export class User {
     type: 'varchar',
     nullable: true,
   })
-  password?: string | null;
+  password: string | null;
 
   @Column({
     type: 'varchar',
     nullable: true,
   })
-  token?: string | null;
-
-  @Column({
-    type: 'varchar',
-    nullable: true,
-  })
-  avatar?: string | null;
+  token: string | null;
 
   @OneToMany(() => UserRelation, (userRelation) => userRelation, {
     cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn()
   relations: UserRelation[];
