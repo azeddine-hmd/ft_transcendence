@@ -70,7 +70,6 @@ export class UsersService {
 
     if (!foundUser) {
       const { userLike, profileLike } = ftProfileDtoToUserProfile(ftProfileDto);
-      profileLike.avatar = this.configService.get<string>('DEFAULT_AVATAR');
       console.log(profileLike);
       return await this.createUser(userLike, profileLike);
     }

@@ -13,6 +13,7 @@ export function ftProfileDtoToUserProfile(ftProfileDto: FtProfileDto): {
     },
     profileLike: {
       displayName: ftProfileDto.displayName,
+      avatar: ftProfileDto.avatar,
     },
   };
 }

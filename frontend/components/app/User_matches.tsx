@@ -23,7 +23,7 @@ export default function User_matches({user, imageUrl, isopen} :any) {
             <div className="allinfo grow flex justify-center my-28">
                 <div className={`infouser w-[290px] shadow-2xl h-16 rounded-3xl bg-white relative ${style.infouser}`}>
                     <div className="avatar absolute left-[-10px] top-[-5px] ">
-                        <Image src={profilePic} width={80} height={70} className={` rounded-full  `} />
+                        <Image src={imageUrl} width={80} height={70} className={` rounded-full  `} />
                     </div>
                     <div className="username flex h-full justify-between  mx-[80px] items-center ">
                         <span  className={`text-[30px] relative ${style.hi}`}>hi,</span>
