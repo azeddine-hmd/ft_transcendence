@@ -2,6 +2,7 @@ import { Profile } from 'src/profiles/entities/profile.entity';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   OneToMany,
   OneToOne,
@@ -14,6 +15,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({
     unique: true,
     update: false,
@@ -56,4 +58,6 @@ export class User {
   })
   @JoinColumn()
   relations: UserRelation[];
+
+  
 }
