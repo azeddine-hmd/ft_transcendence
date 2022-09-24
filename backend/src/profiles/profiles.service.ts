@@ -11,8 +11,6 @@ export class ProfilesService {
   ) {}
 
   async getProfile(username: string): Promise<Profile | null> {
-    console.log('username:');
-    console.log(username);
     const profiles = await this.profileRepository.find({
       relations: {
         user: true,
