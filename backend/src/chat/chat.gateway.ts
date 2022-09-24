@@ -26,8 +26,9 @@ function getClientId(client: Socket, jwt: JwtService): number
 }
 
 class msgObject{
+  userId:string | undefined;
   username:string | undefined;
-  // avatar:string | null | undefined;
+  avatar:string | null | undefined;
   date:string;
   msg:string;
   currentUser:boolean;
@@ -47,6 +48,7 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
+    
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
     if(test == null)
       this.server.emit('createRoom', { created: false });
@@ -74,19 +76,19 @@ export class ChatGateway {
 
       const roomInfo = await this.chatService.getRoomById(joinRoomDto);
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
-      try{
-        
+      try{    
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
             let tmp:msgObject =new msgObject();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
+            tmp.userId = msgs[index].user.userId;
             tmp.msg = msgs[index].msg;
             tmp.date = dateMsg;
-            tmp.username = msgs[index].user.username;
-            // tmp.avatar = msgs[index].user.avatar;
-            tmp.currentUser = (msgs[index].user.id == clientId);
+            tmp.username = msgs[index].user.profile.displayName;
+            tmp.avatar = msgs[index].user.profile.avatar;
+            tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
           
@@ -130,15 +132,16 @@ export class ChatGateway {
       // let date = createMsgDto.date.toString().split(':');
       // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
-      const userInfo = await this.chatService.getUserById(clientId);
+      const userInfo = await this.chatService.checkUser(clientId);
       try{
         let tmp:msgObject = new msgObject();
         let date = createMsgDto.date.toString().split(':');
         let dateMsg = date[0] + ':' + date[1].split(' ')[0];
+        tmp.userId = userInfo?.userId;
         tmp.date = dateMsg;
         tmp.msg = createMsgDto.msg;
-        tmp.username = userInfo?.username;
-        // tmp.avatar = userInfo?.;
+        tmp.username = userInfo?.profile.displayName;
+        tmp.avatar = userInfo?.profile.avatar;
         tmp.currentUser = false;
         client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
         tmp.currentUser = true;
@@ -226,7 +229,7 @@ export class ChatGateway {
 
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      let u = await this.chatService.getUser(clientId);
+      let u = await this.chatService.checkUser(clientId);
 
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
         
@@ -245,7 +248,7 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
-    // clientId = claims
+    
     this.server.to(client.id).emit('clientId', { userId: clientId });
     
     let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
