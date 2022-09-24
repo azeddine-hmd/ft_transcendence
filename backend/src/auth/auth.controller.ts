@@ -98,4 +98,13 @@ export class AuthController {
       url: `${frontendHost}/auth/42/callback?access_token=${loginDto.access_token}`,
     };
   }
+
+  @ApiResponse({ description: 'verify current user credentials' })
+  @ApiBearerAuth()
+  @JwtAuthGuard
+  @HttpCode(HttpStatus.OK)
+  @Get('/verify')
+  async verify(@Req() req: any) {
+    Logger.log(`user ${req.user.username} verified`);
+  }
 }

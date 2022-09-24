@@ -89,4 +89,22 @@ export namespace Apis {
     }
     return options.onFailure({ message: "something went wrong!" });
   }
+
+  export async function Verify(options: {
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/auth/verify");
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
 }
