@@ -12,7 +12,7 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, (user) => user, {
+  @OneToOne(() => User, (user) => user.profile, {
     cascade: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

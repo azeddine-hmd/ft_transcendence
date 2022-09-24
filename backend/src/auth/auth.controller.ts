@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   Logger,
   Post,
   Redirect,
@@ -21,7 +22,7 @@ import {
 } from '@nestjs/swagger/dist/decorators';
 import { UsersService } from '../users/services/users.service';
 import { AuthService } from './auth.service';
-import { SigninUserDto } from './dto/payload/signup-user.dt';
+import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
@@ -61,7 +62,7 @@ export class AuthController {
 
   @ApiResponseProperty({ type: SignupUserDto })
   @ApiResponse({
-    description: 'signup user using username and password',
+    description: 'register user',
     type: LoginResponseDto,
   })
   @HttpCode(HttpStatus.OK)
@@ -88,11 +89,13 @@ export class AuthController {
   @Redirect()
   async FTCallback(@Req() req: any) {
     const loginDto = await this.authService.login(req.user);
+    const frontendHost = this.configService.get('FRONTEND_HOST');
+    if (!frontendHost) {
+      throw new InternalServerErrorException();
+    }
 
     return {
-      url:
-        this.configService.get('FRONTEND_HOST') +
-        `/auth/42/callback?access_token=${loginDto.access_token}`,
+      url: `${frontendHost}/auth/42/callback?access_token=${loginDto.access_token}`,
     };
   }
 }

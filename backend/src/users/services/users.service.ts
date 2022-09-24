@@ -70,7 +70,6 @@ export class UsersService {
 
     if (!foundUser) {
       const { userLike, profileLike } = ftProfileDtoToUserProfile(ftProfileDto);
-      console.log(profileLike);
       return await this.createUser(userLike, profileLike);
     }
 
@@ -83,7 +82,6 @@ export class UsersService {
     userId: string,
     userUpdateOptions: UserUpdateOptions,
   ): Promise<User | null> {
-    console.log('updating user');
     const pk = await this.getUserPK(userId);
     const user = await this.userRepository.preload({
       id: pk,

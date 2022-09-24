@@ -1,8 +1,10 @@
+import { Profile } from 'src/profiles/entities/profile.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRelation } from './user-relation.entity';
@@ -43,6 +45,9 @@ export class User {
     nullable: true,
   })
   token: string | null;
+
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
 
   @OneToMany(() => UserRelation, (userRelation) => userRelation, {
     cascade: true,
