@@ -1,0 +1,6 @@
+.btnsettings{
+background: rgb(235,174,63);
+background: linear-gradient(263deg, rgba(235,174,63,1) 0%, rgba(242,206,122,1) 100%);
+-webkit-box-shadow: -9px 17px 50px -11px rgba(242,206,122,0.82); 
+box-shadow: -9px 17px 50px -11px rgba(242,206,122,0.82);
+}

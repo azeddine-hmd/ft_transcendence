@@ -2,6 +2,7 @@ import profilePic from "../../styles/avatar.png"
 import Image from "next/image";
 import style from "../../styles/Profile/Profilem.module.css"
 
+
 export default function ProfileM(){
     return (
         <>

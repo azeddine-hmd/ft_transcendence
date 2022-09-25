@@ -1,0 +1,37 @@
+.background_sidebar{
+    background: rgb(99,84,147);
+    background: linear-gradient(274deg, rgba(99,84,147,1) 0%, rgba(55,41,98,1) 100%);
+}
+.hoverss {
+ background: rgb(74,57,119);
+background: linear-gradient(285deg, rgb(99,84,147,1) 0%, rgb(38, 30, 75) 100%);
+border-radius: 0 10px 10px 0;
+
+}
+.hoverss::after{
+    content: ' ';
+    position: absolute;
+    left: 33px;
+    /* border-left: 3px #fff solid; */
+    height: 45px;
+    background: #f1c66e;
+    border-radius: 0 10px 10px 0 ;
+    --neon: #eaac3f;
+  --neon-glow: #eaac3f;
+  border: 3px solid var(--neon);
+  box-shadow: 
+    0 0 40px var(--neon-glow), 
+    inset 0 40px 50px var(--neon-glow);
+    /* background: linear-gradient(285deg, rgb(99,84,147,1) 0%, rgb(38, 30, 75) 100%); */
+
+    -webkit-box-shadow: 3px -4px 50px -6px rgba(242,206,122,0.55), 3px -4px 50px -6px rgba(242,206,122,0.55), 8px -3px 46px 12px rgba(242,206,122,0.95); 
+box-shadow: 3px -4px 50px -6px rgba(242,206,122,0.55), 3px -4px 50px -6px rgba(242,206,122,0.55), 8px -3px 46px 12px rgba(242,206,122,0.95);
+
+
+}
+.changecolorimg{
+    filter: brightness(0) saturate(100%) invert(84%) sepia(30%) saturate(1187%) hue-rotate(329deg) brightness(94%) contrast(95%);
+}
+.colorimg{
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(7484%) hue-rotate(212deg) brightness(103%) contrast(105%);
+}
