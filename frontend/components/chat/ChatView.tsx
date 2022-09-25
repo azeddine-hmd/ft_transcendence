@@ -46,7 +46,7 @@ function Layout({data}:Props) {
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} currentUser={messages.currentUser} />
+                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} />
                         );
                     }) : null}
                     <div ref={bottom}></div>
@@ -72,6 +72,8 @@ export default function ChatView() {
     const [visible, setVisibility] = useState(false)
     
     socket.on('createMsg', ({created, room, tmp}) => {
+        console.log("last message " + tmp);
+        
         if (created && room === roomID)
         {
             let newData = [...data];
