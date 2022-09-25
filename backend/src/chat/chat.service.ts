@@ -49,6 +49,15 @@ export class ChatService {
     return checkuser;
   }
 
+  async checkUserProfile(auth: any)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .leftJoinAndSelect("user.profile", "profile")
+    .where("user.userId = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
   async checkJoined(id: number, room: number)
   {
     let checkUserJoined = await this.joinRepository.createQueryBuilder('join')

@@ -83,10 +83,10 @@ export class ChatGateway {
             let tmp:msgObject =new msgObject();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
-            tmp.userId = msgs[index].user.userId;
+            // tmp.userId = msgs[index].user.userId;
             tmp.msg = msgs[index].msg;
             tmp.date = dateMsg;
-            tmp.username = msgs[index].user.profile.displayName;
+            tmp.username = msgs[index].user.username;
             tmp.avatar = msgs[index].user.profile.avatar;
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
@@ -132,17 +132,22 @@ export class ChatGateway {
       // let date = createMsgDto.date.toString().split(':');
       // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
-      const userInfo = await this.chatService.checkUser(clientId);
+      const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
+      
       try{
+        if (!userInfo) return;
         let tmp:msgObject = new msgObject();
         let date = createMsgDto.date.toString().split(':');
         let dateMsg = date[0] + ':' + date[1].split(' ')[0];
-        tmp.userId = userInfo?.userId;
+        tmp.userId = userInfo.userId;
         tmp.date = dateMsg;
         tmp.msg = createMsgDto.msg;
-        tmp.username = userInfo?.profile.displayName;
-        tmp.avatar = userInfo?.profile.avatar;
+        tmp.username = userInfo.username;
+
+
+        tmp.avatar = userInfo.profile.avatar;
         tmp.currentUser = false;
+        
         client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
         tmp.currentUser = true;
         this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
