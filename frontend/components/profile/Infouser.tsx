@@ -19,7 +19,7 @@ export default function Infouser({avatar,userid}:any){
                         </div>
                         <div className="displayname w-full relative   px-4 flex flex-col">
                             <h1 className="text-[#3b2b60] font-bold text-[32px]">Level 20</h1>
-                            <h2 className="text-[#3b2b60] font-light text-[15px]">Congrats! You're intermediate now</h2>
+                            <h2 className="text-[#3b2b60] font-light text-[20px]">Congrats! You're intermediate now</h2>
                             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                                 <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{width: "45%"}}></div>
                             </div>

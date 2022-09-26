@@ -1,7 +1,12 @@
+import Link from "next/link";
+import { useState } from "react";
+import styles from "../../styles/Profile/Useravatar.module.css"
+
 export default function Useravatar({avata,userid}:any) {
+    const [open,setopen] = useState(false);
     return (
         <div className="iconuser  flex w-full justify-end ">
-        <div className="user w-[300px] h-[70px] flex  items-center rounded-[16px] bg-[#513f90]">
+        <div className={`user w-[300px] h-[70px] flex  items-center rounded-[16px] bg-[#513f90] cursor-pointer ${styles.shadows}`} onClick={()=>setopen(!open)}>
             <div className="elauser w-full flex px-2 pr-3 items-center justify-center">
                  <div className="avataru flex items-center ">
                     <div className="a w-[52px] min-w-[48px]">
@@ -14,6 +19,14 @@ export default function Useravatar({avata,userid}:any) {
                 </div>
             </div>
         </div>
+        {open ?  <div className={`dropdown absolute z-10 w-[220px] h-[80px] rounded-[18px] flex items-center flex-col mt-[75px] bg-white ${styles.dropdown} `}>
+            <div className="buttonsetting w-full h-full flex overflow-hidden flex-col justify-center">
+                <Link href={"/user/majdahim/#"}><p className="w-full h-[50%] relative rounded-t-[18px] bg-[#e2daf6] text-[#392763] cursor-pointer overflow-hidden flex justify-center items-center">Account Settings</p></Link>
+                <Link href={"/logout"}><p className="w-full h-[50%] relative rounded-b-[18px] bg-[#e2daf6] text-[#392763]  cursor-pointer overflow-hidden flex justify-center items-center">Log out</p></Link>
+            </div>
+        </div>: null}
+       
         </div>
     );
 }
+

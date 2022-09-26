@@ -9,6 +9,7 @@ import Useravatar from "../../components/profile/Useravatar";
 import Infouser from "../../components/profile/Infouser";
 import Link from "next/link";
 import styles from "../../styles/Profile/user.module.css"
+import Overview from "../../components/profile/overview";
 
 export default function user(){
         const router = useRouter();
@@ -17,6 +18,7 @@ export default function user(){
          const [username, setusername] = useState('')
          const [displayname, setdisplayname] = useState('')
          const [avatar,setavatar] = useState("");
+         const [view_history, setview_history] = useState(false);
 
          useEffect(() => {
                  Apis.CurrentProfile(
@@ -37,8 +39,8 @@ export default function user(){
 
         return (
             <>
-            <div className="b w-full h-screen min-w-full relative">
-                <img src="/profile/bg.png" className="  w-full h-full min-w-full " alt="" />
+            <div className="b w-full  absolute h-screen min-w-full ">
+                <img src="/profile/bg.png" className="absolute  w-full h-full min-w-full " alt="" />
                 <div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
                 <div className="contain absolute top-0 w-full h-screen flex justify-between">
                     <Sidebar/>
@@ -54,34 +56,19 @@ export default function user(){
                             <div className="overlay relative rounded-[30px]  top-0 w-full h-[95px] flex items-center opacity-50 bg-[#644dad]"></div>
                                 <div className="menu absolute w-full px-8 flex justify-between">
                                     <div className="firstbtn flex">
-                                        <Link href={"/user/majdahim/#"} className={``}><h1 className="text-[25px] font-bold w-[240px]  py-4 rounded-[19px] bg-[#705bb1] text-[#cec0fb] flex justify-center  cursor-pointer">Overview</h1></Link>
-                                        <Link href={"/user/majdahim/#"} className={``}><h1 className="text-[25px] font-bold w-[240px] mx-3 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1></Link>
+                                        <Link href={"/user/majdahim/#"}><h1 onClick={() => setview_history(false)} style={{background:view_history?"#5d48a3db":"#705bb1"}} className="text-[25px] font-bold w-[240px]  py-4 rounded-[19px] bg-[#705bb1] text-[#cec0fb] flex justify-center  cursor-pointer">Overview</h1></Link>
+                                        <Link href={"/user/majdahim/#"}><h1 onClick={() => setview_history(true)} style={{background:view_history?"#705bb1":"#5d48a3db"}} className="text-[25px] font-bold w-[240px] mx-3 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1></Link>
                                     </div>
                                 <Link href={"/user/majdahim/#"} className={``}><h1 className={`text-[25px] font-bold w-[220px] mx-3 py-4 rounded-[19px] bg-[#5d48a3db] text-[#3f2d70] flex justify-center  cursor-pointer ${styles.btnsettings} `}>Settings</h1></Link>
                                 </div>
                             </div>
+                            {view_history ? null :<Overview/>}
+                            
                         </div>
                     </div>
-                    
-
-
                 </div>
-
-            </div>
-            
-            </>
-           
-
+            </div>    
+            </>      
         )
 
 }
-
-{/* <div className="user  w-full h-screen">
-<div className="bgopaci  top-0 opacity-90 left-0 w-full h-full  bg-[#60558e] "></div>
-<div className="user w-full h-full">
-    <img src="/profile/bg.png" className="  w-full h-full" alt="" />
-</div>
-<div className="body w-full h-screen flex justify-center items-center">
-    <h1 className="text-[50px] text-[#fff]">user</h1>
-</div>
-</div> */}
