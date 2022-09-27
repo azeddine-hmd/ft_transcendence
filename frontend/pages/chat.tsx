@@ -13,12 +13,12 @@ if (typeof window !== 'undefined') {
 }
 
 let backendHost = process.env.NEXT_PUBLIC_API_BASE_URL;
-console.log(backendHost?.toString());
+
 
 // let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
   //   token: token
   // }});
-const URL = "http://localhost:8080";
+const URL = "http://localhost:8080/chat";
 let socket = io(URL, {
   withCredentials: true,
   forceNew: true,

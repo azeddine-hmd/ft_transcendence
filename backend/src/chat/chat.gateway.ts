@@ -51,6 +51,7 @@ class msgObject{
 };
 
 @WebSocketGateway({
+  namespace: 'chat',
   cors: {
     origin: '*',
   },
@@ -61,22 +62,22 @@ export class ChatGateway {
 
   constructor(private readonly chatService: ChatService, private readonly jwtService: JwtService) {}
 
+/***********************PUBLIC AND PROTECTED SUBSCRIBE MESSAGE***********************/
+
+
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else
       this.server.emit('createRoom', {  created: true });
-
-      // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
   }
 
   @SubscribeMessage('joinRoom')
-  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
-
+  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
+  {
     let messages:msgObject[] = [];
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
@@ -88,10 +89,7 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "password incorrect" });
     else
     {
-
       client.join(joinRoomDto.roomId.toString());
-      // this.server.to(joinRoomDto.roomId.toString()).emit("message", {msg: "right"})
-
       const roomInfo = await this.chatService.getRoomById(joinRoomDto);
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{    
@@ -109,14 +107,12 @@ export class ChatGateway {
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
-          
           this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
         }
       }
       catch(e){ console.log(e); }
     }
   }
-
 
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
@@ -152,10 +148,6 @@ export class ChatGateway {
       this.server.to(client.id).emit('createMsg', { created: false, error: "u didn't join this room!" });
     else
     {
-      // this.server.emit('createMsg', { created: true, error: "" });
-      // client.broadcast('', {});
-      // let date = createMsgDto.date.toString().split(':');
-      // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
       const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
       try{
@@ -177,23 +169,32 @@ export class ChatGateway {
         this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
       }
       catch(e){}
-    }  
-      // { "user": 1, "room": 1, "msg": "hello" }
+    }
   }
 
 
+/*********************END PUBLIC AND PROTECTED SUBSCRIBE MESSAGE*********************/
 
 
 
+/********************************DM SUBSCRIBE MESSAGE********************************/
 
-
+  /* 
+    when the you user chat with other user, add I add them to the table 
+    conversation table, in this subscribe message i emit all the users that
+    the current user talk with them 
+  */
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    let test =  await this.chatService.conversation(clientId);
 
+    /*
+      get from the conversation table in the database
+      all the users that the current user talk with them
+    */
+    let test =  await this.chatService.conversation(clientId);
     let arr: User[] = [];
-    
+
     if (test.length > 0)
     {
       test.forEach(element => {
@@ -205,71 +206,47 @@ export class ChatGateway {
       });
     }
     this.server.to(client.id).emit('conversation', arr);
-    // client.broadcast('', {});
-    // client.join(createMsgDto.room.toString());
-
-    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
-
-
-
-    // { "user": 1, "room": 1, "msg": "hello" }
   }
 
-  
-
-
+  /*
+    get all private message related to some user
+  */
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-   
-    
-    let test =  await this.chatService.getPrivateMsg(conversationDto, clientId);
-    
-    // if (test > 0)
-    // {
-      // test.forEach(element => {
-        
-        // if (element.user1.id == auth)
-        // arr.push(element.user2);
-        // else
-        // arr.push(element.user1);
-      // });
-    // }
-    
+    let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
     this.server.to(client.id).emit('getPrivateMsg', test);
-
-
-    // client.broadcast('', {});
-    // client.join(createMsgDto.room.toString());
-
-    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
-
-
-
-    // { "user": 1, "room": 1, "msg": "hello" }
   }
 
-
+  /*
+    add new private message related to some user to DM table in the database
+  */
   @SubscribeMessage('createMsgPrivate')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
     await this.chatService.createMsgPrivate(privateMsgDto, clientId);
-
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
       let u = await this.chatService.checkUser(clientId);
-
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
-        
         this.server.to(element).emit("receiveNewPrivateMsg", {sender: u, msg: privateMsgDto.msg});
       });
-    
     }
-    // client.broadcast.emit("createMsgPrivate", { newMsg: privateMsgDto.msg })
-
   }
 
-  // last practice
+
+/******************************END DM SUBSCRIBE MESSAGE******************************/
+
+
+
+
+
+
+
+
+
+/*********************************HANDLE CONNECTION**********************************/
+
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
@@ -282,7 +259,6 @@ export class ChatGateway {
       checkUserJoined.forEach(element => {
         client.join(element.rid.toString());
       });
-   
       if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
         usersClient.set(clientId.toString(), [client.id]);
       else
@@ -292,31 +268,9 @@ export class ChatGateway {
         arr?.push(client.id);
         usersClient.set(clientId.toString(), arr);
       }
-      
-    } catch (error) {
-      
-    }
-    
-    // number = parseInt(number);
-    // if(number > 3)
-    // {
-    //   socket.join("right")
-    // }
-    // else{
-    //   socket.join("left");
-    // }
-    // this.server.emit("greeting", {msg: "hello form faical server"});
-
-
-
-    // const rooms = await this.chatService.getRooms();
-    // this.server.to(socket.id).emit('findAllRooms', { rooms });
+    } catch (error) { console.log(error); }
   }
-
-  // @SubscribeMessage('message')
-  // remove(@MessageBody() message: string) {
-  //   console.log("message is recieved :" + message )
-  //   this.server.to("right").emit("message", {msg: "right"})
-  // }
-
 }
+
+
+/*********************************HANDLE CONNECTION**********************************/
