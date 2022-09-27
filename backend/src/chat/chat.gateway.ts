@@ -84,6 +84,8 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
     else if (join == 2)
       this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "room not found" });
+    else if (join == 3)
+      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "password incorrect" });
     else
     {
 

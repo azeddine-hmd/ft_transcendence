@@ -79,6 +79,17 @@ export class ChatService {
     return checkroom;
   }
 
+  async checkProtectedRoomPassword(joinRoomDto: JoinRoomDto)
+  {
+    let checkroom = await this.roomRepository.createQueryBuilder('rooms')
+    .select()
+    .where("rooms.id = :id", { id: joinRoomDto.roomId })
+    .andWhere("rooms.password = :password", {password: joinRoomDto.password})
+    .getOne()
+    return checkroom;
+  }
+
+
   async getRooms() {
     const rooms = await this.roomRepository.find({
       relations: ['owner'],
@@ -183,6 +194,12 @@ export class ChatService {
     let checkroom = await this.checkRoom(joinRoomDto.roomId);
     if (checkroom == null)
       return 2;
+    if (joinRoomDto.privacy)
+    {
+      let checkroomPass = await this.checkProtectedRoomPassword(joinRoomDto);
+      if (checkroomPass == null)
+        return 3;
+    }
     u1.id = checkuser.id;
     const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId });
     try{await this.joinRepository.save(joinuser);}catch(e){}

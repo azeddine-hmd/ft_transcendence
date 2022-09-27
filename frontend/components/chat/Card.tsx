@@ -13,7 +13,7 @@ export default function Card({title, description, members, id}:props) {
 
     function OnCardClicked() {
         console.log('send joinRoom flag roomID=', id);
-        socket.emit('joinRoom', {roomId: id});
+        socket.emit('joinRoom', { roomId: id, privacy: true, password: "" });
 
     }
 
