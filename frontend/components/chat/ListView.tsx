@@ -72,8 +72,8 @@ export default function ListView() {
     });
 
     socket.on('findAllRooms', ({ rooms }) => {
-        console.log('findallrooms');
-        console.log('clientID=', socket.id);
+        //console.log('findallrooms');
+        //console.log('clientID=', socket.id);
         
         setData(rooms);
         setTMP(rooms);

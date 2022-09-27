@@ -13,16 +13,32 @@ import { atob } from 'buffer';
 import { User } from 'src/users/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
-
+import { Profile } from 'src/profiles/entities/profile.entity';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
 {
-  let auth:any =  client.handshake.auth.token;
-  jwt.verify(auth);
-  const claims = atob(auth.split('.')[1]);
-  let tmp = JSON.parse(claims);
-  return (tmp.userId);
+  try {
+    let auth:any = "";
+    let tmp;
+    auth =  client.handshake.auth.token;
+    const claims = atob(auth.split('.')[1]);
+    tmp = JSON.parse(claims);
+    return (tmp.userId);
+    
+  } catch (error) {
+    
+    return (0);
+  }
+  //jwt.verify(auth);
+}
+
+class roomModel {
+  id: number;
+  title : string;
+  description : string;
+  members : string;
+  admin: string;
 }
 
 class msgObject{
@@ -94,25 +110,32 @@ export class ChatGateway {
           
           this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
         }
-
-
       }
       catch(e){ console.log(e); }
-      
-
-      // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
     }
-    
   }
+
 
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    const rooms = await this.chatService.getRooms();
-    this.server.to(client.id).emit('findAllRooms', { rooms });
+    try {
+      const rooms = await this.chatService.getRooms();
+      let arr:any = new Array();
+      rooms.forEach(element => {
+        let rm:roomModel = new roomModel();
+        rm.id = element.id;
+        rm.admin = element.owner.userId;
+        rm.title = element.title;
+        rm.description = element.description;
+        arr.push(rm);
+      });
+      this.server.to(client.id).emit('findAllRooms', { rooms: arr });
+    } catch (error) {
+      console.error(error);
+    }
+    return;
   }
-  
-
 
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
@@ -133,7 +156,6 @@ export class ChatGateway {
       // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
       const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
-      
       try{
         if (!userInfo) return;
         let tmp:msgObject = new msgObject();
@@ -181,8 +203,6 @@ export class ChatGateway {
       });
     }
     this.server.to(client.id).emit('conversation', arr);
-
-
     // client.broadcast('', {});
     // client.join(createMsgDto.room.toString());
 
@@ -194,6 +214,7 @@ export class ChatGateway {
   }
 
   
+
 
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
@@ -253,25 +274,26 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
-    
-    this.server.to(client.id).emit('clientId', { userId: clientId });
-    
-    let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
-
-    checkUserJoined.forEach(element => {
-      client.join(element.rid.toString());
-    });
- 
-    if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
-      usersClient.set(clientId.toString(), [client.id]);
-    else
-    {
-      let arr: string[] | undefined = new Array();
-      arr = usersClient.get((clientId).toString());
-      arr?.push(client.id);
-      usersClient.set(clientId.toString(), arr);
+    try {
+      this.server.to(client.id).emit('clientId', { userId: clientId });     
+      let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
+      checkUserJoined.forEach(element => {
+        client.join(element.rid.toString());
+      });
+   
+      if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
+        usersClient.set(clientId.toString(), [client.id]);
+      else
+      {
+        let arr: string[] | undefined = new Array();
+        arr = usersClient.get((clientId).toString());
+        arr?.push(client.id);
+        usersClient.set(clientId.toString(), arr);
+      }
+      
+    } catch (error) {
+      
     }
-
     
     // number = parseInt(number);
     // if(number > 3)

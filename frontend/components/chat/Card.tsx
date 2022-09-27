@@ -1,5 +1,6 @@
 import style from '../../styles/chat/Card.module.css'
 import {socket} from '../../pages/chat'
+import Link from 'next/link';
 
 interface props {
     title : string;
@@ -19,6 +20,7 @@ export default function Card({title, description, members, id}:props) {
     return (
         <div className={style.row}>
             <div className={style.column}>
+                
                 <div className={style.card}>
                     <h3>{title}</h3>
                     <p>{description}</p>
