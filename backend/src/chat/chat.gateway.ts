@@ -14,6 +14,7 @@ import { User } from 'src/users/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'src/profiles/entities/profile.entity';
+import { use } from 'passport';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
@@ -41,7 +42,14 @@ class roomModel {
   admin: string;
 }
 
-class msgObject{
+class userModel{
+  userId:string | undefined;
+  username:string | undefined;
+  avatar:string | null | undefined;
+  displayName: string | undefined;
+};
+
+class msgModel{
   userId:string | undefined;
   username:string | undefined;
   avatar:string | null | undefined;
@@ -78,7 +86,7 @@ export class ChatGateway {
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
   {
-    let messages:msgObject[] = [];
+    let messages:msgModel[] = [];
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
@@ -96,7 +104,7 @@ export class ChatGateway {
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
-            let tmp:msgObject =new msgObject();
+            let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
             // tmp.userId = msgs[index].user.userId;
@@ -152,7 +160,7 @@ export class ChatGateway {
       const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
       try{
         if (!userInfo) return;
-        let tmp:msgObject = new msgObject();
+        let tmp:msgModel = new msgModel();
         let date = createMsgDto.date.toString().split(':');
         let dateMsg = date[0] + ':' + date[1].split(' ')[0];
         tmp.userId = userInfo.userId;
@@ -193,16 +201,28 @@ export class ChatGateway {
       all the users that the current user talk with them
     */
     let test =  await this.chatService.conversation(clientId);
-    let arr: User[] = [];
+    let arr = new Array();
 
     if (test.length > 0)
     {
       test.forEach(element => {
-        
+        let userConversation:userModel = new userModel();        
         if (element.user1.id == clientId)
-        arr.push(element.user2);
+        {
+          userConversation.avatar = element.user2.profile.avatar;
+          userConversation.displayName = element.user2.profile.displayName;
+          userConversation.userId = element.user2.userId;
+          userConversation.username = element.user2.username;
+          arr.push(userConversation);
+        }
         else
-        arr.push(element.user1);
+        {
+          userConversation.avatar = element.user1.profile.avatar;
+          userConversation.displayName = element.user1.profile.displayName;
+          userConversation.userId = element.user1.userId;
+          userConversation.username = element.user1.username;
+          arr.push(userConversation);
+        }
       });
     }
     this.server.to(client.id).emit('conversation', arr);
