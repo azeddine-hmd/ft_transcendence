@@ -1,4 +1,5 @@
-import { Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Profile } from '../../profiles/entities/profile.entity';
+import { Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Column } from 'typeorm/decorator/columns/Column';
 import { PrimaryGeneratedColumn } from 'typeorm/decorator/columns/PrimaryGeneratedColumn';
 import { User } from './user.entity';
@@ -20,9 +21,27 @@ export class UserRelation {
   @JoinColumn()
   user2: User;
 
-  @Column()
+  @OneToOne(() => Profile)
+  @JoinColumn()
+  profile: Profile;
+
+  @Column({
+    default: false,
+  })
+  PendingFriend1_2: boolean;
+
+  @Column({
+    default: false,
+  })
+  PendingFriend2_1: boolean;
+
+  @Column({
+    default: false,
+  })
   isFriend: boolean;
 
-  @Column()
+  @Column({
+    default: false,
+  })
   isBlocked: boolean;
 }

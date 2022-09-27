@@ -1,6 +1,5 @@
 import { Controller, Get, NotFoundException, Param, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ftProfileDtoToUserProfile } from 'src/auth/utils/entity-payload-converter';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfileResponseDto } from './dto/response/profile-response.dto';
 import { ProfilesService } from './profiles.service';

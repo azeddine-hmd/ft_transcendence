@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm/dist';
 import { Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
@@ -11,7 +11,7 @@ export class ProfilesService {
   ) {}
 
   async getProfile(username: string): Promise<Profile | null> {
-    const profiles = await this.profileRepository.find({
+    const profile = await this.profileRepository.findOne({
       relations: {
         user: true,
       },
@@ -21,10 +21,7 @@ export class ProfilesService {
         },
       },
     });
-    if (!profiles) return null;
-    if (profiles.length > 1) {
-      throw new InternalServerErrorException();
-    }
-    return profiles[0];
+    if (!profile) return null;
+    return profile;
   }
 }

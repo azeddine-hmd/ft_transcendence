@@ -1,17 +1,19 @@
 import {
   Body,
   Get,
+  HttpCode,
+  HttpStatus,
   Injectable,
-  InternalServerErrorException,
-  NotFoundException,
   Post,
   Req,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common/decorators/core/controller.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger/dist';
+import { profileToProfileResponse2 } from '../../profiles/utils/entity-payload-converter';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { AddUserRelationDto } from '../dto/payload/add-user-relation.dto';
+import { AddFriendDto } from '../dto/payload/add-friend-payload.dto';
+import { FriendsResponseDto } from '../dto/response/friends-response.dto';
 import { UserRelation } from '../entities/user-relation.entity';
 import { RelationsService } from '../services/relations.service';
 
@@ -25,41 +27,32 @@ export class RelationsController {
 
   @ApiResponse({
     status: 200,
-    description: 'add relation between two users',
+    description: 'add friend',
   })
   @ApiBody({
-    type: AddUserRelationDto,
+    type: AddFriendDto,
   })
-  @Post('/add')
-  async addUserRelation(
-    @Req() req: any,
-    @Body() addUserRelationDto: AddUserRelationDto,
-  ): Promise<UserRelation> {
-    const relation = await this.relationsService.addUserRelation(
+  @HttpCode(HttpStatus.OK)
+  @Post('/friend')
+  async addFriend(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+    await this.relationsService.addFriend(
       req.user.userId,
-      addUserRelationDto,
+      addFriendDto.friend_username,
     );
-    if (!relation) {
-      //TODO: return informative error
-      throw new NotFoundException();
-    }
-    return relation;
   }
 
   @ApiResponse({
     status: 200,
-    description: 'get all friend of current logged-in user',
-  })
-  @ApiBody({
-    type: UserRelation,
-    isArray: true,
+    description: 'get friends',
   })
   @Get('/friends')
-  async getFriends(@Req() req: any) {
-    const UserRelation = await this.relationsService.getAllFriends(
-      req.user.userId,
-    );
-    if (!UserRelation) throw new InternalServerErrorException();
-    return UserRelation;
+  async getFriends(@Req() req: any): Promise<FriendsResponseDto[]> {
+    const relations = await this.relationsService.getFriends(req.user.userId);
+    return relations.map((relation: UserRelation) => {
+      return {
+        profile: profileToProfileResponse2(relation.profile, relation.user2),
+        is_blocked: relation.isBlocked,
+      };
+    });
   }
 }

@@ -1,7 +1,9 @@
 import axios, { AxiosError } from "axios";
+import { AddFriendDto } from "./dto/payload/add-friend.dto";
 import { SigninDto } from "./dto/payload/signin.dto";
 import { SignupDto } from "./dto/payload/signup.dto";
 import { ErrorResponse } from "./dto/response/error-response.dto";
+import { FriendsResponse } from "./dto/response/friends-response.dto";
 import { ProfileResponse } from "./dto/response/profile-response.dto";
 import { SigninResponse } from "./dto/response/signin-response.dto";
 import { localService } from "./local.service";
@@ -97,6 +99,43 @@ export namespace Apis {
     try {
       await localService.get("/api/auth/verify");
       return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function AddFriend(options: {
+    addFriendDto: AddFriendDto,
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/users/friend");
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function getFriends(options: {
+    onSuccess: (friends: FriendsResponse[]) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<FriendsResponse[]>("/api/users/friends");
+      return options.onSuccess(res.data);
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
