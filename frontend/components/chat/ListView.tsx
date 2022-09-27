@@ -41,16 +41,17 @@ function CreateNewRoom() {
 
 }
 
-function OnRoomsClick() { socket.emit('findAllRooms'); }
-function OnDMsClick() { socket.emit('findFriends'); }
 
 var pageLoaded = false;
 
 export default function ListView() {
-
+    
     const [data, setData] = useState(rooms);
     const [tmp, setTMP] = useState(rooms);
     const [channel, setChannel] = useState('rooms');
+    
+    function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
+    function OnDMsClick() { socket.emit('findFriends'); setChannel('friends'); setData(rooms); }
 
     if (!pageLoaded) {
         socket.emit('findAllRooms');
@@ -68,16 +69,13 @@ export default function ListView() {
     socket.on('findFriends', ({ friends }) => {
         setData(friends)
         setTMP(friends);
-        setChannel('friends');
     });
 
     socket.on('findAllRooms', ({ rooms }) => {
         //console.log('findallrooms');
         //console.log('clientID=', socket.id);
-        
         setData(rooms);
         setTMP(rooms);
-        setChannel('rooms');
     });
 
     const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
