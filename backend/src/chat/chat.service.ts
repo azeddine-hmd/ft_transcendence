@@ -138,8 +138,8 @@ export class ChatService {
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
     .innerJoinAndSelect("conversation.user2", "user2")
-    .where("user1.id = :id", { id: auth })
-    .orWhere("user2.id = :id2", { id2: auth })
+    .where("user1.userId = :id", { id: auth })
+    .orWhere("user2.userId = :id2", { id2: auth })
     .getMany();
     return (ret);
   }
