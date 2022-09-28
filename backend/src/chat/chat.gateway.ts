@@ -3,7 +3,7 @@ import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-rooms.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { Server, Socket } from 'socket.io';
-import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { flatten, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
@@ -206,7 +206,6 @@ export class ChatGateway {
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-console.log("here"); 
 
     /*
       get from the conversation table in the database
@@ -244,11 +243,16 @@ console.log("here");
     get all private message related to some user
   */
   @SubscribeMessage('getPrivateMsg')
-  async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
-    console.log(conversationDto.user);
-    
+  async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) { 
     let clientId:any =  getClientId(client, this.jwtService);
+    console.log("user",conversationDto.user);
+    
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
+    if (!test)
+    {
+      this.server.to(client.id).emit('getPrivateMsg', {success: false, error: "user not found"});
+      return;
+    }
     let arr = new Array();
     test.forEach(element => {
       let dm: dmModel = new dmModel();
@@ -275,9 +279,8 @@ console.log("here");
         arr.push(dm);
       }
     });
+    this.server.emit('getPrivateMsg', {success: true, error: "", privateMessages: arr});
     console.log(arr);
-    
-    this.server.to(client.id).emit('getPrivateMsg', arr);
   }
 
   /*

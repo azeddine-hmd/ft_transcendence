@@ -49,6 +49,15 @@ export class ChatService {
     return checkuser;
   }
 
+  async checkUserById(auth: any)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .select()
+    .where("user.id = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
   async checkUserProfileById(auth: any)
   {
     let checkuser = await this.userRepository.createQueryBuilder('user')
@@ -172,7 +181,7 @@ export class ChatService {
     .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
     .innerJoinAndSelect("receiver.profile", "profile2")
-    .where("(sender.id = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
+    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: conversationDto.user })
     .getMany();   
     return (ret);
   }
