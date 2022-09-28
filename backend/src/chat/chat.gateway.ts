@@ -125,7 +125,7 @@ export class ChatGateway {
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
-          this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
+          this.server.to(client.id).emit('joinRoom', { room: roomInfo,  error: "", msgs: messages });
         }
       }
       catch(e){ console.log(e); }
@@ -168,7 +168,7 @@ export class ChatGateway {
     else
     {
       client.join(createMsgDto.room.toString());
-      const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
+      const userInfo:User | null = await this.chatService.checkUserProfileById(clientId);
       try{
         if (!userInfo) return;
         let tmp:msgModel = new msgModel();
@@ -206,6 +206,7 @@ export class ChatGateway {
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
+console.log("here"); 
 
     /*
       get from the conversation table in the database
@@ -244,6 +245,8 @@ export class ChatGateway {
   */
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
+    console.log(conversationDto.user);
+    
     let clientId:any =  getClientId(client, this.jwtService);
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
     let arr = new Array();
@@ -272,6 +275,8 @@ export class ChatGateway {
         arr.push(dm);
       }
     });
+    console.log(arr);
+    
     this.server.to(client.id).emit('getPrivateMsg', arr);
   }
 

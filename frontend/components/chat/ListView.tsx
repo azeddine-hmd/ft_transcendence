@@ -1,6 +1,8 @@
 import Card from "./Card";
+import DM from './DM'
 import React, { useEffect, useState } from 'react';
 import rooms from '../../rooms.json'
+import direct from '../../dms.json'
 import style from '../../styles/chat/ListView.module.css'
 import stylee from '../../styles/chat/Card.module.css'
 import {socket} from '../../pages/chat'
@@ -42,11 +44,12 @@ function CreateNewRoom() {
 }
 
 
-var pageLoaded = false;
+var pageLoaded = false; 
 
 export default function ListView() {
     
     const [data, setData] = useState(rooms);
+    const [dms, setDms] = useState(direct);
     const [tmp, setTMP] = useState(rooms);
     const [channel, setChannel] = useState('rooms');
     
@@ -67,13 +70,11 @@ export default function ListView() {
     });
 
     socket.on('conversation', (arr) => {
-        setData(arr)
+        setDms(arr);
         setTMP(arr);
     });
 
     socket.on('findAllRooms', ({ rooms }) => {
-        //console.log('findallrooms');
-        //console.log('clientID=', socket.id);
         setData(rooms);
         setTMP(rooms);
     });
@@ -103,11 +104,20 @@ export default function ListView() {
                 <div>
                     {channel === 'rooms' ? <CreateNewRoom /> : null}
                 </div>
-                {data.map(data => {
+                {
+                (channel == 'rooms') ?
+                data.map(data => {
                     return (
                         <Card title={data.title} description={data.description} members={data.members} id={data.id} />
                     );
-                })}
+                })
+                :
+                dms.map(data => {
+                    return (
+                        <DM displayName={data.displayName} username={data.username} userId={data.userId} avatar={data.avatar} />
+                    );
+                })
+                }
             </div>
 
         </div>

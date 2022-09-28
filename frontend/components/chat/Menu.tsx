@@ -1,7 +1,11 @@
 import useContextMenu from "./useContextMenu";
 
+
 const Menu = () => {
+
   const { anchorPoint, show } = useContextMenu();
+
+  
 
   if (show) {
     return (

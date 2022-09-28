@@ -1,6 +1,9 @@
 import { width } from '@mui/system';
+import { integerPropType } from '@mui/utils';
 import Link from 'next/link';
 import style from '../../styles/chat/ChatCard.module.css'
+
+
 
 interface props {
     id : string | undefined;
@@ -11,7 +14,9 @@ interface props {
     currentUser: boolean;
 }
 
+
 export default function ChatCard({name, message, date, avatar, currentUser}:props) {
+
     return (
         <div className={style.row}>
             <div className={style.column} style={currentUser ? {"float": "right"} : {"float": "left"} }>

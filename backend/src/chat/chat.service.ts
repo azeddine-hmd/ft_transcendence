@@ -172,7 +172,7 @@ export class ChatService {
     .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
     .innerJoinAndSelect("receiver.profile", "profile2")
-    .where("(sender.id = :id AND receiver.id = :id2) OR (sender.id = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
+    .where("(sender.id = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
     .getMany();   
     return (ret);
   }

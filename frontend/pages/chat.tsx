@@ -58,7 +58,7 @@ function Chat() {
       </Head>
       
       <Layout/>
-      <Menu />
+
     </div>
   );  
 }
