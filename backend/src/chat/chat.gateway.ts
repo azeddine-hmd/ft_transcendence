@@ -39,7 +39,17 @@ class roomModel {
   title : string;
   description : string;
   members : string;
+  privacy: boolean;
   admin: string;
+}
+
+class dmModel {
+  userid: string;
+  username: string;
+  msg: string;
+  avatar: string;
+  currentUser: boolean;
+  date: Date;
 }
 
 class userModel{
@@ -134,6 +144,7 @@ export class ChatGateway {
         rm.admin = element.owner.userId;
         rm.title = element.title;
         rm.description = element.description;
+        rm.privacy = element.privacy;
         arr.push(rm);
       });
       this.server.to(client.id).emit('findAllRooms', { rooms: arr });
@@ -235,7 +246,31 @@ export class ChatGateway {
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
-    this.server.to(client.id).emit('getPrivateMsg', test);
+    let arr = new Array();
+    test.forEach(element => {
+      let dm: dmModel = new dmModel();
+      if (element.sender.id == clientId)
+      {
+        dm.userid = element.sender.userId;
+        dm.username = element.sender.profile.displayName;
+        dm.msg = element.message;
+        dm.avatar = element.sender.profile.avatar;
+        dm.currentUser = true;
+        dm.date = element.date;
+        arr.push(dm);
+      }
+      else
+      {
+        dm.userid = element.receiver.userId;
+        dm.username = element.receiver.profile.displayName;
+        dm.msg = element.message;
+        dm.avatar = element.receiver.profile.avatar;
+        dm.currentUser = false;
+        dm.date = element.date;
+        arr.push(dm);
+      }
+    });
+    this.server.to(client.id).emit('getPrivateMsg', arr);
   }
 
   /*
@@ -248,9 +283,18 @@ export class ChatGateway {
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
       let u = await this.chatService.checkUser(clientId);
+      let newDmMsg:dmModel = new dmModel();
+      // newDmMsg.userid = privateMsgDto.userId;
+      // newDmMsg.username = element.sender.profile.displayName;
+      // newDmMsg.msg = element.message;
+      // newDmMsg.avatar = element.sender.profile.avatar;
+      // newDmMsg.currentUser = true;
+      // newDmMsg.date = element.date;
+      // arr.push(newDmMsg);
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
         this.server.to(element).emit("receiveNewPrivateMsg", {sender: u, msg: privateMsgDto.msg});
       });
+      this.server.to(client.id).emit("receiveNewPrivateMsg", {sender: u, msg: privateMsgDto.msg});
     }
   }
 

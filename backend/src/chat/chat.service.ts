@@ -148,9 +148,9 @@ export class ChatService {
   async conversation(auth: any) {
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
-    .innerJoinAndSelect("user1.profile", "profile")
+    .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
-    .innerJoinAndSelect("user2.profile", "profile")
+    .innerJoinAndSelect("user2.profile", "profile2")
     .where("user1.userId = :id", { id: auth })
     .orWhere("user2.userId = :id2", { id2: auth })
     .getMany();
@@ -160,7 +160,9 @@ export class ChatService {
   async getPrivateMsg(conversationDto: ConversationDto, auth: any) {
     let ret = await this.dmRepository.createQueryBuilder('dm')
     .innerJoinAndSelect("dm.sender", "sender")
+    .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
+    .innerJoinAndSelect("receiver.profile", "profile2")
     .where("(sender.id = :id AND receiver.id = :id2) OR (sender.id = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
     .getMany();   
     return (ret);
@@ -234,7 +236,9 @@ export class ChatService {
     let u1:User = new User(), u2:User = new User();
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
+    .innerJoinAndSelect("user2.profile", "profile2")
     .where("(user1.id = :id AND user2.id = :id2) OR (user1.id = :id2 AND user2.id = :id)", { id: auth, id2: privateMsgDto.user })
     .getOne();
     u1.id = auth;

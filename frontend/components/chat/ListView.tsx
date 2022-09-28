@@ -51,7 +51,7 @@ export default function ListView() {
     const [channel, setChannel] = useState('rooms');
     
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
-    function OnDMsClick() { socket.emit('findFriends'); setChannel('friends'); setData(rooms); }
+    function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
     if (!pageLoaded) {
         socket.emit('findAllRooms');
@@ -66,9 +66,9 @@ export default function ListView() {
             alert('went wrong :(');
     });
 
-    socket.on('findFriends', ({ friends }) => {
-        setData(friends)
-        setTMP(friends);
+    socket.on('conversation', (arr) => {
+        setData(arr)
+        setTMP(arr);
     });
 
     socket.on('findAllRooms', ({ rooms }) => {
