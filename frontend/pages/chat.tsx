@@ -4,6 +4,8 @@ import NavBar from '../components/utils/Navbar'
 import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
+import "../styles/chat/RightClick.module.css";
+import Menu from '../components/chat/Menu'
 // import localStorage from 'localStorage';
 
 let token = null;
@@ -13,12 +15,12 @@ if (typeof window !== 'undefined') {
 }
 
 let backendHost = process.env.NEXT_PUBLIC_API_BASE_URL;
-console.log(backendHost?.toString());
+
 
 // let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
   //   token: token
   // }});
-const URL = "http://localhost:8080";
+const URL = "http://localhost:8080/chat";
 let socket = io(URL, {
   withCredentials: true,
   forceNew: true,
@@ -30,7 +32,12 @@ let socket = io(URL, {
 });
 export {socket};
 
+
+
+
 function Layout() {
+  
+
   return (
     <div className={styles.parent}>
       <NavBar/>
@@ -43,6 +50,7 @@ function Layout() {
 }
 
 function Chat() {
+
   return (
     <div>
       <Head>
@@ -50,6 +58,7 @@ function Chat() {
       </Head>
       
       <Layout/>
+
     </div>
   );  
 }
