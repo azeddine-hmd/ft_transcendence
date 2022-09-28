@@ -259,10 +259,11 @@ export class ChatService {
     .innerJoinAndSelect("user2.profile", "profile2")
     .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: privateMsgDto.user })
     .getOne();
+    
     let tmp = await this.checkUser(auth);
     let tmp2 = await this.checkUser(privateMsgDto.user);
     if (!tmp || !tmp2)
-      return (null);
+      return (0);
     u1.id = tmp.id;
     u2.id = tmp2.id;
     if (!ret)
@@ -272,8 +273,8 @@ export class ChatService {
     }
     const msg = this.dmRepository.create({ sender: u1, receiver: u2, message: privateMsgDto.msg });
     await this.dmRepository.save(msg);
+    return (1);
   }
-
 /*******************************************END DM SERVICE*******************************************/
 
 

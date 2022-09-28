@@ -44,7 +44,7 @@ class roomModel {
 }
 
 class dmModel {
-  userid: string;
+  userId: string;
   username: string;
   msg: string;
   avatar: string;
@@ -245,7 +245,6 @@ export class ChatGateway {
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) { 
     let clientId:any =  getClientId(client, this.jwtService);
-    console.log("user",conversationDto.user);
     
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
     if (!test)
@@ -256,7 +255,7 @@ export class ChatGateway {
     let arr = new Array();
     test.forEach(element => {
       let dm: dmModel = new dmModel();
-      dm.userid = element.sender.userId;
+      dm.userId = element.sender.userId;
       dm.username = element.sender.username;
       dm.msg = element.message;
       dm.avatar = element.sender.profile.avatar;
@@ -266,8 +265,8 @@ export class ChatGateway {
       arr.push(dm);
     });
     let u = await this.chatService.checkUser(conversationDto.user);
+    
     this.server.to(client.id).emit('getPrivateMsg', {success: true, error: "", privateMessages: arr, username: u?.username, userId: u?.userId});
-    console.log(arr);
   }
 
   /*
@@ -275,7 +274,6 @@ export class ChatGateway {
   */
   @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
-    console.log(privateMsgDto);
     
     let clientId:any =  getClientId(client, this.jwtService);
     if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
@@ -283,25 +281,29 @@ export class ChatGateway {
       this.server.to(client.id).emit("receiveNewPrivateMsg", {error: "Something went wrong: the message is not inserted"});
       return;
     }
+    let newDmMsg:dmModel = new dmModel();
+    let chatUser = await this.chatService.checkUserProfileByUserId(clientId);
+    console.log(chatUser);
+    if (!chatUser)
+      return;
+    newDmMsg.userId = chatUser.userId;
+    newDmMsg.avatar = chatUser.profile.avatar;
+    newDmMsg.username = chatUser.username;
+    newDmMsg.msg = privateMsgDto.msg;
+    let date = new Date().toString().split(':');
+    newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
+    newDmMsg.currentUser = false;
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      let newDmMsg:dmModel = new dmModel();
-      let chatUser = await this.chatService.checkUserProfileByUserId(privateMsgDto.user);
-      if (!chatUser)
-        return;
-      newDmMsg.userid = chatUser.userId;
-      newDmMsg.avatar = chatUser.profile.avatar;
-      newDmMsg.username = chatUser.username;
-      newDmMsg.msg = privateMsgDto.msg;
-      let date = new Date().toString().split(':');
-      newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
-      newDmMsg.currentUser = false;
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
-        this.server.to(element).emit("receiveNewPrivateMsg", { ...newDmMsg });
+        this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
+        console.log("here");
       });
-      newDmMsg.currentUser = true;
-      this.server.to(client.id).emit("receiveNewPrivateMsg", { ...newDmMsg });
     }
+    newDmMsg.currentUser = true;
+    usersClient.get((clientId).toString())?.forEach(element => {
+      this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
+    });
   }
 
 

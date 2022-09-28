@@ -92,9 +92,10 @@ export default function ChatView() {
 
     })
 
-    socket.on('createnNewPrivateMsg', (newDmMsg) => {
+    socket.on('receiveNewPrivateMsg', (newDmMsg) => {
 
-
+        console.log("hhhhhhhhhjfsljlsjdjl");
+        
         // if (created && room === roomID) // <<<<<
 
         let newData = [...data];
@@ -107,7 +108,7 @@ export default function ChatView() {
         }
         newData.push(dd);
         setData(newData);
-
+        
 
     })
 
@@ -128,6 +129,7 @@ export default function ChatView() {
         setVisibility(true);
         setData(privateMessages);
         userID = userId;
+        
     })
 
     return (
