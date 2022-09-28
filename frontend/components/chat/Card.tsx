@@ -20,12 +20,12 @@ export default function Card({title, description, members, id}:props) {
     return (
         <div className={style.row}>
             <div className={style.column}>
-                
                 <div className={style.card}>
                     <h3>{title}</h3>
                     <p>{description}</p>
                     <h5 id={style.Counter}>{members}</h5>
                     <a onClick={OnCardClicked} key="uniqueId1"></a>
+                    <input type="password" placeholder='Entre Password'></input>
                 </div>
             </div>
         </div>

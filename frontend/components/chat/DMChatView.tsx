@@ -90,7 +90,7 @@ export default function ChatView() {
         
     })
 
-    socket.on('getPrivateMsg', ({success, error, privateMessages}) => {
+    socket.on('getPrivateMsg', (success, error, privateMessages) => {
         console.log("here");
         
         console.log(privateMessages);

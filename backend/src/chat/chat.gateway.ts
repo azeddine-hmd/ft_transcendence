@@ -218,7 +218,7 @@ export class ChatGateway {
     {
       test.forEach(element => {
         let userConversation:userModel = new userModel();        
-        if (element.user1.id == clientId)
+        if (element.user1.userId == clientId)
         {
           userConversation.avatar = element.user2.profile.avatar;
           userConversation.displayName = element.user2.profile.displayName;
@@ -256,10 +256,10 @@ export class ChatGateway {
     let arr = new Array();
     test.forEach(element => {
       let dm: dmModel = new dmModel();
-      if (element.sender.id == clientId)
+      if (element.sender.userId == clientId)
       {
         dm.userid = element.sender.userId;
-        dm.username = element.sender.profile.displayName;
+        dm.username = element.sender.username;
         dm.msg = element.message;
         dm.avatar = element.sender.profile.avatar;
         dm.currentUser = true;
@@ -270,7 +270,7 @@ export class ChatGateway {
       else
       {
         dm.userid = element.receiver.userId;
-        dm.username = element.receiver.profile.displayName;
+        dm.username = element.receiver.username;
         dm.msg = element.message;
         dm.avatar = element.receiver.profile.avatar;
         dm.currentUser = false;
@@ -279,7 +279,8 @@ export class ChatGateway {
         arr.push(dm);
       }
     });
-    this.server.emit('getPrivateMsg', {success: true, error: "", privateMessages: arr});
+    let u = await this.chatService.checkUser(conversationDto.user);
+    this.server.emit('getPrivateMsg', {success: true, error: "", privateMessages: arr, username: u?.username});
     console.log(arr);
   }
 
