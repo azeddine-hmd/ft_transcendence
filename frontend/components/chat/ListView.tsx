@@ -108,7 +108,7 @@ export default function ListView() {
                 (channel == 'rooms') ?
                 data.map(data => {
                     return (
-                        <Card title={data.title} description={data.description} members={data.members} id={data.id} />
+                        <Card title={data.title} description={data.description} members={data.members} id={data.id} privacy={data.privacy} />
                     );
                 })
                 :

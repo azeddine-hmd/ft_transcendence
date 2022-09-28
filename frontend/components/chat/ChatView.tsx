@@ -19,6 +19,7 @@ interface Props {
 var roomID = -1;
 var roomTitle = '..';
 var roomType = 'DM';
+var userID = '';
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
@@ -33,7 +34,7 @@ function Layout({ data }: Props) {
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
     function SendMessage() { (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-                                                    : socket.emit('createnNewPrivateMsg', { user: roomID, msg: msg }) ; setText(''); }
+                                                    : socket.emit('createnNewPrivateMsg', { user: userID, msg: msg }) ; setText(''); }
 
     useEffect(() => {
         setText(msg);
@@ -119,13 +120,14 @@ export default function ChatView() {
         setData(msgs);
     })
 
-    socket.on('getPrivateMsg', ({ success, error, privateMessages, username }) => {
+    socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
         roomType = 'DM';
         console.log('getPrivateMsg flag returned');
         roomID = username; // <<<<<<<<<<<<< 8
         roomTitle = username; // <<<<<<<<<<<<<< 8
         setVisibility(true);
         setData(privateMessages);
+        userID = userId;
     })
 
     return (

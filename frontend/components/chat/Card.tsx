@@ -1,4 +1,5 @@
 import style from '../../styles/chat/Card.module.css'
+import style2 from '../../styles/chat/ListView.module.css'
 import {socket} from '../../pages/chat'
 import Link from 'next/link';
 
@@ -7,14 +8,23 @@ interface props {
     description : string;
     members : string;
     id: number;
+    privacy: boolean;
 }
 
-export default function Card({title, description, members, id}:props) {
+let showPass = false;
+
+export default function Card({title, description, members, id, privacy}:props) {
 
     function OnCardClicked() {
         console.log('send joinRoom flag roomID=', id);
-        socket.emit('joinRoom', { roomId: id, privacy: true, password: "" });
+        showPass = privacy;
+        if (!privacy)
+            socket.emit('joinRoom', { roomId: id, privacy: false, password: "" });
+    }
 
+    function passClick() {
+        socket.emit('joinRoom', { roomId: id, privacy: true, password: "" });
+        showPass = false;
     }
 
     return (
@@ -25,8 +35,14 @@ export default function Card({title, description, members, id}:props) {
                     <p>{description}</p>
                     <h5 id={style.Counter}>{members}</h5>
                     <a onClick={OnCardClicked} key="uniqueId1"></a>
-                    <input type="password" placeholder='Entre Password'></input>
                 </div>
+                {
+                (showPass) ?
+                <div className={style.card}>
+                    <input type="password" placeholder='Entre Password' style={{"width":"100%", "margin":"5px"}}></input>
+                    <button onClick={passClick} className={style2.button} style={{"width":"100%", "margin":"5px"}}>Entre</button>
+                </div>
+                : <></>}
             </div>
         </div>
     );
