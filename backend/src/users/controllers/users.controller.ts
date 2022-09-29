@@ -12,6 +12,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist';
@@ -30,10 +31,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiResponse({
-    type: UserResponseDto,
     status: 201,
-    description: 'update user info',
+    type: UserResponseDto,
   })
+  @ApiOperation({ summary: 'Update user data' })
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(
@@ -55,8 +56,8 @@ export class UsersController {
 
   @ApiResponse({
     status: 200,
-    description: 'delete user and all other relate data',
   })
+  @ApiOperation({ summary: 'Delete current user' })
   @Delete()
   async deleteUser(@Req() req: any) {
     await this.usersService.removeById(req.user.userId);

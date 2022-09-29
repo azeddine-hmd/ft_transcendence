@@ -1,9 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger/dist/decorators/api-property.decorator';
-import { ProfileResponseDto } from '../../../profiles/dto/response/profile-response.dto';
+import { ProfileResponse } from '../../../profiles/dto/response/profile-response.dto';
+import { FriendsStatus } from './other-user-relation.dt';
 
-export class FriendsResponseDto {
+export class FriendsResponse {
   @ApiProperty()
-  profile: ProfileResponseDto;
+  profile: ProfileResponse;
+
+  @ApiProperty({ enum: FriendsStatus })
+  friends_status: FriendsStatus;
+
   @ApiProperty()
   is_blocked: boolean;
 }

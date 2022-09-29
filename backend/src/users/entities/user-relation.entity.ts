@@ -21,24 +21,15 @@ export class UserRelation {
   @JoinColumn()
   user2: User;
 
-  @OneToOne(() => Profile)
-  @JoinColumn()
-  profile: Profile;
+  @Column({
+    default: false,
+  })
+  friend1_2: boolean;
 
   @Column({
     default: false,
   })
-  PendingFriend1_2: boolean;
-
-  @Column({
-    default: false,
-  })
-  PendingFriend2_1: boolean;
-
-  @Column({
-    default: false,
-  })
-  isFriend: boolean;
+  friend2_1: boolean;
 
   @Column({
     default: false,
