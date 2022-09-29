@@ -154,12 +154,58 @@ export namespace Apis {
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.get<RelationResponse>(`/api/users/relations`, {
+      const res = await localService.get<RelationResponse>(`/api/users/relations/with`, {
         params: {
           username: options.username,
         },
       });
       return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function Block(options: {
+    username: string,
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/users/relations/block", {
+        params: {
+          username: options.username,
+        }
+      });
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function Unblock(options: {
+    username: string,
+    onSuccess: () => void,
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/users/relations/unblock", {
+        params: {
+          username: options.username,
+        }
+      });
+      return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;

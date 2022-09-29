@@ -80,7 +80,7 @@ export class RelationsController {
   @ApiOperation({
     summary: 'Get current user relation with other user',
   })
-  @Get(':username')
+  @Get('/with/:username')
   async getRelationWithOther(
     @Req() req: any,
     @Param('username') otherUsername: string,
@@ -100,5 +100,37 @@ export class RelationsController {
         blocked: relation.isBlocked,
       };
     }
+  }
+
+  @ApiResponse({
+    status: 200,
+  })
+  @ApiOperation({ summary: 'Block user' })
+  @ApiBody({
+    type: AddFriendDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/block')
+  async block(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+    await this.relationsService.blockUser(
+      req.user.userId,
+      addFriendDto.friend_username,
+    );
+  }
+
+  @ApiResponse({
+    status: 200,
+  })
+  @ApiOperation({ summary: 'Unblock user' })
+  @ApiBody({
+    type: AddFriendDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/unblock')
+  async unblock(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+    await this.relationsService.unblockUser(
+      req.user.userId,
+      addFriendDto.friend_username,
+    );
   }
 }

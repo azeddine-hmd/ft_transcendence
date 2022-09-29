@@ -123,7 +123,6 @@ export class RelationsService {
     const current = await this.usersService.findOneFromUserId(userId);
     const other = await this.usersService.findOneFromUsername(otherUsername);
     if (!current || !other) throw new InternalServerErrorException();
-
     if (current.id === other.id)
       throw new BadRequestException(
         `you can't send friend request to yourself`,
@@ -143,6 +142,40 @@ export class RelationsService {
       relation.friend2_1 = true;
     }
 
-    this.userRelationRepository.save(relation);
+    await this.userRelationRepository.save(relation);
+  }
+
+  async blockUser(userId: string, otherUsername: string) {
+    const current = await this.usersService.findOneFromUserId(userId);
+    const other = await this.usersService.findOneFromUsername(otherUsername);
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current.id === other.id)
+      throw new BadRequestException(
+        `you can't send friend request to yourself`,
+      );
+    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+    const relation = await this.findOrCreate(user1, user2);
+
+    if (relation.isBlocked) throw new BadRequestException('Already blocked');
+    relation.isBlocked = true;
+
+    await this.userRelationRepository.save(relation);
+  }
+
+  async unblockUser(userId: string, otherUsername: string) {
+    const current = await this.usersService.findOneFromUserId(userId);
+    const other = await this.usersService.findOneFromUsername(otherUsername);
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current.id === other.id)
+      throw new BadRequestException(
+        `you can't send friend request to yourself`,
+      );
+    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+    const relation = await this.findOrCreate(user1, user2);
+
+    if (!relation.isBlocked) throw new BadRequestException('Already unblocked');
+    relation.isBlocked = false;
+
+    await this.userRelationRepository.save(relation);
   }
 }
