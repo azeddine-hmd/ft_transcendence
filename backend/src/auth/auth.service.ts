@@ -1,11 +1,11 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginPayloadDto } from './dto/login-payload.dto';
-import { UserPayloadDto } from './dto/user-payload.dto';
 import * as bcrypt from 'bcrypt';
+import { UsersService } from '../users/services/users.service';
+import { User } from '../users/entities/user.entity';
+import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
+import { JwtPayload } from './types/jwt-payload.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,10 +15,10 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.findOneFromUsername(username);
 
+    if (!user || !user.password) return null;
     if (user && (await bcrypt.compare(pass, user.password))) {
-      //TODO: encrypt password before storing it in database
       Logger.log(`AuthService#validateUser: validation was success!`);
       const { password, ...result } = user;
       return result;
@@ -27,30 +27,35 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(createUserDto: CreateUserDto): Promise<User> {
-    const userFound = await this.usersService.findOne(createUserDto.username);
-    if (userFound) {
+  async registerUser(signupUserDto: SignupUserDto): Promise<User> {
+    // hashing password
+    signupUserDto.password = await bcrypt.hash(
+      signupUserDto.password,
+      await bcrypt.genSalt(),
+    );
+
+    const user = await this.usersService.create(signupUserDto);
+
+    if (!user) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException();
     }
 
-    // hashing password
-    createUserDto.password = await bcrypt.hash(
-      createUserDto.password,
-      await bcrypt.genSalt(),
-    );
-
-    const user = this.usersService.create(createUserDto);
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
+
     return user;
   }
 
-  async login(user: UserPayloadDto): Promise<LoginPayloadDto> {
-    Logger.log(`AuthService#login: user '${user.username}' logged-in!`);
+  async login(jwtPayload: JwtPayload): Promise<LoginResponseDto> {
+    Logger.log(`AuthService#login: user '${jwtPayload.username}' logged-in!`);
+    const access_token = this.jwtService.sign(jwtPayload);
+    await this.usersService.updateUser(jwtPayload.userId, {
+      token: access_token,
+    });
     return {
-      access_token: this.jwtService.sign(user),
+      access_token: access_token,
     };
   }
 }

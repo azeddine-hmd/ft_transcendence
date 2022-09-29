@@ -16,9 +16,9 @@ export default function User_matches({user, imageUrl, isopen} :any) {
         <>
         <Head>
         <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Collegiate+One&family=Snippet&display=swap" rel="stylesheet"></link>
-        <link href="https://fonts.googleapis.com/css2?family=Langar&display=swap" rel="stylesheet"></link>
-        <link href="https://fonts.googleapis.com/css2?family=Roboto+Serif:opsz@8..144&display=swap" rel="stylesheet"></link>
+        <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Collegiate+One&family=Snippet&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Langar&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Serif:opsz@8..144&display=swap" rel="stylesheet"/>
         </Head>
             <div className="allinfo grow flex justify-center my-28">
                 <div className={`infouser w-[290px] shadow-2xl h-16 rounded-3xl bg-white relative ${style.infouser}`}>
@@ -36,9 +36,9 @@ export default function User_matches({user, imageUrl, isopen} :any) {
                     </div>
                     <div className="lstmatches">
                     {todos.map((todo) => (
-                        <div className={` w-[400px] h-[180px] bg-slate-600 p-6 relative right-12 rounded-3xl flex justify-between px-12 items-center mb-8 ${style.allcart}`} style={{background:"#087E8B"}}>
+                        <div key={todo.id} className={` w-[400px] h-[180px] bg-slate-600 p-6 relative right-12 rounded-3xl flex justify-between px-12 items-center mb-8 ${style.allcart}`} style={{background:"#087E8B"}}>
                         <div className="userone flex justify-start flex-col w-[60px]">
-                            <Image src={todo.imguser1} width={70} height={70} className={` rounded-full  `} />
+                            <Image src={imageUrl} width={70} height={70} className={` rounded-full  `} />
                             <a href="#" className={`text-white pt-4 ${style.userone}`}>{todo.user1}</a>
                         </div>
                         <div className={`userone flex  flex-col w-[60px] relative left-1 ${style.userone}`}>

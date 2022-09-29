@@ -12,7 +12,7 @@ export class Join {
     rid: number;
 
     @ManyToOne(() => User, (user) => user.id)
-    user: number;
+    user: User;
 
     @ManyToOne(type => Rooms, (room) => room.id)
     room: number;

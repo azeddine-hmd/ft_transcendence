@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GameModule } from 'src/game/game.module';
 import { ChatModule } from '../chat/chat.module';
+import { ProfilesModule } from '../profiles/profiles.module';
 import { UsersModule } from '../users/users.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '.postgres.env'],
+      envFilePath: ['.env', '.postgres.env', '.profile.env'],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -23,8 +26,10 @@ import { UsersModule } from '../users/users.module';
         synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
+    ProfilesModule,
     UsersModule,
     ChatModule,
+    GameModule,
   ],
 })
 export class AppModule {}

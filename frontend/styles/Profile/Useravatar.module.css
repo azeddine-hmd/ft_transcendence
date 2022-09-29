@@ -1,0 +1,8 @@
+.shadows{
+    -webkit-box-shadow: 5px 5px 38px 5px rgba(0,0,0,0.52); 
+box-shadow: 5px 5px 38px 5px rgba(0,0,0,0.52);
+}
+.dropdown{
+    -webkit-box-shadow: 5px 5px 38px -1px rgba(0,0,0,0.56); 
+box-shadow: 5px 5px 38px -1px rgba(0,0,0,0.56);
+}

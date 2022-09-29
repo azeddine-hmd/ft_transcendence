@@ -1,0 +1,12 @@
+.animation1{
+
+  animation: ard 3s infinite;
+}
+@keyframes ard {
+    0%,100%   {transform: translate(0);}
+    50% {transform: translate(0,-50px);}
+  }
+  .btns{
+    font-family: 'Montserrat', sans-serif;
+
+}

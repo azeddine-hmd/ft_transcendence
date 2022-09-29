@@ -1,32 +1,63 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Profile } from 'src/profiles/entities/profile.entity';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserRelation } from './user-relation.entity';
 
 @Entity('game_user')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({
-    nullable: true,
+    unique: true,
+    update: false,
+    generated: 'uuid',
   })
-  ftId: number;
+  userId: string;
+
+  @Column({
+    type: 'int',
+    nullable: true,
+    update: false,
+  })
+  ftId: number | null;
 
   @Column({
     unique: true,
+    update: false,
   })
   username: string;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  displayName: string;
+  password: string | null;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  password: string;
+  token: string | null;
 
-  @Column({
-    nullable: true,
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
+
+  @OneToMany(() => UserRelation, (userRelation) => userRelation, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  avatar: string;
+  @JoinColumn()
+  relations: UserRelation[];
+
+  
 }

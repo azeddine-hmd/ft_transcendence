@@ -2,70 +2,85 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Injectable,
+  InternalServerErrorException,
   Logger,
   Post,
   Redirect,
   Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger/dist/decorators';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExcludeEndpoint,
+  ApiResponse,
+  ApiResponseProperty,
+  ApiTags,
+} from '@nestjs/swagger/dist/decorators';
+import { UsersService } from '../users/services/users.service';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { SigninUserDto } from './dto/payload/signin-user.dto';
+import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { getIntraAuthUrl } from './utils/url-constructor';
 
 @ApiTags('authentication')
 @Injectable()
 @Controller('api/auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
   ) {}
 
+  @ApiResponse({ description: 'redirect to 42 authorization page' })
   @Get('/intra')
   @Redirect()
-  requestIntraAuth() {
-    const fortytwoAuthUrl = new URL(
-      this.configService.get('INTRA_AUTH_URL') as string,
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'client_id',
-      this.configService.get('CLIENT_ID') as string,
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'redirect_uri',
-      (this.configService.get('BACKEND_HOST') as string) +
-        (this.configService.get('REDIRECT_URI') as string),
-    );
-    fortytwoAuthUrl.searchParams.set(
-      'response_type',
-      this.configService.get('RESPONSE_TYPE') as string,
-    );
-
-    return {
-      url: fortytwoAuthUrl.toString(),
-    };
+  intraAuth() {
+    return { url: getIntraAuthUrl(this.configService) };
   }
 
+  @ApiResponse({ description: 'logout user and invalidate current token' })
+  @ApiBearerAuth()
+  @JwtAuthGuard
+  @Get('/logout')
+  async logout(@Req() req: any) {
+    Logger.debug(
+      `AuthController#logout: user ${req.user.username} logging-out!`,
+    );
+    await this.usersService.updateUser(req.user.userId, {
+      token: null,
+    });
+  }
+
+  @ApiResponseProperty({ type: SignupUserDto })
+  @ApiResponse({
+    description: 'register user',
+    type: LoginResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/signup')
+  async signup(@Body() signupUserDto: SignupUserDto) {
+    await this.authService.registerUser(signupUserDto);
+  }
+
+  @ApiBody({ type: SigninUserDto })
+  @ApiResponse({
+    status: 200,
+    description: 'signin user with username and password',
+    type: LoginResponseDto,
+  })
   @LocalAuthGuard
   @Post('/signin')
   async login(@Req() req: any) {
     return this.authService.login(req.user);
-  }
-
-  @Get('/logout')
-  @Redirect()
-  logout() {
-    return {
-      url: this.configService.get('FRONTEND_HOST') + '/logout',
-    };
-  }
-
-  @Post('/signup')
-  async register(@Body() CreateLoginDto: CreateUserDto) {
-    return await this.authService.registerUser(CreateLoginDto);
   }
 
   @ApiExcludeEndpoint()
@@ -74,10 +89,22 @@ export class AuthController {
   @Redirect()
   async FTCallback(@Req() req: any) {
     const loginDto = await this.authService.login(req.user);
+    const frontendHost = this.configService.get('FRONTEND_HOST');
+    if (!frontendHost) {
+      throw new InternalServerErrorException();
+    }
+
     return {
-      url:
-        this.configService.get('FRONTEND_HOST') +
-        `/auth/42/callback?access_token=${loginDto.access_token}`,
+      url: `${frontendHost}/auth/42/callback?access_token=${loginDto.access_token}`,
     };
+  }
+
+  @ApiResponse({ description: 'verify current user credentials' })
+  @ApiBearerAuth()
+  @JwtAuthGuard
+  @HttpCode(HttpStatus.OK)
+  @Get('/verify')
+  async verify(@Req() req: any) {
+    Logger.log(`user ${req.user.username} verified`);
   }
 }
