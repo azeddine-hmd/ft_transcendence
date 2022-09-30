@@ -168,7 +168,7 @@ export class ChatGateway {
     else
     {
       client.join(createMsgDto.room.toString());
-      const userInfo:User | null = await this.chatService.checkUserProfileById(clientId);
+      const userInfo:User | null = await this.chatService.checkUserProfileByUserId(clientId);
       try{
         if (!userInfo) return;
         let tmp:msgModel = new msgModel();
