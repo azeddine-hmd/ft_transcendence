@@ -20,10 +20,12 @@ export default function ChatCard({name, message, date, avatar, currentUser}:prop
     return (
         <div className={style.row}>
             <div className={style.column} style={currentUser ? {"float": "right"} : {"float": "left"} }>
-                <div style={{ "display": "flex", "justifyContent": "spaceBetween"}}>
-                    <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px"}} />
-                    <span id={style.username}>{name}</span>
-                </div>
+                <a href={"user/"+name}>
+                    <div style={{ "display": "flex", "justifyContent": "spaceBetween"}}>
+                        <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px"}} />
+                        <span id={style.username}>{name}</span>
+                    </div>
+                </a>
                 <div className={style.chatcard} style={currentUser ? {"backgroundColor": "#04AA6D"} : {"backgroundColor": "#f6f7fb"} }>
                     <p>{message}</p>                    
                 </div>
