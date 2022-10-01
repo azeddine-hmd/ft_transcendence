@@ -12,8 +12,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Ping Pong Game')
-    .setDescription('Ping Pong online game')
-    .setVersion('1.0')
+    .setVersion('1.0.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

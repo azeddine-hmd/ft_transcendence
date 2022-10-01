@@ -11,7 +11,7 @@ import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
 import { atob } from 'buffer';
 import { User } from 'src/users/entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';
@@ -108,7 +108,9 @@ export class ChatGateway {
     else
     {
       client.join(joinRoomDto.roomId.toString());
+      const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
       const roomInfo = await this.chatService.getRoomById(joinRoomDto);
+      
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{    
         if (msgs)
@@ -125,7 +127,7 @@ export class ChatGateway {
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
-          this.server.to(client.id).emit('joinRoom', { room: roomInfo,  error: "", msgs: messages });
+          this.server.to(client.id).emit('joinRoom', { role: userRole?.role, room: roomInfo,  error: "", msgs: messages });
         }
       }
       catch(e){ console.log(e); }
@@ -147,6 +149,8 @@ export class ChatGateway {
         rm.privacy = element.privacy;
         arr.push(rm);
       });
+      if (!rooms)
+        this.server.to(client.id).emit('findAllRooms', { error: "something went wrong" });
       this.server.to(client.id).emit('findAllRooms', { rooms: arr });
     } catch (error) {
       console.error(error);

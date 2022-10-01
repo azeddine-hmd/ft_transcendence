@@ -16,4 +16,8 @@ export class Join {
 
     @ManyToOne(type => Rooms, (room) => room.id)
     room: number;
+
+    @Column()
+    role: string;
+
 }

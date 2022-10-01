@@ -15,6 +15,7 @@ import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { User } from 'src/users/entities/user.entity';
+import { getRandomValues } from 'crypto';
 
 let roomsusers = new Map<number, number[]>();
 
@@ -85,6 +86,16 @@ export class ChatService {
     .getOne();
     return checkUserJoined;
   }
+
+  async getRole(auth: any, room:number)
+  {
+    let role = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner", "owner")
+    .where("room.id = :rid", { rid: room })
+    .select(['room.id',"owner.userId"])
+    .getOne();
+    return role;
+  }
   
   /**************ROOMS TOOLS**************/
 
@@ -125,6 +136,16 @@ export class ChatService {
     return (room);
   }
 
+  async getMemberRole(joinRoomDto: JoinRoomDto, auth:any) {
+    let role = await this.joinRepository.createQueryBuilder('join')
+    .leftJoinAndSelect("join.user","user")
+    .where("join.room = :rid", { rid: joinRoomDto.roomId })
+    .andWhere("user.userId = :id", { id: auth })
+    .select()
+    .getOne();
+    return (role);
+  }
+
   async getRoomByOwner(id: number, date: Date) {
     let ret = await this.roomRepository.createQueryBuilder('room')
     .leftJoinAndSelect("room.owner", "owner")
@@ -152,9 +173,6 @@ export class ChatService {
     .where("msg.room = :rid", { rid: joinRoomDto.roomId })
     .orderBy('msg.id', 'ASC')
     .getMany();
-    if(checkUserJoined == null)
-      return null;
-
     return (checkUserJoined);
   }
 
@@ -223,7 +241,12 @@ export class ChatService {
         return 3;
     }
     u1.id = checkuser.id;
-    const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId });
+    let ret = await this.getRole(auth, joinRoomDto.roomId);
+    let role = "member";
+    
+    if (ret && ret.owner.userId == auth)
+      role = "owner";
+    const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId, role });
     try{await this.joinRepository.save(joinuser);}catch(e){}
     return (0);
   }
@@ -239,7 +262,7 @@ export class ChatService {
     if(checkUserJoined == null)
       return 3;
     createMsgDto.date = new Date();
-    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date});
+    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date, join: { rid:createMsgDto.room , uid: checkuser.id }});
     try{await this.msgRepository.save(msg);}catch(e){}
     return (0);
   }

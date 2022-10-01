@@ -1,3 +1,4 @@
+import { join } from "path";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./users.entity";
@@ -23,6 +24,7 @@ export class Rooms {
     @Index()
     date: Date;
 
-    @ManyToOne(type => User, (user) => user.id)
+    @JoinTable()
+    @ManyToOne(type => User, (user) => user.rooms)
     owner: User;
 }

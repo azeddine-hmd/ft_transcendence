@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 import { ChatModule } from '../chat/chat.module';
 import { ProfilesModule } from '../profiles/profiles.module';
+import { UploadModule } from '../upload/upload.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -25,9 +28,17 @@ import { UsersModule } from '../users/users.module';
         synchronize: configService.get('SYCHRONIZE'),
       }),
     }),
+    ServeStaticModule.forRoot({
+      rootPath: '/backend/uploads',
+      serveRoot: '/api/images',
+      serveStaticOptions: {
+        index: false,
+      },
+    }),
     ProfilesModule,
     UsersModule,
     ChatModule,
+    UploadModule,
   ],
 })
 export class AppModule {}
