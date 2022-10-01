@@ -8,7 +8,7 @@ export default function Profile() {
         return (
           
           <div className="homepage flex ">
-            {isopen ? <div className="backgroundblack absolute  top-0 left-0 w-full h-screen bg-black duration-500 opacity-80" style={{transition:"all 0.9 ease"}}>
+            {isopen ? <div className="backgroundblack absolute  top-0 left-0 w-full h-full bg-black duration-500 opacity-80" style={{transition:"all 0.9 ease"}}>
               
               </div> : null}
             <Sidebar isopen={isopen} setisopen={setisopen} />

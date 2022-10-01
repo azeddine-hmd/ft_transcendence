@@ -6,7 +6,7 @@ import style from "../../styles/Profile/Profilem.module.css"
 export default function ProfileM(){
     return (
         <>
-       <div className="prnt_profile h-screen w-full flex justify-center items-center">
+       <div className="prnt_profile h-full w-full flex justify-center items-center">
             <div className="profile w-[70%] h-[70%] bg-white rounded-3xl relative">
                     <div className={`imgprofile flex justify-center relative top-[-70px] `}>
                         <div className={` ${style.imgprofile} rounded-full absolute w-[153px] h-[153px]`}></div>

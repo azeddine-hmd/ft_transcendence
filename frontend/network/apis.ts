@@ -8,6 +8,8 @@ import { ProfileResponse } from "./dto/response/profile-response.dto";
 import { RelationResponse } from "./dto/response/relation-response.dto";
 import { SigninResponse } from "./dto/response/signin-response.dto";
 import { localService } from "./local.service";
+import { ProfilesUser } from "./dto/payload/profileuser";
+import { RiCoinsLine } from "react-icons/ri";
 
 export namespace Apis {
   export async function Signin(options: {
@@ -50,6 +52,29 @@ export namespace Apis {
       }
     }
     return options.onFailure({ message: "something went wrong!" });
+  }
+
+  
+  export async function ProfilesUser(options:{
+    username:ProfilesUser;
+    onSuccess: (profile: ProfileResponse) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try{
+      console.log(options.username);
+      
+      const res = await localService.get(`api/profiles/username/${options.username.username}`,);
+      return options.onSuccess(res.data);
+    }catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+    
   }
 
   export async function CurrentProfile(options: {

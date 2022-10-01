@@ -5,9 +5,10 @@ import styles from "../../styles/Profile/Useravatar.module.css"
 export default function Useravatar({avata,userid}:any) {
     const [open,setopen] = useState(false);
     return (
-        <div className="iconuser  flex w-full justify-end ">
-        <div className={`user w-[300px] h-[70px] flex  items-center rounded-[16px] bg-[#513f90] cursor-pointer ${styles.shadows}`} onClick={()=>setopen(!open)}>
-            <div className="elauser w-full flex px-2 pr-3 items-center justify-center">
+        <div className="iconuser  relative flex  justify-end  ">
+        <div className="bgopaci relative w-[250px] h-[70px] flex  items-center rounded-[16px] opacity-70 cursor-pointer bg-[#705bb1] "></div>
+        <div className={`user absolute w-[250px] h-[70px] flex  items-center rounded-[16px]  cursor-pointer ${styles.shadows}`} onClick={()=>setopen(!open)}>
+            <div className="elauser  w-full flex px-2 pr-3 items-center justify-center">
                  <div className="avataru flex items-center ">
                     <div className="a w-[52px] min-w-[48px]">
                         <img src={avata} className={`rounded-[50%] shadow-2xl`}  alt="" />
