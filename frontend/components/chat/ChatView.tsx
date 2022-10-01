@@ -4,6 +4,10 @@ import ChatCard from './ChatCard';
 import React, { useEffect, useRef, useState } from 'react';
 import { socket } from '../../pages/chat/[chat]'
 import { Button } from "@progress/kendo-react-buttons";
+import settingstyle from '../../styles/chat/Setting.module.css'
+import stylee from '../../styles/chat/Card.module.css'
+
+
 
 interface props {
     username: string | undefined;
@@ -24,6 +28,60 @@ var userID = '';
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
+    const [showSetting, setShowSetiig] = useState(false);
+
+
+    function Setting() {
+        const [password, setPassword] = useState('');
+        const [username, setUsername] = useState('');
+        const [checked, setChecked] = useState(true);
+    
+        const handleChange = () => {
+    
+            setChecked(!checked);
+            console.log(checked);
+    
+    
+        };
+    
+        const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
+        const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
+        const handleAdd = () => { };
+    
+        function handleSave() {
+            setShowSetiig(false);
+        }
+    
+        return (
+            <div className={stylee.row}>
+                <div className={stylee.column}>
+                    <div className={stylee.noHoverCard}>
+                        <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px" }}>Setting</h3>
+                        <p>make room private:</p>
+                        <label className={settingstyle.toggle}>
+                            <input type="checkbox" onChange={handleChange}></input>
+                            <span className={settingstyle.slider}></span>
+                        </label>
+                        {(!checked) ?
+                            <>
+                                <input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br />
+                            </>
+                            :
+                            <></>}
+                        <p>add a user as administrator:</p>
+                        <div style={{ "display": "flex", "height": "35px" }}>
+                            <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
+                            <Button onClick={handleAdd} themeColor={"light"} size="small">ADD</Button>
+                        </div>
+                        <div className={settingstyle.buttonsHolder}>
+                            <button onClick={handleSave} className={settingstyle.button}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const bottom = useRef<null | HTMLDivElement>(null);
     const scrollToBottom = () => {
         if (bottom.current)
@@ -48,9 +106,10 @@ function Layout({ data }: Props) {
             <div className={style.roomTitle}>
                 <h2>{roomTitle}</h2>
                 <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
-                    <Button themeColor={"light"} size="small">...</Button>
+                    <Button onClick={() => setShowSetiig(!showSetting)} themeColor={"light"} size="small">...</Button>
                 </div>
             </div>
+            {(showSetting) ? <Setting/> : <></>}
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
