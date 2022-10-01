@@ -24,7 +24,7 @@ export default function C_signup(){
       })
     return (
         <>
-        <div className="signpage w-full flex sm:justify-around absolute justify-end md:justify-around h-screen top-0 z-100 right-0 bg-[#fff] sm:items-center flex-col-reverse  md:flex-row sm:flex-row">
+        <div className="signpage w-full flex sm:justify-around absolute justify-end md:justify-around h-full top-0 z-100 right-0 bg-[#fff] sm:items-center flex-col-reverse  md:flex-row sm:flex-row">
                 <Link href="/" color={"#000"}><div className="backhome absolute flee top-8 left-6 text-[18px] flex items-center cursor-pointer">
                     <IoArrowBackCircle/>
                     <span className="pl-2">ft_transcendence</span>

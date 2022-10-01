@@ -11,7 +11,7 @@ import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
 import { atob } from 'buffer';
 import { User } from 'src/users/entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';

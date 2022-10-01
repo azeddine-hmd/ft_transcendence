@@ -16,8 +16,8 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiExcludeEndpoint,
+  ApiOperation,
   ApiResponse,
-  ApiResponseProperty,
   ApiTags,
 } from '@nestjs/swagger/dist/decorators';
 import { UsersService } from '../users/services/users.service';
@@ -26,7 +26,7 @@ import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuth } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { getIntraAuthUrl } from './utils/url-constructor';
 
@@ -40,16 +40,19 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  @ApiResponse({ description: 'redirect to 42 authorization page' })
+  @ApiResponse({ status: 302 })
+  @ApiOperation({ summary: 'Redirect to 42 authorization page' })
   @Get('/intra')
   @Redirect()
   intraAuth() {
     return { url: getIntraAuthUrl(this.configService) };
   }
 
-  @ApiResponse({ description: 'logout user and invalidate current token' })
+  @ApiOperation({
+    summary: 'Logout current user and invalidate session access token',
+  })
   @ApiBearerAuth()
-  @JwtAuthGuard
+  @JwtAuth
   @Get('/logout')
   async logout(@Req() req: any) {
     Logger.debug(
@@ -60,23 +63,22 @@ export class AuthController {
     });
   }
 
-  @ApiResponseProperty({ type: SignupUserDto })
-  @ApiResponse({
-    description: 'register user',
-    type: LoginResponseDto,
-  })
+  @ApiResponse({ type: LoginResponseDto })
+  @ApiOperation({ summary: 'Register user' })
+  @ApiBody({ type: SignupUserDto })
   @HttpCode(HttpStatus.OK)
   @Post('/signup')
   async signup(@Body() signupUserDto: SignupUserDto) {
     await this.authService.registerUser(signupUserDto);
   }
 
-  @ApiBody({ type: SigninUserDto })
   @ApiResponse({
     status: 200,
     description: 'signin user with username and password',
     type: LoginResponseDto,
   })
+  @ApiOperation({ summary: 'Signin user with username/password' })
+  @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
   async login(@Req() req: any) {
@@ -99,9 +101,10 @@ export class AuthController {
     };
   }
 
-  @ApiResponse({ description: 'verify current user credentials' })
+  @ApiResponse({ status: 200, description: 'verify current user credentials' })
+  @ApiOperation({ summary: 'Verify current user session access token' })
   @ApiBearerAuth()
-  @JwtAuthGuard
+  @JwtAuth
   @HttpCode(HttpStatus.OK)
   @Get('/verify')
   async verify(@Req() req: any) {
