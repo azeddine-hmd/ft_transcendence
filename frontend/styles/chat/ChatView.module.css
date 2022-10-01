@@ -28,7 +28,7 @@
 }
 
 #messageBarSendBtn {
-color: rgb(54, 137, 24);
+color: rgba(243, 207, 124, 1);
   background-color: #ffffff;
   font-size: 15px;
   border-radius: 8px;
@@ -40,7 +40,7 @@ color: rgb(54, 137, 24);
 
 #messageBarSendBtn:hover {
     color: #ffffff;
-    background-color: rgb(54, 137, 24);
+    background-color: rgba(243, 207, 124, 1);
 }
 
 .chatBoard {
@@ -56,6 +56,8 @@ color: rgb(54, 137, 24);
     background-color: #fff;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
     border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .roomTitle > h2 {

@@ -44,8 +44,8 @@ export default function Sidebar() {
           active: false,
         },
         {
-          label: 'Chats',
-          url: "/chats",
+          label: 'Chat',
+          url: "/chat/0",
           icon: "/profile/chat.png",
           active: false,
         },
