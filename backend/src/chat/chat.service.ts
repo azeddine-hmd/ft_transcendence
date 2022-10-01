@@ -49,6 +49,33 @@ export class ChatService {
     return checkuser;
   }
 
+  async checkUserById(auth: any)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .select()
+    .where("user.id = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
+  async checkUserProfileById(auth: any)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .leftJoinAndSelect("user.profile", "profile")
+    .where("user.id = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
+  async checkUserProfileByUserId(auth: any)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .leftJoinAndSelect("user.profile", "profile")
+    .where("user.userId = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
   async checkJoined(id: number, room: number)
   {
     let checkUserJoined = await this.joinRepository.createQueryBuilder('join')
@@ -69,6 +96,17 @@ export class ChatService {
     .getOne()
     return checkroom;
   }
+
+  async checkProtectedRoomPassword(joinRoomDto: JoinRoomDto)
+  {
+    let checkroom = await this.roomRepository.createQueryBuilder('rooms')
+    .select()
+    .where("rooms.id = :id", { id: joinRoomDto.roomId })
+    .andWhere("rooms.password = :password", {password: joinRoomDto.password})
+    .getOne()
+    return checkroom;
+  }
+
 
   async getRooms() {
     const rooms = await this.roomRepository.find({
@@ -128,9 +166,11 @@ export class ChatService {
   async conversation(auth: any) {
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
-    .where("user1.id = :id", { id: auth })
-    .orWhere("user2.id = :id2", { id2: auth })
+    .innerJoinAndSelect("user2.profile", "profile2")
+    .where("user1.userId = :id", { id: auth })
+    .orWhere("user2.userId = :id2", { id2: auth })
     .getMany();
     return (ret);
   }
@@ -138,8 +178,10 @@ export class ChatService {
   async getPrivateMsg(conversationDto: ConversationDto, auth: any) {
     let ret = await this.dmRepository.createQueryBuilder('dm')
     .innerJoinAndSelect("dm.sender", "sender")
+    .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
-    .where("(sender.id = :id AND receiver.id = :id2) OR (sender.id = :id2 AND receiver.id = :id)", { id: auth, id2: conversationDto.user })
+    .innerJoinAndSelect("receiver.profile", "profile2")
+    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: conversationDto.user })
     .getMany();   
     return (ret);
   }
@@ -174,6 +216,12 @@ export class ChatService {
     let checkroom = await this.checkRoom(joinRoomDto.roomId);
     if (checkroom == null)
       return 2;
+    if (joinRoomDto.privacy)
+    {
+      let checkroomPass = await this.checkProtectedRoomPassword(joinRoomDto);
+      if (checkroomPass == null)
+        return 3;
+    }
     u1.id = checkuser.id;
     const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId });
     try{await this.joinRepository.save(joinuser);}catch(e){}
@@ -206,11 +254,18 @@ export class ChatService {
     let u1:User = new User(), u2:User = new User();
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
+    .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
-    .where("(user1.id = :id AND user2.id = :id2) OR (user1.id = :id2 AND user2.id = :id)", { id: auth, id2: privateMsgDto.user })
+    .innerJoinAndSelect("user2.profile", "profile2")
+    .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: privateMsgDto.user })
     .getOne();
-    u1.id = auth;
-    u2.id = privateMsgDto.user;
+    
+    let tmp = await this.checkUser(auth);
+    let tmp2 = await this.checkUser(privateMsgDto.user);
+    if (!tmp || !tmp2)
+      return (0);
+    u1.id = tmp.id;
+    u2.id = tmp2.id;
     if (!ret)
     {
       const cnv = this.conversationRepository.create({ user1: u1 , user2: u2 });
@@ -218,8 +273,8 @@ export class ChatService {
     }
     const msg = this.dmRepository.create({ sender: u1, receiver: u2, message: privateMsgDto.msg });
     await this.dmRepository.save(msg);
+    return (1);
   }
-
 /*******************************************END DM SERVICE*******************************************/
 
 

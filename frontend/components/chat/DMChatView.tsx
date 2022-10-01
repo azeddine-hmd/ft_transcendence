@@ -2,14 +2,14 @@ import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 import React, { useEffect, useRef, useState } from 'react';
-import { socket } from '../../pages/chat'
+import {socket} from '../../pages/chat'
 
 interface props {
-    username: string | undefined;
-    avatar: string | undefined;
-    date: string;
-    msg: string;
-    currentUser: boolean;
+    username:string | undefined;
+    avatar:string | undefined;
+    date:string;
+    msg:string;
+    currentUser:boolean;
 }
 
 interface Props {
@@ -17,11 +17,9 @@ interface Props {
 }
 
 var roomID = -1;
-var roomTitle = '..';
-var roomType = 'DM';
-var userID = '';
+var roomTitle ='..';
 
-function Layout({ data }: Props) {
+function Layout({data}:Props) {
     const [text, setText] = useState('');
     const bottom = useRef<null | HTMLDivElement>(null);
     const scrollToBottom = () => {
@@ -33,8 +31,7 @@ function Layout({ data }: Props) {
     }, [data]);
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
-    function SendMessage() { (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-                                                    : socket.emit('createnNewPrivateMsg', { user: userID, msg: msg }) ; setText(''); }
+    function SendMessage() { socket.emit('createMsg', {room: roomID, msg: msg}); setText('');}
 
     useEffect(() => {
         setText(msg);
@@ -43,7 +40,7 @@ function Layout({ data }: Props) {
     return (
         <div className={style.chat}>
             <div className={style.roomTitle}>
-                <h2>{roomTitle}</h2>
+            <h2>{roomTitle}</h2>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
@@ -57,7 +54,7 @@ function Layout({ data }: Props) {
             </div>
             <div className={style.messageBarHolder}>
                 <input value={text} autoComplete='off' onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter'){
                         SendMessage();
                         console.log('messgae sent');
                         setText('');
@@ -73,11 +70,12 @@ function Layout({ data }: Props) {
 export default function ChatView() {
     const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
-
-    socket.on('createMsg', ({ created, room, tmp }) => {
+    
+    socket.on('createMsg', ({created, room, tmp}) => {
         console.log("last message " + tmp);
-
-        if (created && room === roomID) {
+        
+        if (created && room === roomID)
+        {
             let newData = [...data];
             let dd = {
                 username: tmp.username,
@@ -89,47 +87,13 @@ export default function ChatView() {
             newData.push(dd);
             setData(newData);
         }
-
+        
     })
 
-    socket.on('receiveNewPrivateMsg', (newDmMsg) => {
-
-        console.log("hhhhhhhhhjfsljlsjdjl");
+    socket.on('getPrivateMsg', (success, error, privateMessages) => {
+        console.log("here");
         
-        // if (created && room === roomID) // <<<<<
-
-        let newData = [...data];
-        let dd = {
-            username: newDmMsg.username,
-            avatar: newDmMsg.avatar,
-            date: newDmMsg.date,
-            msg: newDmMsg.msg,
-            currentUser: newDmMsg.currentUser
-        }
-        newData.push(dd);
-        setData(newData);
-        
-
-    })
-
-    socket.on('joinRoom', ({ room, msgs }) => {
-        roomType = 'room';
-        console.log('joinRoom flag returned');
-        roomID = room.id;
-        roomTitle = room.title;
-        setVisibility(true);
-        setData(msgs);
-    })
-
-    socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
-        roomType = 'DM';
-        console.log('getPrivateMsg flag returned');
-        roomID = username; // <<<<<<<<<<<<< 8
-        roomTitle = username; // <<<<<<<<<<<<<< 8
-        setVisibility(true);
-        setData(privateMessages);
-        userID = userId;
-        
+        console.log(privateMessages);
     })
 
     return (
