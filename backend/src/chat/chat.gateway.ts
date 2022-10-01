@@ -118,7 +118,8 @@ export class ChatGateway {
     else if (test == 2)
       this.server.emit('addRoleToSomeUser', { success: false, error: "Room not found" });
     else if (test == 3)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+      this.server.emit('addRoleToSomeUser', { success: false, error: "This user doesn't join this room" });
+    // check the current user if owner
     else
       this.server.emit('addRoleToSomeUser', { success: true, error: "" });
   }
