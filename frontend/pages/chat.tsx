@@ -4,7 +4,6 @@ import NavBar from '../components/utils/Navbar'
 import { io } from "socket.io-client";
 import ListView from '../components/chat/ListView'
 import ChatView from '../components/chat/ChatView'
-import "../styles/chat/RightClick.module.css";
 // import localStorage from 'localStorage';
 
 let token = null;
