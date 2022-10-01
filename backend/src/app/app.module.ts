@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UploadModule } from '../upload/upload.module';
 import { ChatModule } from '../chat/chat.module';
 import { ProfilesModule } from '../profiles/profiles.module';
 import { UsersModule } from '../users/users.module';
@@ -28,6 +29,7 @@ import { UsersModule } from '../users/users.module';
     ProfilesModule,
     UsersModule,
     ChatModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

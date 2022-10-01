@@ -19,7 +19,7 @@ import {
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
 import { Pair } from 'src/utils/pair';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { AddFriendDto } from '../dto/payload/add-friend-payload.dto';
 import { FriendsResponse } from '../dto/response/friends-response.dto';
 import {
@@ -32,7 +32,7 @@ import { relationToFriendsStatus } from '../utils/entity-response-converter';
 
 @ApiTags('users relations')
 @ApiBearerAuth()
-@JwtAuthGuard
+@JwtAuth
 @Injectable()
 @Controller('api/users/relations')
 export class RelationsController {

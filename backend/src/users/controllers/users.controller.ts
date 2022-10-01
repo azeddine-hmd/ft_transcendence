@@ -17,14 +17,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger/dist';
 import { plainToClass } from 'class-transformer';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from '../dto/payload/update-user.dto';
 import { UserResponseDto } from '../dto/response/user-response.dto';
 import { UsersService } from '../services/users.service';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@JwtAuthGuard
+@JwtAuth
 @Injectable()
 @Controller('api/users')
 export class UsersController {

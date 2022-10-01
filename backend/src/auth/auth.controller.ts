@@ -9,7 +9,7 @@ import {
   Logger,
   Post,
   Redirect,
-  Req
+  Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -17,7 +17,8 @@ import {
   ApiBody,
   ApiExcludeEndpoint,
   ApiOperation,
-  ApiResponse, ApiTags
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger/dist/decorators';
 import { UsersService } from '../users/services/users.service';
 import { AuthService } from './auth.service';
@@ -25,7 +26,7 @@ import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuth } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { getIntraAuthUrl } from './utils/url-constructor';
 
@@ -51,7 +52,7 @@ export class AuthController {
     summary: 'Logout current user and invalidate session access token',
   })
   @ApiBearerAuth()
-  @JwtAuthGuard
+  @JwtAuth
   @Get('/logout')
   async logout(@Req() req: any) {
     Logger.debug(
@@ -103,7 +104,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'verify current user credentials' })
   @ApiOperation({ summary: 'Verify current user session access token' })
   @ApiBearerAuth()
-  @JwtAuthGuard
+  @JwtAuth
   @HttpCode(HttpStatus.OK)
   @Get('/verify')
   async verify(@Req() req: any) {
