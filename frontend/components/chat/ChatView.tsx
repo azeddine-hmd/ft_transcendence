@@ -34,24 +34,31 @@ function Layout({ data }: Props) {
     function Setting() {
         const [password, setPassword] = useState('');
         const [username, setUsername] = useState('');
-        const [checked, setChecked] = useState(true);
+        const [privacy, setprivacy] = useState(false);
     
         const handleChange = () => {
     
-            setChecked(!checked);
-            console.log(checked);
+            setprivacy(!privacy);
+
     
     
         };
     
         const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
         const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
-        const handleAdd = () => { };
+        const handleAdd = () => {  };
     
         function handleSave() {
             setShowSetiig(false);
+            console.log('privacy=', privacy);
+            
+            socket.emit('updateRoom', {privacy: privacy, password: password, roomID: roomID});
         }
     
+        socket.on("updateRoom", (success, error) => {
+            console.log(success, error);
+        })
+
         return (
             <div className={stylee.row}>
                 <div className={stylee.column}>
@@ -62,7 +69,7 @@ function Layout({ data }: Props) {
                             <input type="checkbox" onChange={handleChange}></input>
                             <span className={settingstyle.slider}></span>
                         </label>
-                        {(!checked) ?
+                        {(privacy) ?
                             <>
                                 <input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br />
                             </>

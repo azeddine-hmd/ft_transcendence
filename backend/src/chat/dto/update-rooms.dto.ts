@@ -8,4 +8,6 @@ export class UpdateRoomDto {
     @IsString()
     password: string;
 
+    @IsNumber()
+    roomID: number;
 }

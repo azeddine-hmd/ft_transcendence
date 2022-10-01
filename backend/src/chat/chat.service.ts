@@ -128,9 +128,18 @@ export class ChatService {
     return rooms;
   }
 
-  async getRoomById(joinRoomDto: JoinRoomDto) {
+  async getRoomById(rm: number) {
     let room = await this.roomRepository.createQueryBuilder('room')
-    .where("room.id = :rid", { rid: joinRoomDto.roomId })
+    .where("room.id = :rid", { rid: rm })
+    .select()
+    .getOne();
+    return (room);
+  }
+
+  async getRoomOwnerById(rm: number) {
+    let room = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner","owner")
+    .where("room.id = :rid", { rid: rm })
     .select()
     .getOne();
     return (room);
@@ -227,11 +236,12 @@ export class ChatService {
   }
 
   async updateRoom(updateRoomDto: UpdateRoomDto, auth: any) {
+
     let u1:User = new User();
     let checkuser = await this.checkUser(auth);
     if(!checkuser)
       return 1;
-    let checkOwner = await this.getRoomById(auth);
+    let checkOwner = await this.getRoomOwnerById(updateRoomDto.roomID);
     if (!checkOwner)
       return 2;
     if(checkOwner.owner.userId != auth)

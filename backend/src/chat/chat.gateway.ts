@@ -97,6 +97,8 @@ export class ChatGateway {
 
   @SubscribeMessage('updateRoom')
   async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
+    console.log(updateRoomDto);
+    
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
     if(test == 1)
@@ -140,7 +142,7 @@ export class ChatGateway {
     {
       client.join(joinRoomDto.roomId.toString());
       const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
-      const roomInfo = await this.chatService.getRoomById(joinRoomDto);
+      const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
       
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{    
