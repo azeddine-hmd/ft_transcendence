@@ -2,10 +2,11 @@
     display: flex;
     padding: 50px;
     height: 90vh;
-    
+    width: 100%;
 }
 
 .parent {
     height: 100vh;
-    background-color: #f6f7fb;
+    background-color: #ffffff00;
+    display: flex;
 }

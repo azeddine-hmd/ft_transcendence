@@ -1,4 +1,6 @@
-import { Profile } from '../../profiles/entities/profile.entity';
+import { Rooms } from 'src/chat/entities/rooms.entity';
+import { Profile } from 'src/profiles/entities/profile.entity';
+
 import {
   Column,
   Entity,
@@ -59,5 +61,7 @@ export class User {
   @JoinColumn()
   relations: UserRelation[];
 
-  
+  @OneToMany(() => Rooms, (room) => room.owner)
+  rooms: Rooms[];
+
 }

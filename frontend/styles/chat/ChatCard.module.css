@@ -1,64 +1,84 @@
 /* Float four columns side by side */
 .column {
-    float: left;
-    width: 50%;
-    padding: 0 10px;
-  }
-  
-  /* Remove extra left and right margins, due to padding in columns */
-  .row {
-    margin: 40;
-  }
-  
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-  
-  /* Style the counter cards */
-  .card {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    /* this adds the "card" effect */
-    padding: 3px 15px 3px 15px;
-    text-align: left;
-    background-color: #f6f7fb;
-    position: relative;
-    margin: 5px 0px 0px 0px;
-  }
-  
-  #Counter {
-    color: #04AA6D;
-  }
-  
-  .card a {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0px;
-    left: 0px;
-  }
-  
-  .chatcard {
-    width: 100%;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
-    padding: 0.5px 15px 3px 15px;
-    text-align: left;
-    background-color: #f6f7fb;
-    position: relative;
-    border-radius: 10px;
-  }
-  
-  #username {
-    margin: 12px 0 14px 10px;
-  }
-  
-  #date{
-    margin: 5px 0px 0px -5px;
-    width: 100%;
-    text-align: right;
-    color: #343434;
-    font-size: small;
-    font-weight: lighter;
-  }
+  float: left;
+  width: 50%;
+  padding: 0 10px;
+}
+
+/* Remove extra left and right margins, due to padding in columns */
+.row {
+  margin: 40;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Style the counter cards */
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  /* this adds the "card" effect */
+  padding: 3px 15px 3px 15px;
+  text-align: left;
+  background-color: #f6f7fb;
+  position: relative;
+  margin: 5px 0px 0px 0px;
+}
+
+#Counter {
+  color: rgb(243, 207, 124, 1);
+}
+
+.card a {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+}
+
+.chatcard {
+  width: 100%;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+  padding: 0.5px 15px 3px 15px;
+  text-align: left;
+  background-color: #f6f7fb;
+  position: relative;
+  border-radius: 10px;
+}
+
+#username {
+  margin: 12px 0 14px 10px;
+}
+
+#date {
+  margin: 5px 0px 0px -5px;
+  width: 100%;
+  text-align: right;
+  color: #343434;
+  font-size: small;
+  font-weight: lighter;
+}
+
+.menuIcon {
+  width: 10px;
+  height: 2px;
+  background-color: black;
+  margin: 1px auto;
+}
+
+.menuIcon :hover {
+  background-color: yellow;
+}
+
+.menuHolder {
+  width: 10px;
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}

@@ -1,6 +1,6 @@
 import style from '../../styles/chat/Card.module.css'
 import style2 from '../../styles/chat/ListView.module.css'
-import {socket} from '../../pages/chat'
+import {socket} from '../../pages/chat/[chat]'
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
