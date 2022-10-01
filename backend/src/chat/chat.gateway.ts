@@ -15,6 +15,8 @@ import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';
+import { UpdateRoomDto } from './dto/update-rooms.dto';
+import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
@@ -91,6 +93,34 @@ export class ChatGateway {
       this.server.emit('createRoom', { created: false });
     else
       this.server.emit('createRoom', {  created: true });
+  }
+
+  @SubscribeMessage('updateRoom')
+  async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
+    if(test == 1)
+      this.server.emit('updateRoom', { success: false, error: "User not found" });
+    else if (test == 2)
+      this.server.emit('updateRoom', { success: false, error: "Room not found" });
+    else if (test == 3)
+      this.server.emit('updateRoom', { success: false, error: "This room have another owner" });
+    else
+      this.server.emit('updateRoom', { success: true, error: "" });
+  }
+
+  @SubscribeMessage('addRoleToSomeUser')
+  async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
+    if(test == 1)
+      this.server.emit('addRoleToSomeUser', { success: false, error: "User not found" });
+    else if (test == 2)
+      this.server.emit('addRoleToSomeUser', { success: false, error: "Room not found" });
+    else if (test == 3)
+      this.server.emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+    else
+      this.server.emit('addRoleToSomeUser', { success: true, error: "" });
   }
 
   @SubscribeMessage('joinRoom')
