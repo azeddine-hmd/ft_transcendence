@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   MaxFileSizeValidator,
   NotFoundException,
   Param,
@@ -12,7 +11,7 @@ import {
   Post,
   Req,
   UploadedFile,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -21,7 +20,7 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiResponse,
-  ApiTags
+  ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
 import { AvatarDto } from './dto/payload/AvatarDto.dto';
