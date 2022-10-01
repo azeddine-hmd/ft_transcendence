@@ -1,7 +1,7 @@
 export default function Overview() {
     return (
         <>
-        <div className="result absolute top-32 mt-5 w-full h-[95px] flex justify-center items-center ">
+        <div className="result absolute top-32 mt-5 w-full h-[95px]  justify-center items-center min-w-[900px] sm:flex  border border-red-300">
                                 <div className="centerel absolute w-[90%] rounded-[20px]  h-[95px] flex justify-center items-center">
                                     <div className="overlay relative rounded-[30px]  top-0 w-full h-[95px] flex opacity-50 bg-[#644dad]"></div>
                                     <div className="icons absolute flex justify-around w-full px-8 ">
@@ -29,7 +29,7 @@ export default function Overview() {
                             </div>
                             <br />
                             <br />
-                            <div className="recentgame absolute top-[240px] mt-5 w-full h-[300px] flex justify-center items-center ">
+                            <div className="recentgame absolute top-[240px] mt-5 w-full h-[300px] flex justify-center items-center min-w-[900px] border border-red-300 ">
                                 <div className="centerel absolute w-[90%] rounded-[20px] items-center  h-[300px] flex ">
                                     <div className="overlay relative rounded-[30px]  top-0 w-full h-[300px] flex opacity-50 bg-[#644dad]"></div>
                                     <div className="icons absolute flex justify-start items-start flex-col w-full px-8 ">

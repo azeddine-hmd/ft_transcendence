@@ -17,6 +17,7 @@ services:
       dockerfile: backend.dockerfile
     volumes:
       - ./backend:/backend
+      - ./backend/uploads:/backend/uploads
     depends_on:
       - database
     ports:
