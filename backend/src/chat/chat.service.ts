@@ -18,6 +18,8 @@ import { User } from 'src/users/entities/user.entity';
 import { getRandomValues } from 'crypto';
 import { UpdateRoomDto } from './dto/update-rooms.dto';
 import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
+import { use } from 'passport';
+
 
 let roomsusers = new Map<number, number[]>();
 
@@ -48,6 +50,15 @@ export class ChatService {
     let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
     .where("user.userId = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
+  async checkUserByUserName(username: string)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .select()
+    .where("user.username = :name", { name: username })
     .getOne();
     return checkuser;
   }
@@ -185,6 +196,16 @@ export class ChatService {
     return (checkUserJoined);
   }
 
+  async checkRoomOwner(roomId: number) {
+    let checkUserJoined = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner", "owner")
+    .where("room.id = :rid", { rid: roomId })
+    .getOne();
+    return (checkUserJoined);
+  }
+
+  
+
   /************END ROOMS TOOLS************/
 
 
@@ -284,12 +305,18 @@ export class ChatService {
     let checkuser = await this.checkUser(auth);
     if(checkuser == null)
       return 1;
+    let checkadduser = await this.checkUserByUserName(addRoleToSomeUserDto.username);
+    if(checkadduser == null)
+      return 2;
     let checkroom = await this.checkRoom(addRoleToSomeUserDto.roomId);
     if (checkroom == null)
-      return 2;
-    let checkjoined = await this.checkJoined(checkroom.id, addRoleToSomeUserDto.roomId);
-    if (checkjoined == null)
       return 3;
+    let checkroomOwner = await this.checkRoomOwner(addRoleToSomeUserDto.roomId);
+    if (checkroomOwner && checkroomOwner.owner.userId != checkuser.userId)
+        return 4;
+    let checkjoined = await this.checkJoined(checkadduser.id, addRoleToSomeUserDto.roomId);
+    if (checkjoined == null)
+      return 5;
     checkjoined.role = "admin";
     const joinuser = this.joinRepository.create(checkjoined);
     try{await this.joinRepository.save(joinuser);}catch(e){}

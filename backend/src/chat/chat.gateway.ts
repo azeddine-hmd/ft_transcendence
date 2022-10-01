@@ -118,10 +118,13 @@ export class ChatGateway {
     if(test == 1)
       this.server.emit('addRoleToSomeUser', { success: false, error: "User not found" });
     else if (test == 2)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "Room not found" });
+      this.server.emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
     else if (test == 3)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "This user doesn't join this room" });
-    // check the current user if owner
+      this.server.emit('addRoleToSomeUser', { success: false, error: "room not found" });
+    else if (test == 4)
+      this.server.emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+    else if (test == 5)
+      this.server.emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
     else
       this.server.emit('addRoleToSomeUser', { success: true, error: "" });
   }
