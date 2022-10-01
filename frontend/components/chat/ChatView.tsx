@@ -2,7 +2,8 @@ import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 import React, { useEffect, useRef, useState } from 'react';
-import { socket } from '../../pages/chat'
+import { socket } from '../../pages/chat/[chat]'
+import { Button } from "@progress/kendo-react-buttons";
 
 interface props {
     username: string | undefined;
@@ -33,8 +34,10 @@ function Layout({ data }: Props) {
     }, [data]);
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
-    function SendMessage() { (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-                                                    : socket.emit('createnNewPrivateMsg', { user: userID, msg: msg }) ; setText(''); }
+    function SendMessage() {
+        (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
+        : socket.emit('createnNewPrivateMsg', { user: userID, msg: msg }); setText('');
+    }
 
     useEffect(() => {
         setText(msg);
@@ -44,6 +47,9 @@ function Layout({ data }: Props) {
         <div className={style.chat}>
             <div className={style.roomTitle}>
                 <h2>{roomTitle}</h2>
+                <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
+                    <Button themeColor={"light"} size="small">...</Button>
+                </div>
             </div>
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
@@ -95,7 +101,7 @@ export default function ChatView() {
     socket.on('receiveNewPrivateMsg', (newDmMsg) => {
 
         console.log("hhhhhhhhhjfsljlsjdjl");
-        
+
         // if (created && room === roomID) // <<<<<
 
         let newData = [...data];
@@ -108,7 +114,7 @@ export default function ChatView() {
         }
         newData.push(dd);
         setData(newData);
-        
+
 
     })
 
@@ -129,7 +135,7 @@ export default function ChatView() {
         setVisibility(true);
         setData(privateMessages);
         userID = userId;
-        
+
     })
 
     return (

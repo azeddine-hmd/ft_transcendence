@@ -43,7 +43,7 @@
 }
 
 #Counter {
-  color: #04AA6D;
+  color: rgb(243, 207, 124, 1);
 }
 
 .card a {
@@ -55,7 +55,7 @@
 }
 
 .card:hover {
-  background-color: rgb(54, 137, 24);;
+  background-color: rgb(243, 207, 124, 1);
   transition: 0.2s;
   color: #fff;
 }

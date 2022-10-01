@@ -5,7 +5,8 @@ import rooms from '../../rooms.json'
 import direct from '../../dms.json'
 import style from '../../styles/chat/ListView.module.css'
 import stylee from '../../styles/chat/Card.module.css'
-import {socket} from '../../pages/chat'
+import {socket} from '../../pages/chat/[chat]'
+
 
 function CreateNewRoom() {
 
