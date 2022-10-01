@@ -1,5 +1,6 @@
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Join } from "./join.entity";
 import { Rooms } from "./rooms.entity";
 import { Users } from "./users.entity";
 
@@ -22,4 +23,9 @@ export class Msg {
     @Column()
     @Index()
     date: Date;
+
+    @Index()
+    @ManyToOne(type => Join, (join) => join)
+    join: Join;
+
 }
