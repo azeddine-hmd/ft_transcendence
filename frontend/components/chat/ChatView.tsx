@@ -37,25 +37,28 @@ function Layout({ data }: Props) {
         const [privacy, setprivacy] = useState(false);
     
         const handleChange = () => {
-    
             setprivacy(!privacy);
-
-    
-    
         };
     
         const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
         const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
-        const handleAdd = () => {  };
+        const handleAdd = () => { socket.emit('addRoleToSomeUser', {username: username, roomId: roomID}); };
     
         function handleSave() {
             setShowSetiig(false);
             console.log('privacy=', privacy);
-            
             socket.emit('updateRoom', {privacy: privacy, password: password, roomID: roomID});
+        }
+
+        function handleCancel() {
+            setShowSetiig(false);
         }
     
         socket.on("updateRoom", (success, error) => {
+            console.log(success, error);
+        })
+
+        socket.on('addRoleToSomeUser', (success, error) => {
             console.log(success, error);
         })
 
@@ -63,25 +66,24 @@ function Layout({ data }: Props) {
             <div className={stylee.row}>
                 <div className={stylee.column}>
                     <div className={stylee.noHoverCard}>
-                        <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px" }}>Setting</h3>
+                        <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px", "width":"100%", "textAlign":"center" }}>Setting</h3>
                         <p>make room private:</p>
                         <label className={settingstyle.toggle}>
                             <input type="checkbox" onChange={handleChange}></input>
                             <span className={settingstyle.slider}></span>
                         </label>
-                        {(privacy) ?
-                            <>
-                                <input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br />
-                            </>
-                            :
-                            <></>}
+                        {(privacy) ? <><input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
+                                    : <></>}
                         <p>add a user as administrator:</p>
-                        <div style={{ "display": "flex", "height": "35px" }}>
+                        <div style={{ "marginTop":"5px" ,"display": "flex", "justifyContent": "spaceBetween", "height":"30px"}}>
                             <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
-                            <Button onClick={handleAdd} themeColor={"light"} size="small">ADD</Button>
+                            <div>
+                                <Button onClick={handleAdd} themeColor={"light"} size="small">ADD</Button>
+                            </div>
                         </div>
                         <div className={settingstyle.buttonsHolder}>
                             <button onClick={handleSave} className={settingstyle.button}>Save</button>
+                            <button onClick={handleCancel} className={settingstyle.button}>Cancel</button>
                         </div>
                     </div>
                 </div>
