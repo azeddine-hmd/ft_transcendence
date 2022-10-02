@@ -248,8 +248,13 @@ export class ChatGateway {
 
   // last practice
 
+	async handleDisconnect(socket: Socket, ...args: any[]) {
+    console.log("DISCONNECTED AT CHAAAT SERVER");
+	}
+  
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
+		console.log("CONNECTED AT CHAAAT SERVER");
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;

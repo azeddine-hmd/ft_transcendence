@@ -5,6 +5,7 @@ import React from "react";
 import {Apis} from "../network/apis"
 import { ErrorResponse } from '../network/dto/response/error-response.dto'
 import { ProfileResponse } from '../network/dto/response/profile-response.dto'
+import io from 'socket.io-client';
 
 interface GameOption
 {
@@ -25,9 +26,13 @@ interface GameOption
 		},
 	}
 }
+let url = "http://localhost:8080";
 
-function Game() 
+function Game()
 {
+	var anim:any;
+	const [isActive, setActive] = React.useState(true);
+	const [isActive2, setActive2] = React.useState(false);
 	var p1:string = '';
 	var p2:string = '';
 	var playerName: string = '';
@@ -39,25 +44,26 @@ function Game()
 	var sppedBall:number = 2;
 	const [user, setUser] = useState("");
 	const [username, setUsername] = React.useState("");
+	const [isWin, setWin] = React.useState(false);
 
+	var socket:any;
 
-	function getUser()
+	async function getUser()
 	{
 		let username = "";
-		Apis.CurrentProfile({
-            onSuccess: (userResponse: ProfileResponse) => {
-                setUser(userResponse.username);
-				username = userResponse.username;
-				playerName = username;
+		// Apis.CurrentProfile({
+        //     onSuccess: (userResponse: ProfileResponse) => {
+        //         setUser(userResponse.username);
+		// 		username = userResponse.username;
+		// 		playerName = username;
 
-
-				console.log(username);
-				setUsername(username);
-            },
-            onFailure: (err: ErrorResponse) => {
-                alert("couldn't fetch user");
-            },
-        });
+		// 		console.log("here",playerName);
+		// 		setUsername(username);
+        //     },
+        //     onFailure: (err: ErrorResponse) => {
+        //         alert("couldn't fetch user");
+        //     },
+        // });
 	}
 
 	function attack(player:any) 
@@ -90,8 +96,8 @@ function Game()
 
 	function ballMove()
 	{
-		if (playerName === p1)
-		{
+		// if (playerName === p1)
+		// {
 			if (game.ball.y > canvas.height || game.ball.y < 0) 
 				game.ball.speed.y *= -1;
 			if (game.ball.x > canvas.width - playerWith) 
@@ -100,8 +106,10 @@ function Game()
 				attack(game.player1);
 			game.ball.x -= game.ball.speed.x;
 			game.ball.y -= game.ball.speed.y;
-		}
+			socket.emit('ball', p1 + ":" + p2 + ":" + game.ball.x + ":" + game.ball.y + ":" + game.ball.speed.x + ":" + game.ball.speed.y);
+		// }
 	}
+
 
 	function draw() 
 	{
@@ -124,6 +132,44 @@ function Game()
 
 	function initilizeGame() 
 	{
+		// socket.on("gameStart", (...args) => {
+	// 	setWin(false);
+		
+	// 	p1 = args[0];
+	// 	p2 = args[1];
+
+	// 	initilizeGame();
+	// 	if (p1 == playerName && game) {
+
+	// 		cancelAnimationFrame(anim);
+	// 		play();
+	// 		setActive(false);
+	// 		setActive2(false);
+	// 	}
+	// 	else if ( p2 == playerName && game) {
+	
+	// 		cancelAnimationFrame(anim);
+	// 		play();
+	// 		setActive(false);
+	// 		setActive2(false);
+	// 	}
+
+	// });
+		// socket.on("player", (_data: string) => {
+		// const b = _data.split(':');
+		// if (b[0] == p2 && playerName != p2) {
+		// 	game.player2.y = b[1];
+		// } else if (b[0] == p1 && playerName != p1) {
+		// 	game.player1.y = b[1];
+		// }
+		// });
+
+		socket.on("getPlayer", (_data: any) => {
+			console.log('GOT DATA', _data);
+			p1 = _data.p1;
+			p2 = _data.p2;
+		});
+
 		game = {
 			player1: {
 				y: canvas.height / 2 - playerHeight / 2,
@@ -147,6 +193,7 @@ function Game()
 
 	function playerMove(event:any) 
 	{
+		console.log('-------------');
 		var gameLocation = canvas.getBoundingClientRect();
 		var mouseLocation = event.clientY - gameLocation.y;
 
@@ -159,7 +206,6 @@ function Game()
 				game.player1.y = canvas.height - playerHeight;
 			else 
 				game.player1.y = mouseLocation - playerHeight / 2;
-
 		}
 		else if (playerName === p2) 
 		{
@@ -172,8 +218,21 @@ function Game()
 				game.player2.y = mouseLocation - playerHeight / 2;
 
 		}
+		// console.log(playerName);
+		// console.log(p2);
+		
+		// if (playerName === p2 && playerName && game.player1.y )
+		// {			
+		// 	socket.emit('player', playerName + ":" + game.player2.y);
+		// }		
+		// if (playerName === p1 && playerName && game.player1.y )
+		// 	socket.emit('player', playerName + ":" + game.player1.y);
 	}
 
+
+
+
+	
 	function startGame()
 	{
 		setInterval( function () {
@@ -183,14 +242,49 @@ function Game()
 	}
 
 	useEffect(() => {
-		getUser();
-		canvas = document.getElementById('canvas');
-		initilizeGame();
-		canvas.addEventListener('mousemove', playerMove);
-		startGame();
+
+		Apis.CurrentProfile({
+            onSuccess: (userResponse: ProfileResponse) => {
+				let username = "";
+
+				setUser(userResponse.username);
+				username = userResponse.username;
+				playerName = username;
+
+				setUsername(username);
+
+				socket = io(url + "/game",{ transports: ['websocket']});
+
+				canvas = document.getElementById('canvas');
+				initilizeGame();
+
+				// GET PLAYERS NAMES
+				socket.emit('getPlayer');
+
+				// MOVE MOUSE
+				if (playerName === p1 || playerName === p2)
+					canvas.addEventListener('mousemove', playerMove);
+
+				// usr logged
+				// enemy
+
+				console.log(playerName);
+				console.log(p1);
+				console.log(playerName === p1);
+				console.log(p2);
+				console.log(playerName === p2);
+				
+				startGame();
+            },
+            onFailure: (err: ErrorResponse) => {
+                alert("couldn't fetch user");
+            },
+        });
+
+
 	}, []);
 
-    return (
+	return (
         <>
          <div className="homepage w-full h-screen min-w-full relative">
         	<img src="/profile/bg.png" className="  w-full h-full min-w-full " alt="" />
@@ -202,14 +296,13 @@ function Game()
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 
 
-
-
+				
 						<div id="game-root">
 						<p className="scor" id="scores">
 						<b className="scor" id="playerOne"></b>
 						<b className="scor" id="playerOneScore">0</b> - <b id="playerTwo"></b>
 						<b className="scor" id="playerTwoScore">0</b></p>	
-						<canvas id="canvas" width={500} height={400} style={{cursor: "none"}}></canvas>		
+						<canvas id="canvas" width={800} height={500} style={{cursor: "none"}}></canvas>		
 						</div>
 
 
@@ -221,3 +314,4 @@ function Game()
     );
 }
 export default Game;
+

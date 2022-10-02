@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@nestjs/platform-socket.io": "^9.1.2",
+    "@nestjs/websockets": "^9.1.2",
     "uuid": "^9.0.0"
   }
 }

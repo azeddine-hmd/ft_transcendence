@@ -6,11 +6,11 @@ import { useRouter } from "next/router";
 import { color } from "@mui/system";
 
 import { Apis } from "../../network/apis"
-import {User} from "../../model/user"
-import {ErrorResponse} from "../../network/dto/error-response.dto"
-import {LoginResponse} from "../../network/dto/login-response.dto"
+// import {ErrorResponse} from "../../network/dto/error-response.dto"
+// import {LoginResponse} from "../../network/dto/login-response.dto"
 import styles from "../../styles/auth/C_signin.module.css"
-
+import { ErrorResponse } from "../../network/dto/response/error-response.dto";
+import { LoginResponseDto } from "../../../backend/src/auth/dto/response/login-response.dto";
 
 
 export default function C_signin(){
@@ -44,8 +44,8 @@ export default function C_signin(){
                         //    console.log(username);
                         //    console.log(password);
                         Apis.Signin({
-                            user: {username:username,password:password},
-                            onSuccess: (user: LoginResponse) => {
+                            signDto: {username:username,password:password},
+                            onSuccess: (user: LoginResponseDto) => {
                                 // alert(user.access_token);
                                 router.push("/home");
 
