@@ -304,7 +304,7 @@ export class ChatGateway {
       dm.currentUser = (element.sender.userId == clientId) ? true : false;
       arr.push(dm);
     });
-    let u = await this.chatService.checkUser(conversationDto.user);
+    let u = await this.chatService.checkUserByUserName(conversationDto.user);
     
     this.server.to(client.id).emit('getPrivateMsg', {success: true, error: "", privateMessages: arr, username: u?.username, userId: u?.userId});
   }

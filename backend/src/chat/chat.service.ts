@@ -224,13 +224,16 @@ export class ChatService {
   }
 
   async getPrivateMsg(conversationDto: ConversationDto, auth: any) {
+    let user = await this.checkUserByUserName(conversationDto.user);
+    if (!user)
+      return null;
     let ret = await this.dmRepository.createQueryBuilder('dm')
     .innerJoinAndSelect("dm.sender", "sender")
     .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
     .innerJoinAndSelect("receiver.profile", "profile2")
-    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: conversationDto.user })
-    .getMany();   
+    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: user.userId })
+    .getMany();
     return (ret);
   }
 
@@ -346,17 +349,20 @@ export class ChatService {
 /*********************************************DM SERVICE*********************************************/
 
   async createMsgPrivate(privateMsgDto: PrivateMsgDto, auth: any) {
+    let user = await this.checkUserByUserName(privateMsgDto.user);
+    if (!user)
+      return null;
     let u1:User = new User(), u2:User = new User();
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
     .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
     .innerJoinAndSelect("user2.profile", "profile2")
-    .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: privateMsgDto.user })
+    .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: user.userId })
     .getOne();
     
     let tmp = await this.checkUser(auth);
-    let tmp2 = await this.checkUser(privateMsgDto.user);
+    let tmp2 = await this.checkUser(user.userId);
     if (!tmp || !tmp2)
       return (0);
     u1.id = tmp.id;
