@@ -31,7 +31,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser }: p
                 Router.push("/user/"+name);
             }
             else if (event.item === "Message"){
-                Router.push("/chat/"+name);
+                Router.push("/chat/" + name);
             }
             else if (event.item === "Block"){
 
