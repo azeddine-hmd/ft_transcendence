@@ -5,8 +5,6 @@ import React from "react";
 import {Apis} from "../network/apis"
 import { ErrorResponse } from '../network/dto/response/error-response.dto'
 import { ProfileResponse } from '../network/dto/response/profile-response.dto'
-import io from 'socket.io-client';
-import { URLSearchParams } from 'url';
 
 interface GameOption
 {
@@ -61,20 +59,6 @@ function Game()
             },
         });
 	}
-	let token = null;
-	if (typeof window !== 'undefined') {
-	  token = localStorage.getItem('access_token');
-	}
-	var socket = io("http://localhost:8080/game", { transports: ['websocket'], auth: {
-		token: token,
-	}
- });
-
-	socket.on("clientId", (userId: string) =>
-	{
-		console.log(userId);
-	});
-
 
 	function attack(player:any) 
 	{
