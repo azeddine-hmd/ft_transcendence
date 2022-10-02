@@ -113,20 +113,28 @@ export class ChatGateway {
 
   @SubscribeMessage('addRoleToSomeUser')
   async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
+    console.log(addRoleToSomeUserDto);
+    
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
+    console.log(test);
+    
     if(test == 1)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "User not found" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
     else if (test == 2)
-      this.server.emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
+    {
+      console.log('here');
+      
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
+    }
     else if (test == 3)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "room not found" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "room not found" });
     else if (test == 4)
-      this.server.emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
     else if (test == 5)
-      this.server.emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
     else
-      this.server.emit('addRoleToSomeUser', { success: true, error: "" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
   }
 
   @SubscribeMessage('joinRoom')
@@ -136,11 +144,11 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "user not found", msgs: null });
     else if (join == 2)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "room not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "room not found", msgs: null });
     else if (join == 3)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "password incorrect" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else
     {
       client.join(joinRoomDto.roomId.toString());

@@ -62,6 +62,7 @@ function Chat() {
 
   if (chat != '0' && chat != undefined) {
     socket.emit('getPrivateMsg', { user: chat });
+    socket.emit('conversation');
   }
 
   return (
