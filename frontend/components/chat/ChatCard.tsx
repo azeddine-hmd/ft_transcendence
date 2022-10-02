@@ -1,5 +1,5 @@
 import "@progress/kendo-theme-default/dist/all.css";
-import { integerPropType } from '@mui/utils';
+import {socket} from '../../pages/chat/[chat]'
 import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'
 import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
@@ -32,6 +32,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser }: p
             }
             else if (event.item === "Message"){
                 Router.push("/chat/" + name);
+                socket.emit('conversation');
             }
             else if (event.item === "Block"){
 
@@ -67,7 +68,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser }: p
                 <div style={{ "display": "flex", "justifyContent": "spaceBetween" }}>
                     <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px" }} />
                     <span id={style.username}>{name}</span>
-                    <Menu />
+                    {(!currentUser) ? <Menu /> : <></>}
                 </div>
 
                 <div className={style.chatcard} style={currentUser ? { "backgroundColor": "#04AA6D" } : { "backgroundColor": "#f6f7fb" }}>

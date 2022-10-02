@@ -1,7 +1,7 @@
 import style from '../../styles/chat/Card.module.css'
 import style2 from '../../styles/chat/ListView.module.css'
 import {socket} from '../../pages/chat/[chat]'
-import Link from 'next/link';
+import Router from "next/router";
 import React, { useEffect, useState } from 'react';
 
 interface props {
@@ -23,8 +23,10 @@ export default function Card({title, description, members, id, privacy}:props) {
 
     function OnCardClicked() {
         console.log('send joinRoom flag privacy=', privacy);
-        if (!privacy)
+        if (!privacy){
             socket.emit('joinRoom', { roomId: id, privacy: false, password: "" });
+            Router.push("/chat/0");
+        }
         else
             setPass(!showPass);
     }

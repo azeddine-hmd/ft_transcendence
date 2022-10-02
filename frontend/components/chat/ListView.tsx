@@ -57,6 +57,8 @@ export default function ListView() {
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
     function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
+    
+
     if (!pageLoaded) {
         socket.emit('findAllRooms');
         pageLoaded = true;
@@ -71,6 +73,8 @@ export default function ListView() {
     });
 
     socket.on('conversation', (arr) => {
+        setChannel('friends'); 
+        setData(rooms); 
         setDms(arr);
         setTMP(arr);
     });
