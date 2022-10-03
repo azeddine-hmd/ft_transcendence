@@ -18,10 +18,7 @@ export namespace Apis {
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.post<SigninResponse>(
-        "api/auth/signin",
-        options.signDto
-      );
+      const res = await localService.post<SigninResponse>("api/auth/signin", options.signDto);
       localStorage.setItem("access_token", res.data.access_token);
       return options.onSuccess(res.data);
     } catch (err: any) {
@@ -56,14 +53,18 @@ export namespace Apis {
 
   
   export async function ProfilesUser(options:{
-    username:ProfilesUser;
+    username: ProfilesUser;
     onSuccess: (profile: ProfileResponse) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try{
       console.log(options.username);
       
-      const res = await localService.get(`api/profiles/username/${options.username.username}`,);
+      const res = await localService.get(`api/profiles/username`, {
+        params: {
+          username: options.username.username,
+        }
+      });
       return options.onSuccess(res.data);
     }catch (err: any) {
       if (axios.isAxiosError(err)) {
@@ -142,7 +143,26 @@ export namespace Apis {
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      await localService.get("/api/users/relations/friend");
+      await localService.get("/api/users/relations/friend", { data: options.addFriendDto });
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function RemoveFriend(options: {
+    addFriendDto: AddFriendDto,
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      await localService.get("/api/users/relations/unfriend", { data: options.addFriendDto });
       return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
