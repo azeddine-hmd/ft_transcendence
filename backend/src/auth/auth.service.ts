@@ -38,7 +38,7 @@ export class AuthService {
 
     if (!user) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
-      throw new ForbiddenException();
+      throw new ForbiddenException('user exist');
     }
 
     Logger.log(

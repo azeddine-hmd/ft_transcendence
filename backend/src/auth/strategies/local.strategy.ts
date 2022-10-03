@@ -15,7 +15,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
     if (!user) {
       Logger.error('LocalStrategy#validate: user not found!');
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('user not found');
     }
 
     return { username: user.username, userId: user.userId };

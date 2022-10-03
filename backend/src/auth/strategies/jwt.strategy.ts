@@ -37,7 +37,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // throw error if not equal
     if (user.token && user.token !== incomingToken) {
       Logger.error('valid token but have been revoked with a new one!');
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'valid token but have been revoked with a new one!',
+      );
     }
 
     return { username: payload.username, userId: payload.userId };
