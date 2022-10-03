@@ -2,9 +2,7 @@ import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSo
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 
-let MatchMaking = [[], [], [], [], []];
-let vs1:any = [];
-let vs2:any = [];
+
 
 @WebSocketGateway(
 { 
@@ -31,20 +29,22 @@ export class GameGateway {
 
 	@SubscribeMessage('ball')
 	async ballMoveEmit(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
-		const b = _data.split(':');
+		this.server.emit('ball', _data);
 	}
-	@SubscribeMessage('player')
-	async player(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
-		const b = _data.split(':');
-		this.server.emit('player', _data);
-		console.log(_data);
-		// game
-    }
 
+	@SubscribeMessage('versus')
+	async versusMatch(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	{
+		const b = body.split(':');
+		console.log("b[0] = ",b[0]);
+		console.log("b[1] = ",b[1]);
+		this.server.emit('inviteToPlay', b[0], b[1]);
+
+	}
 	@SubscribeMessage('getPlayer')
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		console.log("GET PLAYER AT GAME SERVER")
 
-		this.server.to(socket.id).emit('getPlayer', { p1: "azzedine", p2: "fbouibao" });
+		this.server.emit('getPlayer', _data);	
 	}
 }
