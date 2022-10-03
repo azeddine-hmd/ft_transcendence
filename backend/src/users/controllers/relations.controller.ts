@@ -20,7 +20,7 @@ import { Profile } from 'src/profiles/entities/profile.entity';
 import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
 import { Pair } from 'src/utils/pair';
 import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
-import { AddFriendDto } from '../dto/payload/add-friend-payload.dto';
+import { FriendDto as FriendDto } from '../dto/payload/add-friend-payload.dto';
 import { FriendsResponse } from '../dto/response/friends-response.dto';
 import {
   FriendsStatus,
@@ -41,16 +41,32 @@ export class RelationsController {
   @ApiResponse({
     status: 200,
   })
-  @ApiOperation({ summary: 'Add Friend from username' })
+  @ApiOperation({ summary: 'Add Friend' })
   @ApiBody({
-    type: AddFriendDto,
+    type: FriendDto,
   })
   @HttpCode(HttpStatus.OK)
   @Post('/friend')
-  async addFriend(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+  async addFriend(@Req() req: any, @Body() friendDto: FriendDto) {
     await this.relationsService.addFriend(
       req.user.userId,
-      addFriendDto.friend_username,
+      friendDto.friend_username,
+    );
+  }
+
+  @ApiResponse({
+    status: 200,
+  })
+  @ApiOperation({ summary: 'Remove Friend' })
+  @ApiBody({
+    type: FriendDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/unfriend')
+  async removeFriend(@Req() req: any, @Body() friendDto: FriendDto) {
+    await this.relationsService.removeFriend(
+      req.user.userId,
+      friendDto.friend_username,
     );
   }
 
@@ -80,7 +96,7 @@ export class RelationsController {
   @ApiOperation({
     summary: 'Get current user relation with other user',
   })
-  @Get('/with/:username')
+  @Get('/username/:username')
   async getRelationWithOther(
     @Req() req: any,
     @Param('username') otherUsername: string,
@@ -107,11 +123,11 @@ export class RelationsController {
   })
   @ApiOperation({ summary: 'Block user' })
   @ApiBody({
-    type: AddFriendDto,
+    type: FriendDto,
   })
   @HttpCode(HttpStatus.OK)
   @Post('/block')
-  async block(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+  async block(@Req() req: any, @Body() addFriendDto: FriendDto) {
     await this.relationsService.blockUser(
       req.user.userId,
       addFriendDto.friend_username,
@@ -123,11 +139,11 @@ export class RelationsController {
   })
   @ApiOperation({ summary: 'Unblock user' })
   @ApiBody({
-    type: AddFriendDto,
+    type: FriendDto,
   })
   @HttpCode(HttpStatus.OK)
   @Post('/unblock')
-  async unblock(@Req() req: any, @Body() addFriendDto: AddFriendDto) {
+  async unblock(@Req() req: any, @Body() addFriendDto: FriendDto) {
     await this.relationsService.unblockUser(
       req.user.userId,
       addFriendDto.friend_username,

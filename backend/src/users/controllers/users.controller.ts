@@ -34,7 +34,7 @@ export class UsersController {
     status: 201,
     type: UserResponseDto,
   })
-  @ApiOperation({ summary: 'Update user data' })
+  @ApiOperation({ summary: 'Update user data', deprecated: true })
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(

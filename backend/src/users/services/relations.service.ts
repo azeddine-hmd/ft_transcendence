@@ -145,6 +145,41 @@ export class RelationsService {
     await this.userRelationRepository.save(relation);
   }
 
+  async removeFriend(userId: string, otherUsername: string) {
+    const current = await this.usersService.findOneFromUserId(userId);
+    const other = await this.usersService.findOneFromUsername(otherUsername);
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current.id === other.id)
+      throw new BadRequestException(
+        `you can't send friend remove request to yourself`,
+      );
+
+    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+    const relation = await this.userRelationRepository.findOne({
+      relations: {
+        user1: true,
+        user2: true,
+      },
+      where: {
+        user1: { userId: user1.userId },
+        user2: { userId: user2.userId },
+      },
+    });
+    if (!relation || !relation.friend1_2 || !relation.friend2_1)
+      throw new BadRequestException(
+        `Not a friend to remove it from friend list`,
+      );
+
+    //TODO: should I remove relation completely if all attributes falsey?
+    if (relation.isBlocked) {
+      relation.friend1_2 = false;
+      relation.friend2_1 = false;
+      await this.userRelationRepository.save(relation);
+    } else {
+      await this.userRelationRepository.remove(relation);
+    }
+  }
+
   async blockUser(userId: string, otherUsername: string) {
     const current = await this.usersService.findOneFromUserId(userId);
     const other = await this.usersService.findOneFromUsername(otherUsername);
