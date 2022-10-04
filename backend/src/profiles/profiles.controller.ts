@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   FileTypeValidator,
   Get,
@@ -23,7 +24,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
-import { AvatarDto } from './dto/payload/AvatarDto.dto';
+import { AvatarDto } from './dto/payload/avatar.dto';
+import { DisplayNameDto } from './dto/payload/display-name.dto';
 import { ProfileResponse } from './dto/response/profile-response.dto';
 import { ProfilesService } from './profiles.service';
 import { profileToProfileResponse } from './utils/entity-payload-converter';
@@ -79,5 +81,18 @@ export class ProfilesController {
     avatar: Express.Multer.File,
   ) {
     this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
+  }
+
+  @ApiBody({ type: DisplayNameDto })
+  @ApiOperation({ summary: 'Update display name of current user' })
+  @Post('/display-name')
+  async updateDisplayName(
+    @Req() req: any,
+    @Body() displayNameDto: DisplayNameDto,
+  ) {
+    await this.profilesService.updateDisplayName(
+      req.user.userId,
+      displayNameDto.displayName,
+    );
   }
 }
