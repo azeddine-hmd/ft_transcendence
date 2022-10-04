@@ -18,10 +18,10 @@ export class SignupUserDto {
   @Length(8, 16)
   password: string;
 
-  //TODO: set validation constrains
   @ApiProperty({
     example: 'Azeddine Hamdaoui',
   })
+  @IsAlphanumeric()
   @Length(8, 20)
   displayName: string;
 }

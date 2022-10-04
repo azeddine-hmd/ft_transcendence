@@ -1,3 +1,5 @@
 export interface ErrorResponse {
-    message: string;
+    statusCode: number;
+    message?: string | string[];
+    error: string;
 }
