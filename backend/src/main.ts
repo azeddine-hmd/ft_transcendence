@@ -30,6 +30,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // testing
+  const defaultAvatar = configService.get<string>('DEFAULT_AVATAR');
+  console.log(`defaultAvatar: ${defaultAvatar}`);
+
   await app.listen(configService.get('PORT') as string);
 
   Logger.log(`FRONTEND_HOST: ${configService.get('FRONTEND_HOST') as string}`);

@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { NextRouter } from "next/router";
 import { AddFriendDto } from "./dto/payload/add-friend.dto";
 import { ProfilesUser } from "./dto/payload/profileuser";
 import { SigninDto } from "./dto/payload/signin.dto";
@@ -56,19 +57,19 @@ export namespace Apis {
     return options.onFailure({ message: "something went wrong!" });
   }
 
-  
+
   /*
     get other user profile
   */
-  export async function ProfilesUser(options:{
+  export async function ProfilesUser(options: {
     username: ProfilesUser;
     onSuccess: (profile: ProfileResponse) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
-    try{
+    try {
       const res = await localService.get<ProfileResponse>(`api/profiles/username/${options.username.username}`);
       return options.onSuccess(res.data);
-    }catch (err: any) {
+    } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const error = err as AxiosError<ErrorResponse>;
         if (error && error.response && error.response.data) {
@@ -77,7 +78,7 @@ export namespace Apis {
       }
     }
     return options.onFailure({ message: "something went wrong!" });
-    
+
   }
 
   /*
@@ -277,5 +278,17 @@ export namespace Apis {
       }
     }
     return options.onFailure({ message: "something went wrong!" });
+  }
+
+  export async function Safe(api: () => void, router: NextRouter) {
+    Verify({
+      onSuccess: () => {
+        api();
+      },
+      onFailure: (err: ErrorResponse) => {
+        //TODO: extract failure logic into arugment callback instead ?
+        router.push('logout');
+      }
+    })
   }
 }
