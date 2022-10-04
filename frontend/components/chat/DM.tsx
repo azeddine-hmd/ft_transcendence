@@ -1,6 +1,7 @@
 import style from '../../styles/chat/Card.module.css'
-import {socket} from '../../pages/chat'
+import {socket} from '../../pages/chat/[chat]'
 import Link from 'next/link';
+import Router from "next/router";
 
 interface props {
     userId:string | undefined;
@@ -12,7 +13,8 @@ interface props {
 export default function DM({displayName, username, userId, avatar}:props) {
 
     function OnCardClicked() {
-        socket.emit('getPrivateMsg', {user: userId});
+        Router.push("/chat/" + username);
+        socket.emit('conversation');
         console.log('getPrivateMsg SENT');
     }
 

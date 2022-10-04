@@ -2,7 +2,12 @@ import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 import React, { useEffect, useRef, useState } from 'react';
-import { socket } from '../../pages/chat'
+import { socket } from '../../pages/chat/[chat]'
+import { Button } from "@progress/kendo-react-buttons";
+import settingstyle from '../../styles/chat/Setting.module.css'
+import stylee from '../../styles/chat/Card.module.css'
+
+
 
 interface props {
     username: string | undefined;
@@ -20,9 +25,81 @@ var roomID = -1;
 var roomTitle = '..';
 var roomType = 'DM';
 var userID = '';
+var userRole = 'member';
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
+    const [showSetting, setShowSetiig] = useState(false);
+
+
+    function Setting() {
+        const [password, setPassword] = useState('');
+        const [username, setUsername] = useState('');
+        const [privacy, setprivacy] = useState(false);
+
+        const handleChange = () => {
+            setprivacy(!privacy);
+        };
+
+        const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
+        const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
+        const handleAdd = () => { 
+            socket.emit('addRoleToSomeUser', { username: username, roomId: roomID });
+            setShowSetiig(false); 
+            socket.on('addRoleToSomeUser', ({success, error}) => {
+                if (success == true)
+                    alert('user added successfuly');
+                else
+                    alert('Error: ' + error);
+            })
+        };
+
+       
+
+        function handleSave() {
+            setShowSetiig(false);
+            console.log('privacy=', privacy);
+            socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
+        }
+
+        function handleCancel() {
+            setShowSetiig(false);
+        }
+
+        socket.on("updateRoom", (success, error) => {
+            console.log(success, error);
+        })
+
+
+        return (
+            <div className={stylee.row}>
+                <div className={stylee.column}>
+                    <div className={stylee.noHoverCard}>
+                        <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px", "width": "100%", "textAlign": "center" }}>Setting</h3>
+                        <p>make room protected:</p>
+                        <label className={settingstyle.toggle}>
+                            <input type="checkbox" onChange={handleChange}></input>
+                            <span className={settingstyle.slider}></span>
+                        </label>
+                        {(privacy) ? <><input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
+                            : <></>}
+                        <p>add a user as administrator:</p>
+                        <div style={{ "marginTop": "5px", "display": "flex", "justifyContent": "spaceBetween", "height": "30px" }}>
+                            <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
+                            <div>
+                                <Button onClick={handleAdd} themeColor={"light"} size="small">ADD</Button>
+                            </div>
+                        </div>
+                        <div className={settingstyle.buttonsHolder}>
+                            <button onClick={handleSave} className={settingstyle.button}>Save</button>
+                            <button onClick={handleCancel} className={settingstyle.button}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     const bottom = useRef<null | HTMLDivElement>(null);
     const scrollToBottom = () => {
         if (bottom.current)
@@ -33,8 +110,10 @@ function Layout({ data }: Props) {
     }, [data]);
     const [msg, setMsg] = useState('');
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
-    function SendMessage() { (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-                                                    : socket.emit('createnNewPrivateMsg', { user: userID, msg: msg }) ; setText(''); }
+    function SendMessage() {
+        (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
+            : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg }); setText('');
+    }
 
     useEffect(() => {
         setText(msg);
@@ -44,7 +123,15 @@ function Layout({ data }: Props) {
         <div className={style.chat}>
             <div className={style.roomTitle}>
                 <h2>{roomTitle}</h2>
+                {
+                (userRole === 'owner') ?
+                <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
+                    <Button onClick={() => setShowSetiig(!showSetting)} themeColor={"light"} size="small">...</Button>
+                </div>
+                :
+                <></>}
             </div>
+            {(showSetting) ? <Setting /> : <></>}
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
@@ -95,7 +182,7 @@ export default function ChatView() {
     socket.on('receiveNewPrivateMsg', (newDmMsg) => {
 
         console.log("hhhhhhhhhjfsljlsjdjl");
-        
+
         // if (created && room === roomID) // <<<<<
 
         let newData = [...data];
@@ -108,17 +195,24 @@ export default function ChatView() {
         }
         newData.push(dd);
         setData(newData);
-        
+
 
     })
 
-    socket.on('joinRoom', ({ room, msgs }) => {
-        roomType = 'room';
-        console.log('joinRoom flag returned');
-        roomID = room.id;
-        roomTitle = room.title;
-        setVisibility(true);
-        setData(msgs);
+    socket.on('joinRoom', ({ role, room, error, msgs }) => {
+        if (room === -1) {
+            alert(error);
+        }
+        else {
+            userRole = role;
+            console.log(role);
+            roomType = 'room';
+            console.log('joinRoom flag returned');
+            roomID = room.id;
+            roomTitle = room.title;
+            setVisibility(true);
+            setData(msgs);
+        }
     })
 
     socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
@@ -129,7 +223,7 @@ export default function ChatView() {
         setVisibility(true);
         setData(privateMessages);
         userID = userId;
-        
+
     })
 
     return (

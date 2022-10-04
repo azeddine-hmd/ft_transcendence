@@ -15,6 +15,8 @@ import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';
+import { UpdateRoomDto } from './dto/update-rooms.dto';
+import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
@@ -93,6 +95,48 @@ export class ChatGateway {
       this.server.emit('createRoom', {  created: true });
   }
 
+  @SubscribeMessage('updateRoom')
+  async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
+    console.log(updateRoomDto);
+    
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
+    if(test == 1)
+      this.server.emit('updateRoom', { success: false, error: "User not found" });
+    else if (test == 2)
+      this.server.emit('updateRoom', { success: false, error: "Room not found" });
+    else if (test == 3)
+      this.server.emit('updateRoom', { success: false, error: "This room have another owner" });
+    else
+      this.server.emit('updateRoom', { success: true, error: "" });
+  }
+
+  @SubscribeMessage('addRoleToSomeUser')
+  async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
+    console.log(addRoleToSomeUserDto);
+    
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
+    console.log(test);
+    
+    if(test == 1)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
+    else if (test == 2)
+    {
+      console.log('here');
+      
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
+    }
+    else if (test == 3)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "room not found" });
+    else if (test == 4)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+    else if (test == 5)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
+    else
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
+  }
+
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
   {
@@ -100,15 +144,17 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "user not found", msgs: null });
     else if (join == 2)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "room not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "room not found", msgs: null });
     else if (join == 3)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "password incorrect" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else
     {
       client.join(joinRoomDto.roomId.toString());
-      const roomInfo = await this.chatService.getRoomById(joinRoomDto);
+      const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
+      const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
+      
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{    
         if (msgs)
@@ -125,7 +171,7 @@ export class ChatGateway {
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
-          this.server.to(client.id).emit('joinRoom', { room: roomInfo,  error: "", msgs: messages });
+          this.server.to(client.id).emit('joinRoom', { role: userRole?.role, room: roomInfo,  error: "", msgs: messages });
         }
       }
       catch(e){ console.log(e); }
@@ -147,6 +193,8 @@ export class ChatGateway {
         rm.privacy = element.privacy;
         arr.push(rm);
       });
+      if (!rooms)
+        this.server.to(client.id).emit('findAllRooms', { error: "something went wrong" });
       this.server.to(client.id).emit('findAllRooms', { rooms: arr });
     } catch (error) {
       console.error(error);
@@ -168,7 +216,7 @@ export class ChatGateway {
     else
     {
       client.join(createMsgDto.room.toString());
-      const userInfo:User | null = await this.chatService.checkUserProfileById(clientId);
+      const userInfo:User | null = await this.chatService.checkUserProfileByUserId(clientId);
       try{
         if (!userInfo) return;
         let tmp:msgModel = new msgModel();
@@ -264,7 +312,7 @@ export class ChatGateway {
       dm.currentUser = (element.sender.userId == clientId) ? true : false;
       arr.push(dm);
     });
-    let u = await this.chatService.checkUser(conversationDto.user);
+    let u = await this.chatService.checkUserByUserName(conversationDto.user);
     
     this.server.to(client.id).emit('getPrivateMsg', {success: true, error: "", privateMessages: arr, username: u?.username, userId: u?.userId});
   }

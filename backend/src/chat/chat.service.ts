@@ -15,6 +15,11 @@ import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
 import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { User } from 'src/users/entities/user.entity';
+import { getRandomValues } from 'crypto';
+import { UpdateRoomDto } from './dto/update-rooms.dto';
+import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
+import { use } from 'passport';
+
 
 let roomsusers = new Map<number, number[]>();
 
@@ -45,6 +50,15 @@ export class ChatService {
     let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
     .where("user.userId = :id", { id: auth })
+    .getOne();
+    return checkuser;
+  }
+
+  async checkUserByUserName(username: string)
+  {
+    let checkuser = await this.userRepository.createQueryBuilder('user')
+    .select()
+    .where("user.username = :name", { name: username })
     .getOne();
     return checkuser;
   }
@@ -85,6 +99,16 @@ export class ChatService {
     .getOne();
     return checkUserJoined;
   }
+
+  async getRole(auth: any, room:number)
+  {
+    let role = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner", "owner")
+    .where("room.id = :rid", { rid: room })
+    .select(['room.id',"owner.userId"])
+    .getOne();
+    return role;
+  }
   
   /**************ROOMS TOOLS**************/
 
@@ -115,14 +139,31 @@ export class ChatService {
     return rooms;
   }
 
-  async getRoomById(joinRoomDto: JoinRoomDto) {
+  async getRoomById(rm: number) {
     let room = await this.roomRepository.createQueryBuilder('room')
-    .where("room.id = :rid", { rid: joinRoomDto.roomId })
+    .where("room.id = :rid", { rid: rm })
     .select()
     .getOne();
-    if(room == null)
-      return null;
     return (room);
+  }
+
+  async getRoomOwnerById(rm: number) {
+    let room = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner","owner")
+    .where("room.id = :rid", { rid: rm })
+    .select()
+    .getOne();
+    return (room);
+  }
+
+  async getMemberRole(joinRoomDto: JoinRoomDto, auth:any) {
+    let role = await this.joinRepository.createQueryBuilder('join')
+    .leftJoinAndSelect("join.user","user")
+    .where("join.room = :rid", { rid: joinRoomDto.roomId })
+    .andWhere("user.userId = :id", { id: auth })
+    .select()
+    .getOne();
+    return (role);
   }
 
   async getRoomByOwner(id: number, date: Date) {
@@ -152,11 +193,18 @@ export class ChatService {
     .where("msg.room = :rid", { rid: joinRoomDto.roomId })
     .orderBy('msg.id', 'ASC')
     .getMany();
-    if(checkUserJoined == null)
-      return null;
-
     return (checkUserJoined);
   }
+
+  async checkRoomOwner(roomId: number) {
+    let checkUserJoined = await this.roomRepository.createQueryBuilder('room')
+    .leftJoinAndSelect("room.owner", "owner")
+    .where("room.id = :rid", { rid: roomId })
+    .getOne();
+    return (checkUserJoined);
+  }
+
+  
 
   /************END ROOMS TOOLS************/
 
@@ -176,13 +224,16 @@ export class ChatService {
   }
 
   async getPrivateMsg(conversationDto: ConversationDto, auth: any) {
+    let user = await this.checkUserByUserName(conversationDto.user);
+    if (!user)
+      return null;
     let ret = await this.dmRepository.createQueryBuilder('dm')
     .innerJoinAndSelect("dm.sender", "sender")
     .innerJoinAndSelect("sender.profile", "profile1")
     .innerJoinAndSelect("dm.receiver", "receiver")
     .innerJoinAndSelect("receiver.profile", "profile2")
-    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: conversationDto.user })
-    .getMany();   
+    .where("(sender.userId = :id AND receiver.userId = :id2) OR (sender.userId = :id2 AND receiver.userId = :id)", { id: auth, id2: user.userId })
+    .getMany();
     return (ret);
   }
 
@@ -208,6 +259,25 @@ export class ChatService {
     return (ret);
   }
 
+  async updateRoom(updateRoomDto: UpdateRoomDto, auth: any) {
+
+    let u1:User = new User();
+    let checkuser = await this.checkUser(auth);
+    if(!checkuser)
+      return 1;
+    let checkOwner = await this.getRoomOwnerById(updateRoomDto.roomID);
+    if (!checkOwner)
+      return 2;
+    if(checkOwner.owner.userId != auth)
+      return 3;
+    checkOwner.privacy = updateRoomDto.privacy;
+    checkOwner.password = updateRoomDto.password;
+    u1.id = checkuser.id;
+    const room = this.roomRepository.create({ ...checkOwner });
+    await this.roomRepository.save(room);
+    return (4);
+  }
+
   async joinRoom(joinRoomDto: JoinRoomDto, auth: any) {
     let u1:User = new User();
     let checkuser = await this.checkUser(auth);
@@ -223,7 +293,35 @@ export class ChatService {
         return 3;
     }
     u1.id = checkuser.id;
-    const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId });
+    let ret = await this.getRole(auth, joinRoomDto.roomId);
+    let role = "member";
+    
+    if (ret && ret.owner.userId == auth)
+      role = "owner";
+    const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId, role });
+    try{await this.joinRepository.save(joinuser);}catch(e){}
+    return (0);
+  }
+
+
+  async addRoleToSomeUser(addRoleToSomeUserDto: AddRoleToSomeUserDto, auth: any) {
+    let checkuser = await this.checkUser(auth);
+    if(checkuser == null)
+      return 1;
+    let checkadduser = await this.checkUserByUserName(addRoleToSomeUserDto.username);
+    if(checkadduser == null)
+      return 2;
+    let checkroom = await this.checkRoom(addRoleToSomeUserDto.roomId);
+    if (checkroom == null)
+      return 3;
+    let checkroomOwner = await this.checkRoomOwner(addRoleToSomeUserDto.roomId);
+    if (checkroomOwner && checkroomOwner.owner.userId != checkuser.userId)
+        return 4;
+    let checkjoined = await this.checkJoined(checkadduser.id, addRoleToSomeUserDto.roomId);
+    if (checkjoined == null)
+      return 5;
+    checkjoined.role = "admin";
+    const joinuser = this.joinRepository.create(checkjoined);
     try{await this.joinRepository.save(joinuser);}catch(e){}
     return (0);
   }
@@ -239,7 +337,7 @@ export class ChatService {
     if(checkUserJoined == null)
       return 3;
     createMsgDto.date = new Date();
-    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date});
+    const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date, join: { rid:createMsgDto.room , uid: checkuser.id }});
     try{await this.msgRepository.save(msg);}catch(e){}
     return (0);
   }
@@ -251,17 +349,20 @@ export class ChatService {
 /*********************************************DM SERVICE*********************************************/
 
   async createMsgPrivate(privateMsgDto: PrivateMsgDto, auth: any) {
+    let user = await this.checkUserByUserName(privateMsgDto.user);
+    if (!user)
+      return null;
     let u1:User = new User(), u2:User = new User();
     let ret = await this.conversationRepository.createQueryBuilder('conversation')
     .innerJoinAndSelect("conversation.user1", "user1")
     .innerJoinAndSelect("user1.profile", "profile1")
     .innerJoinAndSelect("conversation.user2", "user2")
     .innerJoinAndSelect("user2.profile", "profile2")
-    .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: privateMsgDto.user })
+    .where("(user1.userId = :id AND user2.userId = :id2) OR (user1.userId = :id2 AND user2.userId = :id)", { id: auth, id2: user.userId })
     .getOne();
     
     let tmp = await this.checkUser(auth);
-    let tmp2 = await this.checkUser(privateMsgDto.user);
+    let tmp2 = await this.checkUser(user.userId);
     if (!tmp || !tmp2)
       return (0);
     u1.id = tmp.id;

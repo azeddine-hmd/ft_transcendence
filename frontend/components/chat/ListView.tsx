@@ -5,7 +5,8 @@ import rooms from '../../rooms.json'
 import direct from '../../dms.json'
 import style from '../../styles/chat/ListView.module.css'
 import stylee from '../../styles/chat/Card.module.css'
-import {socket} from '../../pages/chat'
+import {socket} from '../../pages/chat/[chat]'
+
 
 function CreateNewRoom() {
 
@@ -56,6 +57,8 @@ export default function ListView() {
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
     function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
+    
+
     if (!pageLoaded) {
         socket.emit('findAllRooms');
         pageLoaded = true;
@@ -70,6 +73,8 @@ export default function ListView() {
     });
 
     socket.on('conversation', (arr) => {
+        setChannel('friends'); 
+        setData(rooms); 
         setDms(arr);
         setTMP(arr);
     });

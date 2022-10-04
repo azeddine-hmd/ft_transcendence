@@ -31,6 +31,7 @@ const Home: NextPage = () => {
             }); // CurrentProfile
         }, router);
     });
+  });
 
     // useEffect(() => {
     //   Apis.CurrentProfile({
