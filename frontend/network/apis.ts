@@ -335,4 +335,25 @@ export namespace Apis {
         }
         return options.onFailure({ message: "something went wrong!" });
     }
+
+    export async function autocompleteProfiles(options: {
+        username: string;
+        onSuccess: (profiles: ProfileResponse[]) => void;
+        onFailure: (err: ErrorResponse) => void;
+    }) {
+        try {
+            const res = await localService.post<ProfileResponse[]>(
+                `/api/profiles/autocomplete/${options.username}`
+            );
+            return options.onSuccess(res.data);
+        } catch (err: any) {
+            if (axios.isAxiosError(err)) {
+                const error = err as AxiosError<ErrorResponse>;
+                if (error && error.response && error.response.data) {
+                    return options.onFailure(error.response.data);
+                }
+            }
+        }
+        return options.onFailure({ message: "something went wrong!" });
+    }
 }

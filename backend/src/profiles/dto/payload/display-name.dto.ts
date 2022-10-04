@@ -3,6 +3,6 @@ import { Length } from 'class-validator';
 
 export class DisplayNameDto {
   @ApiProperty()
-  @Length(8, 16)
+  @Length(8, 20)
   displayName: string;
 }

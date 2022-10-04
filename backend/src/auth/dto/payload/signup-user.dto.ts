@@ -22,6 +22,6 @@ export class SignupUserDto {
   @ApiProperty({
     example: 'Azeddine Hamdaoui',
   })
-  @Length(8, 10)
+  @Length(8, 20)
   displayName: string;
 }
