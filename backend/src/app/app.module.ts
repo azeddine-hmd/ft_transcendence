@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
 import { ChatModule } from '../chat/chat.module';
 import { ProfilesModule } from '../profiles/profiles.module';
 import { UploadModule } from '../upload/upload.module';
@@ -12,7 +11,8 @@ import { UsersModule } from '../users/users.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '.postgres.env', '.profile.env'],
+      envFilePath: ['.postgres.env', '.env', '.profile.env'],
+      expandVariables: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   FileTypeValidator,
   Get,
@@ -9,9 +10,10 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Query,
   Req,
   UploadedFile,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -19,11 +21,14 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
-  ApiTags,
+  ApiTags
 } from '@nestjs/swagger';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
-import { AvatarDto } from './dto/payload/AvatarDto.dto';
+import { Profile } from '../profiles/entities/profile.entity';
+import { AvatarDto } from './dto/payload/avatar.dto';
+import { DisplayNameDto } from './dto/payload/display-name.dto';
 import { ProfileResponse } from './dto/response/profile-response.dto';
 import { ProfilesService } from './profiles.service';
 import { profileToProfileResponse } from './utils/entity-payload-converter';
@@ -79,5 +84,36 @@ export class ProfilesController {
     avatar: Express.Multer.File,
   ) {
     this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
+  }
+
+  @ApiBody({ type: DisplayNameDto })
+  @ApiOperation({ summary: 'Update display name of current user' })
+  @Post('/display-name')
+  async updateDisplayName(
+    @Req() req: any,
+    @Body() displayNameDto: DisplayNameDto,
+  ) {
+    await this.profilesService.updateDisplayName(
+      req.user.userId,
+      displayNameDto.displayName,
+    );
+  }
+
+  @ApiResponse({ type: [ProfileResponse] })
+  @ApiQuery({ name: 'username', type: 'string' })
+  @ApiOperation({ summary: 'Autocomplete profiles' })
+  @Get('/autocomplete')
+  async autocompleteProfile(
+    @Req() req: any,
+    @Query('username') usernameLike: string,
+  ): Promise<ProfileResponse[]> {
+    const profiles: Profile[] = await this.profilesService.autocompleteUsername(
+      req.user.userId,
+      usernameLike,
+    );
+
+    return profiles.map((value) => {
+      return profileToProfileResponse(value);
+    });
   }
 }
