@@ -16,9 +16,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist';
-import { Profile } from 'src/profiles/entities/profile.entity';
-import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
-import { Pair } from 'src/utils/pair';
+import { Profile } from '../../profiles/entities/profile.entity';
+import { profileToProfileResponse } from '../../profiles/utils/entity-payload-converter';
+import { Pair } from '../../utils/pair';
 import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { FriendDto as FriendDto } from '../dto/payload/add-friend-payload.dto';
 import { FriendsResponse } from '../dto/response/friends-response.dto';

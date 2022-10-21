@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm/dist';
-import { Pair } from 'src/utils/pair';
+import { Pair } from '../../utils/pair';
 import { Repository } from 'typeorm';
 import { Profile } from '../../profiles/entities/profile.entity';
 import { UserRelation } from '../entities/user-relation.entity';
