@@ -13,7 +13,7 @@ import {
   Query,
   Req,
   UploadedFile,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -23,7 +23,7 @@ import {
   ApiOperation,
   ApiQuery,
   ApiResponse,
-  ApiTags
+  ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
 import { Profile } from '../profiles/entities/profile.entity';

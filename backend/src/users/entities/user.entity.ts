@@ -1,5 +1,5 @@
-import { Rooms } from 'src/chat/entities/rooms.entity';
-import { Profile } from 'src/profiles/entities/profile.entity';
+import { Rooms } from '../../chat/entities/rooms.entity';
+import { Profile } from '../../profiles/entities/profile.entity';
 
 import {
   Column,
@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { UserRelation } from './user-relation.entity';
 

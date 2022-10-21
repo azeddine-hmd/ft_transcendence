@@ -21,7 +21,8 @@ export class SignupUserDto {
   @ApiProperty({
     example: 'Azeddine Hamdaoui',
   })
-  @IsAlphanumeric()
+  //TODO: fix
+  // @IsAlphanumeric()
   @Length(8, 20)
   displayName: string;
 }
