@@ -36,10 +36,10 @@ import { AppGateway } from './app.gateway';
         index: false,
       },
     }),
-    ProfilesModule,
     UsersModule,
-    ChatModule,
+    ProfilesModule,
     UploadModule,
+    ChatModule,
   ],
   providers: [AppGateway],
 })

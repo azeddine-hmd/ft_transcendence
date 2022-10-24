@@ -5,12 +5,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/services/users.service';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly authService: AuthService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -22,26 +24,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(request: Request, payload: any) {
     Logger.debug(`JwtStrategy#validate: starting...`);
-    // get incoming token
     const auth = request.headers.authorization;
     if (!auth || auth.split(' ').length !== 2)
       throw new UnauthorizedException();
-    const incomingToken = auth.split(' ')[1];
-
-    // get stored token and verify expiration time
-    const user = await this.usersService.findOneFromUserId(payload.userId);
-    if (!user || !user.token) throw new UnauthorizedException();
-    //verify token or not ?
-
-    // compare incoming token with stored token
-    // throw error if not equal
-    if (user.token && user.token !== incomingToken) {
-      Logger.error('valid token but have been revoked with a new one!');
-      throw new UnauthorizedException(
-        'valid token but have been revoked with a new one!',
-      );
-    }
-
+    const token = auth.split(' ')[1];
+    this.authService.verifyToken(token, payload);
     return { username: payload.username, userId: payload.userId };
   }
 }

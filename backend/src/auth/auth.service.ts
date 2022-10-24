@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
@@ -57,5 +62,24 @@ export class AuthService {
     return {
       access_token: access_token,
     };
+  }
+
+  async verifyToken(token: string, payload: any) {
+    // get stored token and verify expiration time
+    const user = await this.usersService.findOneFromUserId(payload.userId);
+    if (!user || !user.token) throw new UnauthorizedException();
+
+    // compare incoming token with stored token
+    // throw error if not equal
+    if (user.token && user.token !== token) {
+      Logger.error('valid token but have been revoked with a new one!');
+      throw new UnauthorizedException(
+        'valid token but have been revoked with a new one!',
+      );
+    }
+  }
+
+  extractPayload(token: string) {
+    return this.jwtService.decode(token) as any;
   }
 }
