@@ -7,6 +7,7 @@ import { UsersController } from './controllers/users.controller';
 import { UserRelation } from './entities/user-relation.entity';
 import { User } from './entities/user.entity';
 import { RelationsService } from './services/relations.service';
+import { UserGateway } from './services/user.gateway';
 import { UsersService } from './services/users.service';
 
 @Module({
@@ -15,7 +16,7 @@ import { UsersService } from './services/users.service';
     AuthModule,
   ],
   controllers: [UsersController, RelationsController],
-  providers: [UsersService, RelationsService],
+  providers: [UsersService, RelationsService, UserGateway],
   exports: [UsersService, AuthModule],
 })
 export class UsersModule {}

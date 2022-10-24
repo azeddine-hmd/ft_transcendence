@@ -1,5 +1,5 @@
 export class UserStates {
-  clients: Set<string>;
-  online: boolean;
-  status: string;
+  clients: Set<string> = new Set<string>();
+  online = false;
+  status = '';
 }

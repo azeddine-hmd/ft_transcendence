@@ -11,11 +11,11 @@ import { SocketAuthService } from '../auth/socket-auth.service';
   namespace: 'states',
   cors: [process.env.BACKEND_HOST, process.env.FRONTEND_HOST],
 })
-export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly socketAuth: SocketAuthService) {}
 
   async handleConnection(client: Socket, ...args: any[]) {
-    await this.socketAuth.authenticate(client);
+    await this.socketAuth.addClientWithAuthentication(client);
   }
 
   async handleDisconnect(client: Socket) {
