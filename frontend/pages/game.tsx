@@ -49,33 +49,7 @@ function Game()
 	const [username, setUsername] = React.useState("");
 	var socket:any;
 	
-	function attack(player:any) 
-	{
-		var i: Number;
-		i = game.player1.y + playerHeight;
-		if (game.ball.y < game.player1.y || game.ball.y > i) 
-		{
-			game.ball.x = canvas.width / 2 - ballHeight / 2;
-			game.ball.y = canvas.height / 2 - ballHeight / 2;
-			game.ball.speed.y = sppedBall;
 
-			if (player === p1) 
-			{
-				game.ball.speed.x = sppedBall * -1;
-				game.player2.score++;
-			} 
-			else
-			{
-				game.ball.speed.x = sppedBall;
-				game.player1.score++;
-			}
-		}
-		else 
-		{
-			game.ball.speed.x = -2;
-			game.ball.speed.y = -2;
-		}
-	}
 
 	function ballMove()
 	{
