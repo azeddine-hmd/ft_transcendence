@@ -41,6 +41,7 @@ import { AppGateway } from './app.gateway';
     UsersModule,
     ChatModule,
     GameModule,
+    UploadModule,
   ],
   providers: [AppGateway],
 })
