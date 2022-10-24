@@ -44,7 +44,7 @@ function Game()
 	var playerHeight:number = 75;
 	var playerWith:number = 10;
 	var ballHeight:number = 10;
-	var sppedBall:number = 2;
+	var sBall:number = 2;
 	const [user, setUser] = useState("");
 	const [username, setUsername] = React.useState("");
 	var socket:any;
@@ -65,12 +65,12 @@ function Game()
 					game.ball.y = canvas.height / 2 - ballHeight / 2;	
 					if (p2 === playerName) 
 					{
-						game.ball.speed.x = sppedBall * -1;
+						game.ball.speed.x = sBall * -1;
 						game.player2.score++;
 					} 
 					else
 					{
-						game.ball.speed.x = sppedBall;
+						game.ball.speed.x = sBall;
 						game.player1.score++;
 					}
 				}
@@ -93,12 +93,12 @@ function Game()
 					game.ball.y = canvas.height / 2 - ballHeight / 2;
 					if (p1 === playerName) 
 					{
-						game.ball.speed.x = sppedBall * -1;
+						game.ball.speed.x = sBall * -1;
 						game.player2.score++;
 					} 
 					else
 					{
-						game.ball.speed.x = sppedBall;
+						game.ball.speed.x = sBall;
 						game.player1.score++;
 					}
 				}
@@ -147,8 +147,8 @@ function Game()
 				x: canvas.width / 2,
 				y: canvas.height / 2,
 				speed: {
-					x: sppedBall,
-					y: sppedBall,
+					x: sBall,
+					y: sBall,
 				},
 			}
 		}
@@ -254,7 +254,7 @@ function Game()
          <div className="homepage w-full h-screen min-w-full relative">
         	<img src="/profile/bg.png" className="  w-full h-full min-w-full " alt="" />
             	<div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] ">
-				</div>
+				</div>he event is scheduled this Thursday 
         			<div className="contain absolute top-0 w-full h-screen flex justify-between">
             			<Sidebar/>
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
