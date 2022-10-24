@@ -8,21 +8,26 @@ export class UserRelation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, {
-    cascade: true,
-  })
+  @ManyToOne(() => User)
   @JoinColumn()
   user1: User;
 
-  @ManyToOne(() => User, {
-    cascade: true,
-  })
+  @ManyToOne(() => User)
   @JoinColumn()
   user2: User;
 
-  @Column()
-  isFriend: boolean;
+  @Column({
+    default: false,
+  })
+  friend1_2: boolean;
 
-  @Column()
+  @Column({
+    default: false,
+  })
+  friend2_1: boolean;
+
+  @Column({
+    default: false,
+  })
   isBlocked: boolean;
 }

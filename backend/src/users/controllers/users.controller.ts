@@ -12,28 +12,29 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist';
 import { plainToClass } from 'class-transformer';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from '../dto/payload/update-user.dto';
 import { UserResponseDto } from '../dto/response/user-response.dto';
 import { UsersService } from '../services/users.service';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@JwtAuthGuard
+@JwtAuth
 @Injectable()
 @Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiResponse({
-    type: UserResponseDto,
     status: 201,
-    description: 'update user info',
+    type: UserResponseDto,
   })
+  @ApiOperation({ summary: 'Update user data', deprecated: true })
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(
@@ -55,8 +56,8 @@ export class UsersController {
 
   @ApiResponse({
     status: 200,
-    description: 'delete user and all other relate data',
   })
+  @ApiOperation({ summary: 'Delete current user' })
   @Delete()
   async deleteUser(@Req() req: any) {
     await this.usersService.removeById(req.user.userId);

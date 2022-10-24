@@ -1,4 +1,6 @@
-import { Profile } from 'src/profiles/entities/profile.entity';
+import { Rooms } from '../../chat/entities/rooms.entity';
+import { Profile } from '../../profiles/entities/profile.entity';
+
 import {
   Column,
   Entity,
@@ -6,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { UserRelation } from './user-relation.entity';
 
@@ -59,5 +61,7 @@ export class User {
   @JoinColumn()
   relations: UserRelation[];
 
-  
+  @OneToMany(() => Rooms, (room) => room.owner)
+  rooms: Rooms[];
+
 }

@@ -3,7 +3,7 @@ import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-rooms.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { Server, Socket } from 'socket.io';
-import { NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { flatten, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
@@ -11,21 +11,57 @@ import { PrivateMsgDto } from './dto/privateMsg.dto';
 import { arrayBuffer } from 'stream/consumers';
 import { atob } from 'buffer';
 import { User } from 'src/users/entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
-
+import { Profile } from 'src/profiles/entities/profile.entity';
+import { use } from 'passport';
+import { UpdateRoomDto } from './dto/update-rooms.dto';
+import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
 {
-  let auth:any =  client.handshake.auth.token;
-  jwt.verify(auth);
-  const claims = atob(auth.split('.')[1]);
-  let tmp = JSON.parse(claims);
-  return (tmp.userId);
+  try {
+    let auth:any = "";
+    let tmp;
+    auth =  client.handshake.auth.token;
+    const claims = atob(auth.split('.')[1]);
+    tmp = JSON.parse(claims);
+    return (tmp.userId);
+    
+  } catch (error) {
+    
+    return (0);
+  }
+  //jwt.verify(auth);
 }
 
-class msgObject{
+class roomModel {
+  id: number;
+  title : string;
+  description : string;
+  members : string;
+  privacy: boolean;
+  admin: string;
+}
+
+class dmModel {
+  userId: string;
+  username: string;
+  msg: string;
+  avatar: string;
+  currentUser: boolean;
+  date: string;
+}
+
+class userModel{
+  userId:string | undefined;
+  username:string | undefined;
+  avatar:string | null | undefined;
+  displayName: string | undefined;
+};
+
+class msgModel{
   userId:string | undefined;
   username:string | undefined;
   avatar:string | null | undefined;
@@ -35,6 +71,7 @@ class msgObject{
 };
 
 @WebSocketGateway({
+  namespace: 'chat',
   cors: {
     origin: '*',
   },
@@ -45,42 +82,85 @@ export class ChatGateway {
 
   constructor(private readonly chatService: ChatService, private readonly jwtService: JwtService) {}
 
+/***********************PUBLIC AND PROTECTED SUBSCRIBE MESSAGE***********************/
+
+
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else
       this.server.emit('createRoom', {  created: true });
+  }
 
-      // { "title": "topic#", "description": "desc topic#", "privacy": true, "password": "pass123", "owner": { "id": +createNewRoom.value, "name": null } }
+  @SubscribeMessage('updateRoom')
+  async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
+    console.log(updateRoomDto);
+    
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
+    if(test == 1)
+      this.server.emit('updateRoom', { success: false, error: "User not found" });
+    else if (test == 2)
+      this.server.emit('updateRoom', { success: false, error: "Room not found" });
+    else if (test == 3)
+      this.server.emit('updateRoom', { success: false, error: "This room have another owner" });
+    else
+      this.server.emit('updateRoom', { success: true, error: "" });
+  }
+
+  @SubscribeMessage('addRoleToSomeUser')
+  async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
+    console.log(addRoleToSomeUserDto);
+    
+    let clientId:any =  getClientId(client, this.jwtService);
+    let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
+    console.log(test);
+    
+    if(test == 1)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
+    else if (test == 2)
+    {
+      console.log('here');
+      
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
+    }
+    else if (test == 3)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "room not found" });
+    else if (test == 4)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+    else if (test == 5)
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
+    else
+      this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
   }
 
   @SubscribeMessage('joinRoom')
-  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket) {
-
-    let messages:msgObject[] = [];
+  async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
+  {
+    let messages:msgModel[] = [];
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "user not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "user not found", msgs: null });
     else if (join == 2)
-      this.server.to(client.id).emit('joinRoom', { roomId: -1, error: "room not found" });
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "room not found", msgs: null });
+    else if (join == 3)
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else
     {
-
       client.join(joinRoomDto.roomId.toString());
-      // this.server.to(joinRoomDto.roomId.toString()).emit("message", {msg: "right"})
-
-      const roomInfo = await this.chatService.getRoomById(joinRoomDto);
+      const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
+      const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
+      
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
       try{    
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
-            let tmp:msgObject =new msgObject();
+            let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
             // tmp.userId = msgs[index].user.userId;
@@ -91,28 +171,36 @@ export class ChatGateway {
             tmp.currentUser = (msgs[index].user.userId == clientId);
             messages.push(tmp);
           }
-          
-          this.server.to(client.id).emit('joinRoom', { room: roomInfo, msgs: messages });
+          this.server.to(client.id).emit('joinRoom', { role: userRole?.role, room: roomInfo,  error: "", msgs: messages });
         }
-
-
       }
       catch(e){ console.log(e); }
-      
-
-      // { "uid":2, "rid":1, "userId": 2, "roomId": 1 }
     }
-    
   }
 
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    const rooms = await this.chatService.getRooms();
-    this.server.to(client.id).emit('findAllRooms', { rooms });
+    try {
+      const rooms = await this.chatService.getRooms();
+      let arr:any = new Array();
+      rooms.forEach(element => {
+        let rm:roomModel = new roomModel();
+        rm.id = element.id;
+        rm.admin = element.owner.userId;
+        rm.title = element.title;
+        rm.description = element.description;
+        rm.privacy = element.privacy;
+        arr.push(rm);
+      });
+      if (!rooms)
+        this.server.to(client.id).emit('findAllRooms', { error: "something went wrong" });
+      this.server.to(client.id).emit('findAllRooms', { rooms: arr });
+    } catch (error) {
+      console.error(error);
+    }
+    return;
   }
-  
-
 
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
@@ -127,16 +215,11 @@ export class ChatGateway {
       this.server.to(client.id).emit('createMsg', { created: false, error: "u didn't join this room!" });
     else
     {
-      // this.server.emit('createMsg', { created: true, error: "" });
-      // client.broadcast('', {});
-      // let date = createMsgDto.date.toString().split(':');
-      // let dateMsg = date[1] + ':' + date[2].split(' ')[0];
       client.join(createMsgDto.room.toString());
-      const userInfo:User | null = await this.chatService.checkUserProfile(clientId);
-      
+      const userInfo:User | null = await this.chatService.checkUserProfileByUserId(clientId);
       try{
         if (!userInfo) return;
-        let tmp:msgObject = new msgObject();
+        let tmp:msgModel = new msgModel();
         let date = createMsgDto.date.toString().split(':');
         let dateMsg = date[0] + ':' + date[1].split(' ')[0];
         tmp.userId = userInfo.userId;
@@ -153,100 +236,137 @@ export class ChatGateway {
         this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
       }
       catch(e){}
-    }  
-      // { "user": 1, "room": 1, "msg": "hello" }
+    }
   }
 
 
+/*********************END PUBLIC AND PROTECTED SUBSCRIBE MESSAGE*********************/
 
 
 
+/********************************DM SUBSCRIBE MESSAGE********************************/
 
-
+  /* 
+    when the you user chat with other user, add I add them to the table 
+    conversation table, in this subscribe message i emit all the users that
+    the current user talk with them 
+  */
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    let test =  await this.chatService.conversation(clientId);
 
-    let arr: User[] = [];
-    
+    /*
+      get from the conversation table in the database
+      all the users that the current user talk with them
+    */
+    let test =  await this.chatService.conversation(clientId);
+    let arr = new Array();
+
     if (test.length > 0)
     {
       test.forEach(element => {
-        
-        if (element.user1.id == clientId)
-        arr.push(element.user2);
+        let userConversation:userModel = new userModel();        
+        if (element.user1.userId == clientId)
+        {
+          userConversation.avatar = element.user2.profile.avatar;
+          userConversation.displayName = element.user2.profile.displayName;
+          userConversation.userId = element.user2.userId;
+          userConversation.username = element.user2.username;
+          arr.push(userConversation);
+        }
         else
-        arr.push(element.user1);
+        {
+          userConversation.avatar = element.user1.profile.avatar;
+          userConversation.displayName = element.user1.profile.displayName;
+          userConversation.userId = element.user1.userId;
+          userConversation.username = element.user1.username;
+          arr.push(userConversation);
+        }
       });
     }
     this.server.to(client.id).emit('conversation', arr);
-
-
-    // client.broadcast('', {});
-    // client.join(createMsgDto.room.toString());
-
-    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
-
-
-
-    // { "user": 1, "room": 1, "msg": "hello" }
   }
 
-  
-
+  /*
+    get all private message related to some user
+  */
   @SubscribeMessage('getPrivateMsg')
-  async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) {
+  async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) { 
     let clientId:any =  getClientId(client, this.jwtService);
-   
     
-    let test =  await this.chatService.getPrivateMsg(conversationDto, clientId);
+    let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
+    if (!test)
+    {
+      this.server.to(client.id).emit('getPrivateMsg', {success: false, error: "user not found"});
+      return;
+    }
+    let arr = new Array();
+    test.forEach(element => {
+      let dm: dmModel = new dmModel();
+      dm.userId = element.sender.userId;
+      dm.username = element.sender.username;
+      dm.msg = element.message;
+      dm.avatar = element.sender.profile.avatar;
+      let date = element.date.toString().split(':');
+      dm.date = date[0] + ':' + date[1].split(' ')[0];
+      dm.currentUser = (element.sender.userId == clientId) ? true : false;
+      arr.push(dm);
+    });
+    let u = await this.chatService.checkUserByUserName(conversationDto.user);
     
-    // if (test > 0)
-    // {
-      // test.forEach(element => {
-        
-        // if (element.user1.id == auth)
-        // arr.push(element.user2);
-        // else
-        // arr.push(element.user1);
-      // });
-    // }
-    
-    this.server.to(client.id).emit('getPrivateMsg', test);
-
-
-    // client.broadcast('', {});
-    // client.join(createMsgDto.room.toString());
-
-    // this.server.to(createMsgDto.room.toString()).emit('createMsg', { created: true, newnsg: createMsgDto.msg });
-
-
-
-    // { "user": 1, "room": 1, "msg": "hello" }
+    this.server.to(client.id).emit('getPrivateMsg', {success: true, error: "", privateMessages: arr, username: u?.username, userId: u?.userId});
   }
 
-
-  @SubscribeMessage('createMsgPrivate')
+  /*
+    add new private message related to some user to DM table in the database
+  */
+  @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
+    
     let clientId:any =  getClientId(client, this.jwtService);
-    await this.chatService.createMsgPrivate(privateMsgDto, clientId);
-
+    if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
+    {
+      this.server.to(client.id).emit("receiveNewPrivateMsg", {error: "Something went wrong: the message is not inserted"});
+      return;
+    }
+    let newDmMsg:dmModel = new dmModel();
+    let chatUser = await this.chatService.checkUserProfileByUserId(clientId);
+    console.log(chatUser);
+    if (!chatUser)
+      return;
+    newDmMsg.userId = chatUser.userId;
+    newDmMsg.avatar = chatUser.profile.avatar;
+    newDmMsg.username = chatUser.username;
+    newDmMsg.msg = privateMsgDto.msg;
+    let date = new Date().toString().split(':');
+    newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
+    newDmMsg.currentUser = false;
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      let u = await this.chatService.checkUser(clientId);
-
       usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
-        
-        this.server.to(element).emit("receiveNewPrivateMsg", {sender: u, msg: privateMsgDto.msg});
+        this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
+        console.log("here");
       });
-    
     }
-    // client.broadcast.emit("createMsgPrivate", { newMsg: privateMsgDto.msg })
-
+    newDmMsg.currentUser = true;
+    usersClient.get((clientId).toString())?.forEach(element => {
+      this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
+    });
   }
 
-  // last practice
+
+/******************************END DM SUBSCRIBE MESSAGE******************************/
+
+
+
+
+
+
+
+
+
+/*********************************HANDLE CONNECTION**********************************/
+
 
 	async handleDisconnect(socket: Socket, ...args: any[]) {
     console.log("DISCONNECTED AT CHAAAT SERVER");
@@ -258,46 +378,24 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
-    
-    this.server.to(client.id).emit('clientId', { userId: clientId });
-    
-    let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
-
-    checkUserJoined.forEach(element => {
-      client.join(element.rid.toString());
-    });
- 
-    if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
-      usersClient.set(clientId.toString(), [client.id]);
-    else
-    {
-      let arr: string[] | undefined = new Array();
-      arr = usersClient.get((clientId).toString());
-      arr?.push(client.id);
-      usersClient.set(clientId.toString(), arr);
-    }
-
-    
-    // number = parseInt(number);
-    // if(number > 3)
-    // {
-    //   socket.join("right")
-    // }
-    // else{
-    //   socket.join("left");
-    // }
-    // this.server.emit("greeting", {msg: "hello form faical server"});
-
-
-
-    // const rooms = await this.chatService.getRooms();
-    // this.server.to(socket.id).emit('findAllRooms', { rooms });
+    try {
+      this.server.to(client.id).emit('clientId', { userId: clientId });     
+      let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
+      checkUserJoined.forEach(element => {
+        client.join(element.rid.toString());
+      });
+      if (clientId !== undefined && usersClient.get((clientId).toString()) === undefined)
+        usersClient.set(clientId.toString(), [client.id]);
+      else
+      {
+        let arr: string[] | undefined = new Array();
+        arr = usersClient.get((clientId).toString());
+        arr?.push(client.id);
+        usersClient.set(clientId.toString(), arr);
+      }
+    } catch (error) { console.log(error); }
   }
-
-  // @SubscribeMessage('message')
-  // remove(@MessageBody() message: string) {
-  //   console.log("message is recieved :" + message )
-  //   this.server.to("right").emit("message", {msg: "right"})
-  // }
-
 }
+
+
+/*********************************HANDLE CONNECTION**********************************/

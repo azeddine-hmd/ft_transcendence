@@ -3,6 +3,7 @@
         "title": " ",
         "description": " ",
         "members": " ",
-        "id": 2
+        "id": 2,
+        "privacy" : false
     }
 ]

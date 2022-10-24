@@ -3,6 +3,7 @@
   height: 100%;
   background-color: #f6f7fb;
   /* overflow-y: scroll; */
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -15,12 +16,11 @@
 
 .buttonsHolder {
   width: 100%;
-  height: 40px;
+  height: auto;
   display: flex;
 }
 
 .buttonsHolder > button {
-  width: 48%;
   margin: auto;
 }
 
@@ -40,16 +40,17 @@
 }
 
 .button {
-  color: rgb(54, 137, 24);
+  color: rgba(243, 207, 124, 1);
   background-color: #ffffff;
   font-size: 15px;
   border-radius: 8px;
   border: none;
-  height: 35px;
+  height: auto;
+  width: 100%;
 }
 
 .button:hover {
-  background-color:rgb(54, 137, 24);
+  background-color:rgba(243, 207, 124, 1);
   color: #ffffff;
   transition: 0.3s;
 }

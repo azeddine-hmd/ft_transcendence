@@ -2,7 +2,7 @@ import { IsNumber, IsString } from 'class-validator'
 export class PrivateMsgDto {
     
     @IsNumber()
-    user: number;
+    user: string;
 
     @IsNumber()
     msg: string;

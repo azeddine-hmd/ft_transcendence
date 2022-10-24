@@ -39,13 +39,13 @@ export default function Sidebar() {
         },
         {
           label: 'Profile',
-          url: "/user/"+username,
+          url: "/user/profile",
           icon: "/profile/Profile user.png",
           active: false,
         },
         {
           label: 'Chat',
-          url: "/chat",
+          url: "/chat/0",
           icon: "/profile/chat.png",
           active: false,
         },
@@ -59,7 +59,8 @@ export default function Sidebar() {
       ];
 
     return (
-            <div className={`background_sidebar relative  w-[17%] min-w-[300px] h-screen ${styles.background_sidebar}`}>
+            <div className={`background_sidebar relative z-30  w-[350px] h-full ${styles.background_sidebar}`}>
+                <div className="load  ">
                 <div className="menu my-20 flex w-full justify-center">
                         <img src="/profile/LOGO.png" alt="sdfsdfsf" />
                     </div>
@@ -74,8 +75,8 @@ export default function Sidebar() {
                         : null
                     } `}>
                             <div className="icons flex  relative right-3">
-                                <img src={item.icon} className={`${router.asPath === item.url? styles.changecolorimg: styles.colorimg}`} alt="" />
-                                <h1 className="relative top-1 left-1 text-[20px] font-light text-[#fff]">{item.label}</h1>
+                                <img src={item.icon} className={`${router.asPath === item.url? styles.changecolorimg: styles.colorimg} relative top-1 w-[27px] h-[28px]`} alt="" />
+                                <h1 className={`relative top-1 left-1 text-[23px] font-semibold text-[#fff] ${router.asPath === item.url? styles.changecolorimg: styles.colorimg}`}>{item.label}</h1>
                             </div>
                             {/* {item.label} */}
 
@@ -84,6 +85,10 @@ export default function Sidebar() {
                     </Link>
                     </>)
                 })}
+
+
+                </div>
+                
             </div>
     );
 }
