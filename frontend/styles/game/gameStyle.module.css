@@ -1,0 +1,244 @@
+
+.start {
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Montserrat', sans-serif;
+
+  }
+
+  .button {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	background-color: #F75780;
+	position: realtive;
+	border: 1px dashed rgb(0, 255, 0);
+	border-radius: 10px;
+	outline: none;
+	transition: box-shadow 0.3s linear;
+	box-shadow: inset 0px 0px 5px black, inset 0px 0px 0px #F7EA25;
+  }
+  .button:active {
+    box-shadow: inset 0px 0px 0px black, inset 0px 0px 105px #F7EA25;
+}
+
+
+  .cont {
+	position: relative;
+	width: 16vw;
+	height: 8vw;
+	overflow: hidden;
+	border-radius: 10px;
+	box-shadow: 0px 0px 15px black;
+	margin: 3vw 0;
+  }
+
+.text {
+	display: flex;
+	position: absolute;
+	top: 20%;
+	font-size: 4vw;
+	text-shadow: 2px 2px black;
+	font-family: 'Anton', sans-serif;
+  }
+  
+.p1 {
+  transform: rotate(8deg);
+  animation: shake 0.5s ease infinite;
+  color: #25f730
+
+  }
+  .p2 {
+  transform: rotate(5deg);
+  animation: shake 0.5s ease-out infinite reverse;
+  color: #F7EA25
+
+  }
+ .p3 {
+  transform: rotate(-2deg);
+  animation: shake 0.5s 0.1s ease infinite;
+  color: #25f730
+ 
+
+  }
+
+ .p4 {
+    transform: rotate(-5deg);
+    animation: shake 0.5s ease-in infinite reverse;
+	color: #F7EA25
+
+  }
+  .p5 {
+    transform: rotate(5deg);
+    animation: shake 0.5s ease-in infinite reverse;
+	color: #25f730
+  
+}
+
+  @keyframes shake {
+    0% {
+      transform: translateX(0) rotate(8deg);
+    }
+    50% {
+      transform: translateX(4px) rotate(-3deg);
+    }
+
+    100% {
+      transform: translateX(0) rotate(6deg);
+    }
+  }
+  .wrapper{
+	margin:0 auto;
+	
+	width:600px;
+	height:300px;
+	border-bottom:30px solid #D0D102;
+  }
+  .clear{
+	clear:both;
+  }
+  .left_wall{
+	float:left;
+	width:30px;
+	height:100px;
+	background:#61AE24;
+	animation:left-wall 3s infinite;
+	
+  }
+  .right_wall{
+	float:right;
+	width:30px;
+	height:100px;
+	background:#61AE24;
+	animation:right-wall 3s infinite;
+	
+  }
+  .ball{
+	float:left;
+	width:50px;
+	height:50px;
+	background:#F75780	;
+	border-radius:50%;
+	margin-top:30px;
+	animation:bounce_ball 3s linear infinite;
+  }
+  @keyframes left-wall{
+	0% {margin-top:0px;}
+	25%{margin-top:200px}
+	100%{margin-top:0px}
+	
+  }
+  @keyframes right-wall{
+	0% {margin-top:200px;}
+   
+	50%{margin-top:0px}
+	100%{margin-top:200px}
+	
+  }
+  @keyframes bounce_ball{
+	0% {margin-top:30px;}
+	25%{margin-left:250px;margin-top:252px}
+	50%{margin-left:490px;margin-top:30px;}
+	75%{margin-left:250px;margin-top:252px}
+	100%{margin-left:0px;margin-top:30px}
+	
+  }
+  @keyframes rotate {
+	from { transform: rotate(0deg); border-top-color: #bbb;}
+	to { transform: rotate(180deg); border-bottom-color: #bbb;}
+  }
+
+  .wrapper1{
+    width:200px;
+    height:60px;
+    position: absolute;
+    left:50%;
+    top:50%;
+    transform: translate(-50%, -50%);
+}
+.circle{
+    width:20px;
+    height:20px;
+    position: absolute;
+    border-radius: 50%;
+    background-color: #fff;
+    left:15%;
+    transform-origin: 50%;
+    animation: circle .5s alternate infinite ease;
+}
+
+@keyframes circle{
+    0%{
+        top:60px;
+        height:5px;
+        border-radius: 50px 50px 25px 25px;
+        transform: scaleX(1.7);
+    }
+    40%{
+        height:20px;
+        border-radius: 50%;
+        transform: scaleX(1);
+    }
+    100%{
+        top:0%;
+    }
+}
+.circle:nth-child(2){
+    left:45%;
+    animation-delay: .2s;
+}
+.circle:nth-child(3){
+    left:auto;
+    right:15%;
+    animation-delay: .3s;
+}
+.shadow{
+    width:20px;
+    height:4px;
+    border-radius: 50%;
+    background-color: rgba(0,0,0,.5);
+    position: absolute;
+    top:62px;
+    transform-origin: 50%;
+    z-index: -1;
+    left:15%;
+    filter: blur(1px);
+    animation: shadow .5s alternate infinite ease;
+}
+
+@keyframes shadow{
+    0%{
+        transform: scaleX(1.5);
+    }
+    40%{
+        transform: scaleX(1);
+        opacity: .7;
+    }
+    100%{
+        transform: scaleX(.2);
+        opacity: .4;
+    }
+}
+.shadow:nth-child(4){
+    left: 45%;
+    animation-delay: .2s
+}
+.shadow:nth-child(5){
+    left:auto;
+    right:15%;
+    animation-delay: .3s;
+}
+.wrapper1 span{
+    position: absolute;
+    top:75px;
+    font-family: 'Lato';
+    font-size: 20px;
+    letter-spacing: 12px;
+    color: #fff;
+    left:15%;
+}

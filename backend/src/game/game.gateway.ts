@@ -2,14 +2,13 @@ import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSo
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 
-
-
 @WebSocketGateway(
 { 
 	namespace: 'game',
 	cors: {origin: '*'},
 }
 )
+
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;
@@ -18,7 +17,6 @@ export class GameGateway {
 		private readonly gameService: GameService,
 	) { }
 
-
 	async handleConnection(socket: Socket, ...args: any[]) {
 		console.log("CONNECTED AT GAME SERVER");
 	}
@@ -26,21 +24,25 @@ export class GameGateway {
 	async handleDisconnect(socket: Socket, ...args: any[]) {
 		console.log("DISCONNECTED AT GAME SERVER");
 	}
+	@SubscribeMessage('	')
+	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() body: string) {
+		let gameMode = 0;
+		let isSearching = true
+		this.server.emit('gameStart', socket.handshake.query.username, gameMode);
+	}
 
 	@SubscribeMessage('ball')
-	async ballMoveEmit(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
+	async ball(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		this.server.emit('ball', _data);
 	}
 
 	@SubscribeMessage('versus')
-	async versusMatch(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	async versus(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
 	{
 		const b = body.split(':');
-		console.log("b[0] = ",b[0]);
-		console.log("b[1] = ",b[1]);
 		this.server.emit('inviteToPlay', b[0], b[1]);
-
 	}
+
 	@SubscribeMessage('getPlayer')
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		console.log("GET PLAYER AT GAME SERVER")

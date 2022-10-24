@@ -26,12 +26,18 @@ interface GameOption
 		},
 	}
 }
+
 let url = "http://localhost:8080";
 
 function Game()
 {
-	var p1:string = 'murachid';
-	var p2:string = 'murachidM';
+	const routeChange = (e: any) => {
+        e.preventDefault();
+		if(window.top)
+        	window.top.location = url.concat("/game")
+    }
+	var p1:string = 'helloasd';
+	var p2:string = 'hello000';
 	var playerName: string ;
 	var canvas:any;
 	var game:GameOption;
@@ -68,25 +74,70 @@ function Game()
 		{
 			game.ball.speed.x = -2;
 			game.ball.speed.y = -2;
-			
 		}
 	}
 
 	function ballMove()
 	{
-		if (playerName === p1)
-		{
 			if (game.ball.y > canvas.height || game.ball.y < 0) 
 				game.ball.speed.y *= -1;
-			
 			if (game.ball.x > canvas.width - playerWith) 
-				attack(p2);
+			{
+				var i: Number;
+				i = game.player2.y + playerHeight;
+				if (game.ball.y < game.player2.y || game.ball.y > i) 
+				{
+					game.ball.x = canvas.width / 2 - ballHeight / 2;
+					game.ball.y = canvas.height / 2 - ballHeight / 2;	
+					if (p2 === playerName) 
+					{
+						game.ball.speed.x = sppedBall * -1;
+						game.player2.score++;
+					} 
+					else
+					{
+						game.ball.speed.x = sppedBall;
+						game.player1.score++;
+					}
+				}
+				else
+				{
+					console.log("here ");
+					
+					game.ball.speed.x = -2;
+					game.ball.speed.y = -2;
+				}
+			}
+				// attack(p2);
 			else if (game.ball.x < playerWith)
-				attack(p1);
+			{
+				var i: Number;
+				i = game.player1.y + playerHeight;
+				if (game.ball.y < game.player1.y || game.ball.y > i) 
+				{
+					game.ball.x = canvas.width / 2 - ballHeight / 2;
+					game.ball.y = canvas.height / 2 - ballHeight / 2;
+					if (p1 === playerName) 
+					{
+						game.ball.speed.x = sppedBall * -1;
+						game.player2.score++;
+					} 
+					else
+					{
+						game.ball.speed.x = sppedBall;
+						game.player1.score++;
+					}
+				}
+				else
+				{
+					game.ball.speed.x = -2;
+					game.ball.speed.y = -2;
+				}
+			}
+				// attack(p1);
 			game.ball.x -= game.ball.speed.x;
 			game.ball.y -= game.ball.speed.y;
 			socket.emit('ball', p1 + ":" + p2 + ":" + game.ball.x + ":" + game.ball.y + ":" + game.ball.speed.x + ":" + game.ball.speed.y);
-		}
 	}
 
 	function draw() 
@@ -132,6 +183,14 @@ function Game()
 
 	function init_socket()
 	{
+
+		socket.on("gameStart", (...args:any) => 
+		{
+			p1 = args[0];
+			p2 = args[1];
+			
+			
+		});
 		socket.on("getPlayer", (_data: string) => 
 		{
 		const b = _data.split(':');
@@ -200,7 +259,8 @@ function Game()
 				playerName = username;
 				setUsername(username);
 				socket = io(url + "/game",{ transports: ['websocket']});
-				canvas = document.getElementById('canvas');		
+				canvas = document.getElementById('canvas');
+						
 				socket.emit('versus', playerName);
 				init_socket();
 				initilizeGame();
@@ -212,6 +272,7 @@ function Game()
                 alert("couldn't fetch user");
             },
         });
+		
 	}, []);
 
 	return (
@@ -225,11 +286,7 @@ function Game()
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div id="game-root">
-						<p className="scor" id="scores">
-						<b className="scor" id="playerOne"></b>
-						<b className="scor" id="playerOneScore">0</b> - <b id="playerTwo"></b>
-						<b className="scor" id="playerTwoScore">0</b></p>	
-						<canvas id="canvas" width={600} height={500} style={{cursor: "none"}}></canvas>		
+						<canvas id="canvas" width={310} height={310} style={{cursor: "none"}}></canvas>
 					</div>
     			</div>
     		</div>
@@ -237,5 +294,5 @@ function Game()
 	</>
     );
 }
-export default Game;
 
+export default Game;

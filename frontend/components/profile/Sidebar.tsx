@@ -49,9 +49,10 @@ export default function Sidebar() {
           icon: "/profile/chat.png",
           active: false,
         },
+        
        {
           label: 'Game',
-          url: "/game",
+          url: "/startGame",
           icon: "/profile/level.png",
           active: true,
         },
