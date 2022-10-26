@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRelation } from './user-relation.entity';
 
@@ -63,5 +63,4 @@ export class User {
 
   @OneToMany(() => Rooms, (room) => room.owner)
   rooms: Rooms[];
-
 }

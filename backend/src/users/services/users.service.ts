@@ -1,19 +1,15 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { FtProfileDto } from '../../auth/dto/payload/ft-profile.dto';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
 import { ftProfileDtoToUserProfile } from '../../auth/utils/entity-payload-converter';
 import { Profile } from '../../profiles/entities/profile.entity';
-import { Repository } from 'typeorm';
 import { UserUpdateOptions } from '../dto/types/user-update-options';
 import { User } from '../entities/user.entity';
 import { signupUserDtoToUserProfile } from '../utils/entity-payload-converter';
+import { UsersSocketService } from './users-socket.service';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +19,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
+    private readonly usersSocketService: UsersSocketService,
   ) {}
 
   /* search operations */
@@ -51,6 +48,7 @@ export class UsersService {
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
     const profile = await this.profileRepository.save(unsavedProfile);
+    this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
 
@@ -103,7 +101,11 @@ export class UsersService {
 
   async removeByUsername(username: string): Promise<void> {
     Logger.log(`user \`${username}\` is removed from database`);
-    await this.userRepository.delete({ username: username });
+    const user = await this.findOneFromUsername(username);
+    if (user) {
+      this.usersSocketService.removeUser(user.userId);
+      await this.userRepository.delete({ username: username });
+    }
   }
 
   async removeById(id: number): Promise<void> {

@@ -20,11 +20,12 @@ import { LocalStrategy } from './strategies/local.strategy';
         signOptions: {
           expiresIn: ConfigService.get('JWT_EXPIRATION_DURATION'),
         },
+        exports: [JwtService],
       }),
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, FtStrategy],
   controllers: [AuthController],
-  exports: [JwtStrategy],
+  exports: [JwtStrategy, AuthService, JwtModule],
 })
 export class AuthModule {}

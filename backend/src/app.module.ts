@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatModule } from '../chat/chat.module';
-import { ProfilesModule } from '../profiles/profiles.module';
-import { UploadModule } from '../upload/upload.module';
-import { UsersModule } from '../users/users.module';
-import { AppGateway } from './app.gateway';
+import { ChatModule } from './chat/chat.module';
+import { ProfilesModule } from './profiles/profiles.module';
+import { UploadModule } from './upload/upload.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -36,11 +35,10 @@ import { AppGateway } from './app.gateway';
         index: false,
       },
     }),
-    ProfilesModule,
     UsersModule,
-    ChatModule,
+    ProfilesModule,
     UploadModule,
+    ChatModule,
   ],
-  providers: [AppGateway],
 })
 export class AppModule {}

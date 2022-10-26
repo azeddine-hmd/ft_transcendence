@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { InjectRepository } from '@nestjs/typeorm/dist';
-import { NotEquals } from 'class-validator';
 import { Like, Not, Repository } from 'typeorm';
 import { UploadService } from '../upload/upload.service';
 import { Profile } from './entities/profile.entity';
