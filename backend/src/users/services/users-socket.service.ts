@@ -91,4 +91,10 @@ export class UsersSocketService {
 
     return null;
   }
+
+  setStates(userId: string, status: string) {
+    const userStates = this.usersState.get(userId);
+    if (!userStates) return;
+    userStates.status = status;
+  }
 }
