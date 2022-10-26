@@ -1,21 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { sleep } from '../utils/delay';
-import { AuthService } from './auth.service';
-import { UserStates } from './types/user-states';
+import { monitor } from '../../utils/monitor';
+import { AuthService } from '../../auth/auth.service';
+import { UserStates } from '../../auth/types/user-states';
 
 @Injectable()
-export class SocketAuthService {
+export class UsersSocketService {
   usersState = new Map<string, UserStates>();
 
-  constructor(private readonly authService: AuthService) {}
-
-  async monitoringUsersState() {
-    while (true) {
-      console.log(this.usersState);
-      await sleep(1_000);
-    }
+  constructor(private readonly authService: AuthService) {
+    //DEBUG
+    monitor(3_000, () => {
+      return JSON.stringify([...this.usersState]);
+    });
   }
 
   async authenticate(client: Socket): Promise<any | null> {
@@ -47,12 +45,26 @@ export class SocketAuthService {
 
   addUser(userId: string) {
     this.usersState.set(userId, new UserStates());
+    Logger.log(`User(userId=${userId}) added to UserStatus List`);
+  }
+
+  removeUser(userId: string) {
+    this.usersState.delete(userId);
+    Logger.log(`User(userId=${userId}) removed from UserStatus List`);
   }
 
   addClient(clientId: string, userId: string) {
-    const userStates = this.usersState.get(userId);
+    let userStates = this.usersState.get(userId);
+
+    //DEBUG
+    if (!userStates) {
+      this.usersState.set(userId, new UserStates());
+      userStates = this.usersState.get(userId);
+    }
+
     if (!userStates) throw new WsException('user not found!');
     userStates.clients = userStates.clients.add(clientId);
+    userStates.online = true;
   }
 
   removeClient(clientId: string) {

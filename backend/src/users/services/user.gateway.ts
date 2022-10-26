@@ -4,7 +4,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { SocketAuthService } from '../auth/socket-auth.service';
+import { UsersSocketService } from './users-socket.service';
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -12,13 +12,13 @@ import { SocketAuthService } from '../auth/socket-auth.service';
   cors: [process.env.BACKEND_HOST, process.env.FRONTEND_HOST],
 })
 export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly socketAuth: SocketAuthService) {}
+  constructor(private readonly usersSocketService: UsersSocketService) {}
 
   async handleConnection(client: Socket, ...args: any[]) {
-    await this.socketAuth.addClientWithAuthentication(client);
+    await this.usersSocketService.addClientWithAuthentication(client);
   }
 
   async handleDisconnect(client: Socket) {
-    this.socketAuth.removeClient(client.id);
+    this.usersSocketService.removeClient(client.id);
   }
 }

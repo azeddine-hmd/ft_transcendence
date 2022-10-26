@@ -12,8 +12,8 @@ import { Rooms } from './entities/rooms.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Rooms, Msg, Join, Conversation, DM]),
     UsersModule,
+    TypeOrmModule.forFeature([User, Rooms, Msg, Join, Conversation, DM]),
   ],
   providers: [ChatGateway, ChatService],
 })

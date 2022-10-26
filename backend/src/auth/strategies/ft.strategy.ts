@@ -40,7 +40,6 @@ export class FtStrategy extends PassportStrategy(Strategy) {
       `FtStrategy#validate: processing profile of '${ftProfileDto.username}'`,
     );
     const user = await this.usersSerivce.findOrCreate(ftProfileDto);
-    this.socketAuth.addUser(user.userId);
     return { username: user.username, userId: user.userId };
   }
 }

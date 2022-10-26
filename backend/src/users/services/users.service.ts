@@ -1,19 +1,19 @@
 import {
   Injectable,
-  InternalServerErrorException,
   Logger,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { FtProfileDto } from '../../auth/dto/payload/ft-profile.dto';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
 import { ftProfileDtoToUserProfile } from '../../auth/utils/entity-payload-converter';
 import { Profile } from '../../profiles/entities/profile.entity';
-import { Repository } from 'typeorm';
 import { UserUpdateOptions } from '../dto/types/user-update-options';
 import { User } from '../entities/user.entity';
 import { signupUserDtoToUserProfile } from '../utils/entity-payload-converter';
+import { UsersSocketService } from './users-socket.service';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +23,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
+    private readonly usersSocketService: UsersSocketService,
   ) {}
 
   /* search operations */
@@ -51,6 +52,7 @@ export class UsersService {
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
     const profile = await this.profileRepository.save(unsavedProfile);
+    this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
 

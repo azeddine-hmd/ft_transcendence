@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -10,15 +12,14 @@ import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
-import { SocketAuthService } from './socket-auth.service';
 import { JwtPayload } from './types/jwt-payload.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly socketAuth: SocketAuthService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -51,8 +52,6 @@ export class AuthService {
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
-
-    this.socketAuth.addUser(user.userId);
 
     return user;
   }
