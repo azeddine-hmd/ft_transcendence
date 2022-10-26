@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -105,7 +101,11 @@ export class UsersService {
 
   async removeByUsername(username: string): Promise<void> {
     Logger.log(`user \`${username}\` is removed from database`);
-    await this.userRepository.delete({ username: username });
+    const user = await this.findOneFromUsername(username);
+    if (user) {
+      this.usersSocketService.removeUser(user.userId);
+      await this.userRepository.delete({ username: username });
+    }
   }
 
   async removeById(id: number): Promise<void> {
