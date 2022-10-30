@@ -1,6 +1,10 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GameService } from './game.service';
+
+// let pOne:any = [];
+// let pTwo:any = [];
+let match:any = [[],[]];
+let contender:any;
 
 @WebSocketGateway(
 { 
@@ -14,8 +18,7 @@ export class GameGateway {
 	server: Server;
 
 	constructor(
-		private readonly gameService: GameService,
-	) { }
+		) { }
 
 	async handleConnection(socket: Socket, ...args: any[]) {
 		console.log("CONNECTED AT GAME SERVER");
@@ -24,11 +27,17 @@ export class GameGateway {
 	async handleDisconnect(socket: Socket, ...args: any[]) {
 		console.log("DISCONNECTED AT GAME SERVER");
 	}
-	@SubscribeMessage('	')
-	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() body: string) {
-		let gameMode = 0;
-		let isSearching = true
-		this.server.emit('gameStart', socket.handshake.query.username, gameMode);
+
+	@SubscribeMessage('match')
+	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	{
+		if (socket.handshake.query.username)
+			match[0].push(socket.handshake.query.username);
+		if (socket.handshake.query.username && match[0].length >= 2)
+		{
+			contender = match[0][1];
+			this.server.emit('_start', socket.handshake.query.username, contender);
+		}
 	}
 
 	@SubscribeMessage('ball')
@@ -40,13 +49,11 @@ export class GameGateway {
 	async versus(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
 	{
 		const b = body.split(':');
-		this.server.emit('inviteToPlay', b[0], b[1]);
 	}
 
 	@SubscribeMessage('getPlayer')
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		console.log("GET PLAYER AT GAME SERVER")
-
 		this.server.emit('getPlayer', _data);	
 	}
 }

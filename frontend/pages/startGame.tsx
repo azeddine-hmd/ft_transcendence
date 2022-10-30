@@ -42,10 +42,10 @@ function Game()
      						 </div>
 							 </button>
        						</div>
-								</div>
-								</div>
-								</div>
-								</div>
+						</div>
+						</div>
+						</div>
+						</div>
     		
 	</>
     );
