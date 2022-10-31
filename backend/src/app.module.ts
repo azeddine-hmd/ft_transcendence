@@ -4,8 +4,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatModule } from './chat/chat.module';
 import { ProfilesModule } from './profiles/profiles.module';
-import { UploadModule } from './upload/upload.module';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -35,9 +33,7 @@ import { UsersModule } from './users/users.module';
         index: false,
       },
     }),
-    UsersModule,
     ProfilesModule,
-    UploadModule,
     ChatModule,
   ],
 })

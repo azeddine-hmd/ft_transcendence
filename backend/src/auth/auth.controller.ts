@@ -10,6 +10,7 @@ import {
   Post,
   Redirect,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -22,6 +23,7 @@ import {
 } from '@nestjs/swagger/dist/decorators';
 import { UsersService } from '../users/services/users.service';
 import { AuthService } from './auth.service';
+import { RefreshDto } from './dto/payload/refresh.dto';
 import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
@@ -37,7 +39,6 @@ export class AuthController {
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
-    private readonly usersService: UsersService,
   ) {}
 
   @ApiResponse({ status: 302 })
@@ -46,21 +47,6 @@ export class AuthController {
   @Redirect()
   intraAuth() {
     return { url: getIntraAuthUrl(this.configService) };
-  }
-
-  @ApiOperation({
-    summary: 'Logout current user and invalidate session access token',
-  })
-  @ApiBearerAuth()
-  @JwtAuth
-  @Get('/logout')
-  async logout(@Req() req: any) {
-    Logger.debug(
-      `AuthController#logout: user ${req.user.username} logging-out!`,
-    );
-    await this.usersService.updateUser(req.user.userId, {
-      token: null,
-    });
   }
 
   @ApiResponse({ type: LoginResponseDto })
@@ -81,7 +67,8 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  async login(@Req() req: any) {
+  async login(@Req() req: Express.Request) {
+    if (req.user === undefined) throw new UnauthorizedException();
     return this.authService.login(req.user);
   }
 
@@ -89,7 +76,8 @@ export class AuthController {
   @FTAuthGuard
   @Get('/42/callback')
   @Redirect()
-  async FTCallback(@Req() req: any) {
+  async FTCallback(@Req() req: Express.Request) {
+    if (req.user === undefined) throw new UnauthorizedException();
     const loginDto = await this.authService.login(req.user);
     const frontendHost = this.configService.get('FRONTEND_HOST');
     if (!frontendHost) {
@@ -107,7 +95,15 @@ export class AuthController {
   @JwtAuth
   @HttpCode(HttpStatus.OK)
   @Get('/verify')
-  async verify(@Req() req: any) {
+  async verify(@Req() req: Express.Request) {
+    if (req.user === undefined) throw new UnauthorizedException();
     Logger.log(`user ${req.user.username} verified`);
+  }
+
+  @ApiOperation({ summary: 'Refresh current user access token' })
+  @ApiBody({ type: RefreshDto })
+  @Get('/refresh')
+  async refresh(@Req() req: Express.Request, @Body() refreshDto: RefreshDto) {
+    //TODO: impelment
   }
 }

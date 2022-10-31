@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Post,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -38,9 +39,10 @@ export class UsersController {
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(
-    @Req() req: any,
+    @Req() req: Express.Request,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
+    if (req.user === undefined) throw new UnauthorizedException();
     if (!(updateUserDto.password && updateUserDto.username)) {
       throw new BadRequestException();
     }
@@ -59,7 +61,8 @@ export class UsersController {
   })
   @ApiOperation({ summary: 'Delete current user' })
   @Delete()
-  async deleteUser(@Req() req: any) {
+  async deleteUser(@Req() req: Express.Request) {
+    if (req.user === undefined) throw new UnauthorizedException();
     await this.usersService.removeById(req.user.userId);
     Logger.log(
       `UsersController#delete: user ${req.user.username} have been deleted`,

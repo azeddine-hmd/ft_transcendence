@@ -2,8 +2,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FtProfileDto } from '../../auth/dto/payload/ft-profile.dto';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
+import { FtProfile } from '../../auth/types/ft-profile';
 import { ftProfileDtoToUserProfile } from '../../auth/utils/entity-payload-converter';
 import { Profile } from '../../profiles/entities/profile.entity';
 import { UserUpdateOptions } from '../dto/types/user-update-options';
@@ -66,16 +66,14 @@ export class UsersService {
     return user;
   }
 
-  async findOrCreate(ftProfileDto: FtProfileDto): Promise<User> {
+  async findOrCreate(profile: FtProfile): Promise<User> {
     const foundUser = await this.userRepository.findOneBy({
-      ftId: +ftProfileDto.ftId,
+      ftId: +profile.ftId,
     });
-
     if (!foundUser) {
-      const { userLike, profileLike } = ftProfileDtoToUserProfile(ftProfileDto);
+      const { userLike, profileLike } = ftProfileDtoToUserProfile(profile);
       return await this.createUser(userLike, profileLike);
     }
-
     return foundUser;
   }
 
@@ -108,8 +106,12 @@ export class UsersService {
     }
   }
 
-  async removeById(id: number): Promise<void> {
+  async removeById(id: string): Promise<void> {
     Logger.log(`user id \`${id}\` is removed from database`);
-    await this.userRepository.delete({ id: id });
+    const user = await this.findOneFromUserId(id);
+    if (user) {
+      this.usersSocketService.removeUser(user.userId);
+      await this.userRepository.delete({ userId: id });
+    }
   }
 }

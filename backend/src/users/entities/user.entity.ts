@@ -44,12 +44,6 @@ export class User {
   })
   password: string | null;
 
-  @Column({
-    type: 'varchar',
-    nullable: true,
-  })
-  token: string | null;
-
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 

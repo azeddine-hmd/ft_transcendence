@@ -1,12 +1,10 @@
-import { Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common/decorators';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
 import { UsersService } from '../../users/services/users.service';
 import { AuthService } from '../auth.service';
-import { FtProfileDto } from '../dto/payload/ft-profile.dto';
-import { JwtPayload } from '../types/jwt-payload.dto';
+import { FtProfile } from '../types/ft-profile';
 
 @Injectable()
 export class FtStrategy extends PassportStrategy(Strategy) {
@@ -32,14 +30,9 @@ export class FtStrategy extends PassportStrategy(Strategy) {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
-  ): Promise<JwtPayload> {
-    Logger.debug(`FtStrategy#validate: validating...`);
-    const ftProfileDto = profile as FtProfileDto;
-    Logger.debug(
-      `FtStrategy#validate: processing profile of '${ftProfileDto.username}'`,
-    );
-    const user = await this.usersSerivce.findOrCreate(ftProfileDto);
+    profile: FtProfile,
+  ): Promise<Express.User> {
+    const user = await this.usersSerivce.findOrCreate(profile);
     return { username: user.username, userId: user.userId };
   }
 }
