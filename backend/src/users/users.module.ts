@@ -7,6 +7,7 @@ import { UsersController } from './controllers/users.controller';
 import { UserRelation } from './entities/user-relation.entity';
 import { User } from './entities/user.entity';
 import { RelationsService } from './services/relations.service';
+import { UploadService } from './services/upload.service';
 import { UserGateway } from './services/user.gateway';
 import { UsersSocketService } from './services/users-socket.service';
 import { UsersService } from './services/users.service';
@@ -17,7 +18,19 @@ import { UsersService } from './services/users.service';
     AuthModule,
   ],
   controllers: [UsersController, RelationsController],
-  providers: [UsersService, RelationsService, UserGateway, UsersSocketService],
-  exports: [UsersService, AuthModule, TypeOrmModule, UsersSocketService],
+  providers: [
+    UsersService,
+    RelationsService,
+    UploadService,
+    UserGateway,
+    UsersSocketService,
+  ],
+  exports: [
+    UsersService,
+    TypeOrmModule,
+    UploadService,
+    AuthModule,
+    UsersSocketService,
+  ],
 })
 export class UsersModule {}

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { monitor } from '../../utils/monitor';
 import { AuthService } from '../../auth/auth.service';
 import { UserStates } from '../../auth/types/user-states';
 
@@ -9,38 +8,16 @@ import { UserStates } from '../../auth/types/user-states';
 export class UsersSocketService {
   usersState = new Map<string, UserStates>();
 
-  constructor(private readonly authService: AuthService) {
-    //DEBUG
-    monitor(3_000, () => {
-      return JSON.stringify([...this.usersState]);
-    });
-  }
+  constructor(private readonly authService: AuthService) {}
 
-  async authenticate(client: Socket): Promise<any | null> {
+  async authenticate(client: Socket): Promise<any> {
     Logger.log(`Client Socket Connected: id=${client.id}`);
-    const token = client.handshake.headers.token as string;
-    const payload = this.authService.extractPayload(token);
-
-    try {
-      await this.authService.verifyToken(token, payload);
-    } catch (err: any) {
-      client.emit('error', {
-        data: {
-          message: 'unautherized',
-        },
-      });
-      client.disconnect();
-      return null;
-    }
-
+    const token = client.handshake.headers.token;
+    if (!token) throw new WsException('unautherized');
+    const { payload, expired } = this.authService.verifyToken(token as string);
+    if (expired) throw new WsException('refresh');
+    client.user = payload;
     return payload;
-  }
-
-  async addClientWithAuthentication(client: Socket) {
-    const payload = await this.authenticate(client);
-    if (!payload) return;
-    this.addClient(client.id, payload.userId);
-    Logger.log(`client ${client.id} connected with userId '${payload.userId}'`);
   }
 
   addUser(userId: string) {

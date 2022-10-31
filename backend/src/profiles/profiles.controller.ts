@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -45,7 +46,8 @@ export class ProfilesController {
   })
   @ApiOperation({ summary: 'Get profile of current user' })
   @Get()
-  async getMyProfile(@Req() req: any): Promise<ProfileResponse> {
+  async getMyProfile(@Req() req: Express.Request): Promise<ProfileResponse> {
+    if (req.user === undefined) throw new UnauthorizedException();
     const profile = await this.profilesService.getProfile(req.user.username);
     if (!profile) throw new NotFoundException();
     return profileToProfileResponse(profile);
@@ -72,7 +74,7 @@ export class ProfilesController {
   @HttpCode(HttpStatus.OK)
   @Post('/avatar')
   async uploadAvatar(
-    @Req() req: any,
+    @Req() req: Express.Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -83,6 +85,7 @@ export class ProfilesController {
     )
     avatar: Express.Multer.File,
   ) {
+    if (req.user === undefined) throw new UnauthorizedException();
     this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
   }
 
@@ -90,9 +93,10 @@ export class ProfilesController {
   @ApiOperation({ summary: 'Update display name of current user' })
   @Post('/display-name')
   async updateDisplayName(
-    @Req() req: any,
+    @Req() req: Express.Request,
     @Body() displayNameDto: DisplayNameDto,
   ) {
+    if (req.user === undefined) throw new UnauthorizedException();
     await this.profilesService.updateDisplayName(
       req.user.userId,
       displayNameDto.displayName,
@@ -104,9 +108,10 @@ export class ProfilesController {
   @ApiOperation({ summary: 'Autocomplete profiles' })
   @Get('/autocomplete')
   async autocompleteProfile(
-    @Req() req: any,
+    @Req() req: Express.Request,
     @Query('username') usernameLike: string,
   ): Promise<ProfileResponse[]> {
+    if (req.user === undefined) throw new UnauthorizedException();
     const profiles: Profile[] = await this.profilesService.autocompleteUsername(
       req.user.userId,
       usernameLike,

@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { InjectRepository } from '@nestjs/typeorm/dist';
+import { UploadService } from '../users/services/upload.service';
 import { Like, Not, Repository } from 'typeorm';
-import { UploadService } from '../upload/upload.service';
 import { Profile } from './entities/profile.entity';
 
 @Injectable()

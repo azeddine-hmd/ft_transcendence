@@ -1,4 +1,3 @@
-export interface UserUpdateOptions {
+export class UserUpdateOptions {
   password?: string | null;
-  token?: string | null;
 }

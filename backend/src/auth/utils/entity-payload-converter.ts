@@ -1,8 +1,8 @@
 import { Profile } from '../../profiles/entities/profile.entity';
 import { User } from '../../users/entities/user.entity';
-import { FtProfileDto } from '../dto/payload/ft-profile.dto';
+import { FtProfile } from '../types/ft-profile';
 
-export function ftProfileDtoToUserProfile(ftProfileDto: FtProfileDto): {
+export function ftProfileDtoToUserProfile(ftProfileDto: FtProfile): {
   userLike: Partial<User>;
   profileLike: Partial<Profile>;
 } {
