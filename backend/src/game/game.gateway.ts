@@ -1,8 +1,8 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-// let pOne:any = [];
-// let pTwo:any = [];
+let pOne:any = [];
+let pTwo:any = [];
 let match:any = [[],[]];
 let contender:any;
 
@@ -36,7 +36,7 @@ export class GameGateway {
 		if (socket.handshake.query.username && match[0].length >= 2)
 		{
 			contender = match[0][1];
-			this.server.emit('_start', socket.handshake.query.username, contender);
+			this.server.emit('_start',socket.handshake.query.username , contender);
 		}
 	}
 
@@ -49,6 +49,7 @@ export class GameGateway {
 	async versus(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
 	{
 		const b = body.split(':');
+
 	}
 
 	@SubscribeMessage('getPlayer')

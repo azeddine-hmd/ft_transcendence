@@ -32,6 +32,11 @@ let url = "http://localhost:8080";
 
 function Game()
 {
+	const routeChange = (e: any) => {
+        e.preventDefault();
+		if(window.top)
+        	window.top.location = url.concat("/game")
+    }
 	var p1:string ;
 	var p2:string ;
 	var playerName: string ;
@@ -41,12 +46,11 @@ function Game()
 	var playerWith:number = 10;
 	var ballHeight:number = 10;
 	var sBall:number = 2;
-	var socket:any;
-
 	const [user, setUser] = useState("");
 	const [username, setUsername] = React.useState("");
 
-	socket = io(url + "/game",{ query: { username: username } });
+	var socket:any;
+	socket = io(url + "/game",{ query: { username: username } ,transports: ['websocket']});
 
 	function _search()
 	{
@@ -54,14 +58,9 @@ function Game()
 		socket.emit('match', i);
 	}
 
-	function attack()
+	function attack(player:any)
 	{
 		var i: Number;
-		var player:any;		
-		if (game.ball.x > canvas.width - playerWith) 
-			player == p2;
-		else if (game.ball.x < playerWith)
-			player == p1;
 		i = game.player1.y + playerHeight;
 		if (game.ball.y < game.player1.y || game.ball.y > i) 
 		{
@@ -84,15 +83,17 @@ function Game()
 			game.ball.speed.y = -2;
 		}
 	}
-
 	function ballMove()
 	{
-		if (game.ball.y > canvas.height || game.ball.y < 0) 
-			game.ball.speed.y *= -1;
-		attack();
-		game.ball.x -= game.ball.speed.x;
-		game.ball.y -= game.ball.speed.y;
-		socket.emit('ball', p1 + ":" + p2 + ":" + game.ball.x + ":" + game.ball.y + ":" + game.ball.speed.x + ":" + game.ball.speed.y);
+			if (game.ball.y > canvas.height || game.ball.y < 0) 
+				game.ball.speed.y *= -1;
+			if (game.ball.x > canvas.width - playerWith) 
+				attack(p2);
+			else if (game.ball.x < playerWith)
+				attack(p1);
+			game.ball.x -= game.ball.speed.x;
+			game.ball.y -= game.ball.speed.y;
+			socket.emit('ball', p1 + ":" + p2 + ":" + game.ball.x + ":" + game.ball.y + ":" + game.ball.speed.x + ":" + game.ball.speed.y);
 	}
 
 	function draw() 
@@ -132,10 +133,10 @@ function Game()
 					y: sBall,
 				},
 			}
-		}		
+		}
+		draw();
 		p1 = "";
 		p2 = "";
-		draw();
 	}
 
 	function init_socket()
@@ -146,7 +147,6 @@ function Game()
 			p2 = args[1];
 			console.log(p1 + " " + p2 );
 		});
-
 		socket.on("getPlayer", (_data: string) => 
 		{
 		const b = _data.split(':');
@@ -200,7 +200,8 @@ function Game()
 
 	function startGame()
 	{
-		setInterval( function () {
+		setInterval( function () {		
+		
 			if (playerName === p1 || playerName === p2)
 			{
 				ballMove();
@@ -209,6 +210,7 @@ function Game()
 			draw();
 		}, 1000 * 0.01)
 	}
+
 
 	useEffect(() => {
 		Apis.CurrentProfile( {
@@ -220,6 +222,7 @@ function Game()
 				setUsername(username);
 				canvas = document.getElementById('canvas');
 				socket.emit('versus', playerName);
+
 				init_socket();
 				initilizeGame();
 				startGame();
@@ -228,6 +231,7 @@ function Game()
                 alert("couldn't fetch user");
             },
         });
+		
 	}, []);
 
 	return (
