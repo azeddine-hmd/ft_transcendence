@@ -32,11 +32,8 @@ let url = "http://localhost:8080";
 
 function Game()
 {
-	const routeChange = (e: any) => {
-        e.preventDefault();
-		if(window.top)
-        	window.top.location = url.concat("/game")
-    }
+	var contender: string;
+	var checkSearching:boolean = false;
 	var p1:string ;
 	var p2:string ;
 	var playerName: string ;
@@ -55,7 +52,11 @@ function Game()
 	function _search()
 	{
 		let i:number = 0;
-		socket.emit('match', i);
+		checkSearching = checkSearching ? false : true;
+		if(checkSearching)
+			socket.emit('match', i);
+		else
+			socket.emit('match', "cancel");
 	}
 
 	function attack(player:any)
@@ -66,7 +67,7 @@ function Game()
 		{
 			game.ball.x = canvas.width / 2 - ballHeight / 2;
 			game.ball.y = canvas.height / 2 - ballHeight / 2;
-			if (p1 === player) 
+			if ( player == p1) 
 			{
 				game.ball.speed.x = sBall * -1;
 				game.player2.score++;
@@ -146,6 +147,14 @@ function Game()
 			p1 = args[0];
 			p2 = args[1];
 			console.log(p1 + " " + p2 );
+			if (p1 != contender && p1 == playerName && game) {
+				contender = p2;
+				startGame();    
+			}
+			else if (p2 != contender && p2 == playerName && game) {
+				contender = p1;
+				startGame();
+			}
 		});
 		socket.on("getPlayer", (_data: string) => 
 		{
@@ -192,9 +201,9 @@ function Game()
 			else 
 				game.player2.y = mousePos - playerHeight / 2;
 		}
-		if (playerName === p2 && playerName && game.player1.y )
+		if (playerName && contender && game.player1.y)
 			socket.emit('getPlayer', playerName + ":" + game.player2.y);
-		if (playerName === p1 && playerName && game.player1.y )
+		if (playerName && contender && game.player1.y)
 			socket.emit('getPlayer', playerName + ":" + game.player1.y);
 	}
 
@@ -222,10 +231,8 @@ function Game()
 				setUsername(username);
 				canvas = document.getElementById('canvas');
 				socket.emit('versus', playerName);
-
 				init_socket();
 				initilizeGame();
-				startGame();
             },
             onFailure: (err: ErrorResponse) => {
                 alert("couldn't fetch user");
@@ -233,6 +240,7 @@ function Game()
         });
 		
 	}, []);
+
 
 	return (
 	    <>

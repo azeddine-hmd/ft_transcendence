@@ -5,14 +5,14 @@ let pOne:any = [];
 let pTwo:any = [];
 let match:any = [[],[]];
 let contender:any;
-
+let waiting:boolean = true;
 @WebSocketGateway(
 { 
 	namespace: 'game',
 	cors: {origin: '*'},
 }
 )
-
+  
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;
@@ -30,13 +30,20 @@ export class GameGateway {
 
 	@SubscribeMessage('match')
 	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
-	{
+	{	
+		if(body.toString().includes("cancel"))
+				waiting = false;
 		if (socket.handshake.query.username)
-			match[0].push(socket.handshake.query.username);
-		if (socket.handshake.query.username && match[0].length >= 2)
 		{
-			contender = match[0][1];
-			this.server.emit('_start',socket.handshake.query.username , contender);
+			console.log(waiting);	
+			if(waiting)
+				match[0].push(socket.handshake.query.username);
+			console.log(match[0].length );
+			if (match[0].length >= 2)
+			{
+				contender = match[0][1];
+				this.server.emit('_start',socket.handshake.query.username , contender);
+			}
 		}
 	}
 
@@ -48,13 +55,10 @@ export class GameGateway {
 	@SubscribeMessage('versus')
 	async versus(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
 	{
-		const b = body.split(':');
-
 	}
 
 	@SubscribeMessage('getPlayer')
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
-		console.log("GET PLAYER AT GAME SERVER")
 		this.server.emit('getPlayer', _data);	
 	}
 }
