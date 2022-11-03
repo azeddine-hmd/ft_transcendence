@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 export const localService = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    withCredentials: true,
 });
 
 // intercept local service requests

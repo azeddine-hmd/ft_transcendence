@@ -36,7 +36,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -61,7 +61,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -85,7 +85,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -106,7 +106,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -133,7 +133,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -154,7 +154,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -179,7 +179,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -204,7 +204,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -227,7 +227,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -251,7 +251,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -275,7 +275,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     /*
@@ -299,7 +299,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     export async function Safe(api: () => void, router: NextRouter) {
@@ -333,7 +333,7 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 
     export async function autocompleteProfiles(options: {
@@ -354,6 +354,6 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({ statusCode: 400, message: "something went wrong!", error: 'unknown' });
     }
 }

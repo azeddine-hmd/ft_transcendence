@@ -6,14 +6,13 @@ import { WsException } from '@nestjs/websockets/errors';
 export class WsExceptionFilter extends BaseExceptionFilter {
   catch(exception: WsException | HttpException, host: ArgumentsHost): void {
     const client = host.switchToWs().getClient();
-    // const data = host.switchToWs().getData();
     const error =
       exception instanceof WsException
         ? exception.getError()
         : exception.getResponse();
     const messages =
       error instanceof Object ? { ...error } : { message: error };
-    client.send(
+    client.emit(
       JSON.stringify({
         event: 'error',
         data: {

@@ -3,14 +3,16 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
-import { LoginResponseDto } from './dto/response/login-response.dto';
+import { Login } from './types/login';
 import { UserJwtPayload } from './types/user-jwt-payload';
 
 @Injectable()
@@ -18,18 +20,20 @@ export class AuthService {
   refreshTokens = new Map<string, string | null>();
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(forwardRef(() => UsersService))
+    // @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-  ) {}
+  ) {
+    console.log('AuthService initialized');
+  }
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string): Promise<User | null> {
     const user = await this.usersService.findOneFromUsername(username);
     if (!user || !user.password) return null;
     if (user && (await bcrypt.compare(pass, user.password))) {
       Logger.log(`AuthService#validateUser: validation was success!`);
-      const { password, ...result } = user;
-      return result;
+      return user;
     }
     return null;
   }
@@ -52,24 +56,56 @@ export class AuthService {
     return user;
   }
 
-  async login(jwtPayload: UserJwtPayload): Promise<LoginResponseDto> {
-    Logger.log(`AuthService#login: user '${jwtPayload.username}' logged-in!`);
-    const access_token = this.jwtService.sign(jwtPayload);
-    return {
-      access_token: access_token,
-    };
+  generateRefreshToken(userJwtPayload: UserJwtPayload): string {
+    const refreshExpirationTime = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION_DURATION',
+    );
+    if (!refreshExpirationTime)
+      throw new InternalServerErrorException(
+        'JWT_REFRESH_EXPIRATION_DURATION env variable not defined',
+      );
+
+    const newToken = this.jwtService.sign(
+      {
+        ...userJwtPayload,
+        isRefreshToken: true,
+      },
+      { expiresIn: refreshExpirationTime },
+    );
+    this.refreshTokens.set(userJwtPayload.username, newToken);
+    return newToken;
   }
 
-  verifyToken(token: string) {
+  getRefreshToken(userJwtPayload: UserJwtPayload): string {
+    const token = this.refreshTokens.get(userJwtPayload.username);
+    if (!token) return this.generateRefreshToken(userJwtPayload);
+    const { expired } = this.verifyJwtToken(token);
+    if (expired) return this.generateRefreshToken(userJwtPayload);
+    return token;
+  }
+
+  login(userJwtPayload: UserJwtPayload): Login {
+    Logger.log(
+      `AuthService#login: user '${userJwtPayload.username}' logged-in!`,
+    );
+    const accessToken = this.jwtService.sign(userJwtPayload);
+    const refreshToken = this.getRefreshToken(userJwtPayload);
+    Logger.log(
+      `refresh token for \`${userJwtPayload.username}: ${refreshToken}`,
+    );
+    return { accessToken, refreshToken };
+  }
+
+  verifyJwtToken(token: string) {
     try {
       return {
-        payload: this.jwtService.verify(token),
+        jwtPayload: this.jwtService.verify(token),
         expired: false,
       };
     } catch (error) {
       if ((error as Error).name === 'TokenExpiredError') {
         return {
-          payload: this.jwtService.decode(token),
+          jwtPayload: this.jwtService.decode(token),
           expired: true,
         };
       }
@@ -77,7 +113,7 @@ export class AuthService {
     }
   }
 
-  refreshToken(expiredToken: string, refreshToken: string) {
+  verifyRefreshingAccessToken(expiredToken: string, refreshToken: string) {
     //TDOO: implement
   }
 }

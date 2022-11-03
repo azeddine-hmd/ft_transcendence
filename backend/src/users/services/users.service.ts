@@ -20,7 +20,9 @@ export class UsersService {
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
     private readonly usersSocketService: UsersSocketService,
-  ) {}
+  ) {
+    console.log('UsersService initialized');
+  }
 
   /* search operations */
 

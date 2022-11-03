@@ -9,6 +9,7 @@ import { ProfileResponse } from "../../network/dto/response/profile-response.dto
 import { ErrorResponse } from "../../network/dto/response/error-response.dto";
 import { SigninResponse } from "../../network/dto/response/signin-response.dto";
 import styles from "../../styles/auth/C_signup.module.css";
+import { localService } from "../../network/local.service";
 
 export default function C_signup() {
     const [username, setusername] = useState("");
@@ -48,7 +49,7 @@ export default function C_signup() {
                                             password: password,
                                         },
                                         onSuccess: () => {
-                                            // alert(user.username);
+                                            alert(user.username);
                                             Apis.Signin({
                                                 signDto: {
                                                     username: username,
@@ -126,18 +127,6 @@ export default function C_signup() {
                                     />
                                 </div>
                                 <br />
-                                <div className="check flex justify-between items-center">
-                                    <div className="checkb flex items-center">
-                                        <input type="checkbox"></input>
-                                        <label
-                                            htmlFor="checkbox"
-                                            className="text-[12px] ml-[4px]"
-                                        >
-                                            Remember me for 30 days.
-                                        </label>
-                                    </div>
-                                </div>
-                                <br />
                                 <div className="button-container">
                                     <button
                                         type="submit"
@@ -153,16 +142,16 @@ export default function C_signup() {
                                 onClick={() => {
                                     Apis.autherizeFortytwo();
                                 }}
-                                className="w-full mt-3 pb-[6px] pt-[6px] rounded-[5px] text-[#fff] bg-[#eba93b] flex justify-center items-center"
+                                className="w-full mt-3 pb-[6px] pt-[6px] rounded-[5px] text-[#fff] bg-[#121212] flex justify-center items-center"
                             >
                                 <img
                                     src="42_logo.svg"
                                     className="w-[20px] "
                                     alt="ddd"
                                 />
-                                <span className="pl-2 text-[18px]">
-                                    Network
-                                </span>
+                                    <span className="pl-2 text-[18px]">
+                                        Network
+                                    </span>
                             </button>
 
                             <div className="signup mt-3 flex text-[14px] w-full justify-center">

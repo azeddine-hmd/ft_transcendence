@@ -4,7 +4,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
-import { AuthService as AuthMamakService } from './auth.service';
+import { AuthService } from './auth.service';
 import { FtStrategy } from './strategies/ft.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -24,8 +24,8 @@ import { LocalStrategy } from './strategies/local.strategy';
       }),
     }),
   ],
-  providers: [FtStrategy, LocalStrategy, JwtStrategy, AuthMamakService],
+  providers: [FtStrategy, LocalStrategy, JwtStrategy, AuthService],
   controllers: [AuthController],
-  exports: [PassportModule, JwtStrategy, JwtModule, AuthMamakService],
+  exports: [JwtStrategy, JwtModule, AuthService],
 })
 export class AuthModule {}

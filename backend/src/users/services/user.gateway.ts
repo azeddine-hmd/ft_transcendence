@@ -23,7 +23,7 @@ import { UsersSocketService } from './users-socket.service';
 export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly usersSocketService: UsersSocketService) {}
 
-  async handleConnection(client: Socket, ...args: any[]) {
+  async handleConnection(client: Socket, ..._args: any[]) {
     const payload = await this.usersSocketService.authenticate(client);
     this.usersSocketService.addClient(client.id, payload.userId);
   }
@@ -35,7 +35,7 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('userState')
   userState(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: any,
+    @MessageBody() _body: any,
   ): WsResponse<unknown> {
     const event = 'userState';
     console.log(

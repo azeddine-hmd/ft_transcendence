@@ -7,9 +7,11 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  Next,
   Post,
   Redirect,
   Req,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -21,7 +23,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist/decorators';
-import { UsersService } from '../users/services/users.service';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RefreshDto } from './dto/payload/refresh.dto';
 import { SigninUserDto } from './dto/payload/signin-user.dto';
@@ -67,26 +69,30 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  async login(@Req() req: Express.Request) {
+  async login(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
     if (req.user === undefined) throw new UnauthorizedException();
-    return this.authService.login(req.user);
+    const login = this.authService.login(req.user);
+    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
+    return {
+      access_token: login.accessToken,
+    };
   }
 
   @ApiExcludeEndpoint()
   @FTAuthGuard
   @Get('/42/callback')
-  @Redirect()
-  async FTCallback(@Req() req: Express.Request) {
+  @Redirect(`${process.env.FRONTEND_HOST}/auth/42/callback`)
+  async FTCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const loginDto = await this.authService.login(req.user);
-    const frontendHost = this.configService.get('FRONTEND_HOST');
-    if (!frontendHost) {
-      throw new InternalServerErrorException();
-    }
-
-    return {
-      url: `${frontendHost}/auth/42/callback?access_token=${loginDto.access_token}`,
-    };
+    const login = this.authService.login(req.user);
+    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
+    res.cookie('access_token', login.accessToken);
   }
 
   @ApiResponse({ status: 200, description: 'verify current user credentials' })
@@ -95,7 +101,7 @@ export class AuthController {
   @JwtAuth
   @HttpCode(HttpStatus.OK)
   @Get('/verify')
-  async verify(@Req() req: Express.Request) {
+  async verify(@Req() req: Request) {
     if (req.user === undefined) throw new UnauthorizedException();
     Logger.log(`user ${req.user.username} verified`);
   }
@@ -103,7 +109,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh current user access token' })
   @ApiBody({ type: RefreshDto })
   @Get('/refresh')
-  async refresh(@Req() req: Express.Request, @Body() refreshDto: RefreshDto) {
+  async refresh(@Req() req: Request, @Body() refreshDto: RefreshDto) {
     //TODO: impelment
   }
 }

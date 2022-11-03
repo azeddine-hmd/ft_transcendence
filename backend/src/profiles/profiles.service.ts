@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { InjectRepository } from '@nestjs/typeorm/dist';
 import { UploadService } from '../users/services/upload.service';
-import { Like, Not, Repository } from 'typeorm';
+import { ILike, Like, Not, Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
 
 @Injectable()
@@ -73,7 +73,7 @@ export class ProfilesService {
         user: true,
       },
       where: {
-        user: { username: Like(`${usernameLike}%`), userId: Not(userId) },
+        user: { username: ILike(`${usernameLike}%`), userId: Not(userId) },
       },
     });
   }
