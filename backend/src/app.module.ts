@@ -35,6 +35,7 @@ import { UsersModule } from './users/users.module';
         index: false,
       },
     }),
+    UsersModule,
     ProfilesModule,
     ChatModule,
   ],

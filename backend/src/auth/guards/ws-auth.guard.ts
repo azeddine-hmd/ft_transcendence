@@ -2,7 +2,8 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  UseGuards,
+  Logger,
+  UseGuards
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets/errors';
 import { Observable } from 'rxjs';
@@ -11,11 +12,12 @@ import { AuthService } from '../auth.service';
 
 @Injectable()
 class WSAuthGuardClass implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    Logger.debug(`WebSocket Guard on verify token`);
     const client = context.switchToWs().getClient() as Socket;
     const tokenVal = client.handshake.headers.token;
     const token = Array.isArray(tokenVal) ? (tokenVal[0] as string) : tokenVal;

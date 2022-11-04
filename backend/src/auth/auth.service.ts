@@ -1,10 +1,9 @@
 import {
   ForbiddenException,
-  forwardRef,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -22,11 +21,8 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    // @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-  ) {
-    console.log('AuthService initialized');
-  }
+  ) {}
 
   async validateUser(username: string, pass: string): Promise<User | null> {
     const user = await this.usersService.findOneFromUsername(username);
@@ -109,7 +105,7 @@ export class AuthService {
           expired: true,
         };
       }
-      throw error;
+      throw new UnauthorizedException();
     }
   }
 

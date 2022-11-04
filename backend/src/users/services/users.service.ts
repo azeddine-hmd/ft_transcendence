@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
 import { Repository } from 'typeorm';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
 import { FtProfile } from '../../auth/types/ft-profile';
