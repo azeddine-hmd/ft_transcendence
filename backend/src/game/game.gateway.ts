@@ -29,36 +29,44 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('match')
-	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{	
-		if(body.toString().includes("cancel"))
-				waiting = false;
+		waiting = true;
+		if(_data.toString().includes("cancel"))
+			waiting = false;
 		if (socket.handshake.query.username)
 		{
 			console.log(waiting);	
 			if(waiting)
+			{
 				match[0].push(socket.handshake.query.username);
+				console.log(socket.handshake.query.username);
+			}
 			console.log(match[0].length );
 			if (match[0].length >= 2)
 			{
-				contender = match[0][1];
+				contender = match[0][0];
 				this.server.emit('_start',socket.handshake.query.username , contender);
 			}
 		}
 	}
 
-	@SubscribeMessage('ball')
+	@SubscribeMessage('ballPos')
 	async ball(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
-		this.server.emit('ball', _data);
+		this.server.emit('ballPos', _data);
 	}
 
-	@SubscribeMessage('versus')
-	async versus(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	@SubscribeMessage('startSocket')
+	async versus(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
 	}
 
 	@SubscribeMessage('getPlayer')
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		this.server.emit('getPlayer', _data);	
+	}
+	@SubscribeMessage('typeOfGame')
+	async gameMode(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
+		this.server.emit('typeOfGame', _data);	
 	}
 }

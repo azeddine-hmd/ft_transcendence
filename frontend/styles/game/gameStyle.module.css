@@ -252,8 +252,8 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
   position: sticky;
   margin-bottom: 50px;
   transition-duration: 1s;
-  width: 60% !important;
-  height: 60% !important;
+  width: 65% !important;
+  height: 65% !important;
 }
 
 .button1 {display: inline-block;
