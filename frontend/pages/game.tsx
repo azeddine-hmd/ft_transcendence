@@ -21,10 +21,12 @@ interface GameOption
 	ball: {
 		x: any,
 		y: any,
+		r:any,
 		speed: {
 			x: number,
 			y: number
 		},
+		speed1:number,
 	}
 }
 
@@ -79,7 +81,16 @@ function Game()
 				game.player2.score++;				
 			}
 			else
-				game.ball.speed.x *=-1;
+				{
+					game.ball.speed.x *=-1;
+					let collidePoint = (game.ball.y - (game.player2.y + playerHeight/2));
+					collidePoint = collidePoint / (playerHeight/2);
+					let angleRad = (Math.PI/4) * collidePoint;
+					let direction = (game.ball.x + game.ball.r < canvas.width/2) ? 1 : -1;
+					game.ball.speed.x = direction * game.ball.speed1 * Math.cos(angleRad);
+					game.ball.speed.y = game.ball.speed1 * Math.sin(angleRad);
+					game.ball.speed1 += 0.1;
+				}
 		}
 		else if (game.ball.x < playerWith)
 		{
@@ -92,7 +103,16 @@ function Game()
 				game.player1.score++;
 			}
 			else
-				game.ball.speed.x *=-1;
+			{	
+				 game.ball.speed.x *=-1;
+				let collidePoint = (game.ball.y - (game.player1.y + playerHeight/2));
+				collidePoint = collidePoint / (playerHeight/2);
+				let angleRad = (Math.PI/4) * collidePoint;
+				let direction = (game.ball.x + game.ball.r < canvas.width/2) ? 1 : -1;
+				game.ball.speed.x = direction * game.ball.speed1 * Math.cos(angleRad);
+				game.ball.speed.y = game.ball.speed1 * Math.sin(angleRad);
+				game.ball.speed1 += 0.1;
+			}
 		}
 		game.ball.x += game.ball.speed.x;
 		game.ball.y += game.ball.speed.y;
@@ -169,6 +189,8 @@ function Game()
 					x: sBall,
 					y: sBall,
 				},
+				r: ballHeight,
+				speed1: 7,
 			}
 		}
 		drawGame();
@@ -262,7 +284,7 @@ function Game()
 			}		
 			if(playerName == p1)
 				ballMove();
-		}, 1000 * 0.01)
+		}, 1000 * 0.04)
 	}
 
 	useEffect(() => {

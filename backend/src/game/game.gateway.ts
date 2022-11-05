@@ -36,13 +36,8 @@ export class GameGateway {
 			waiting = false;
 		if (socket.handshake.query.username)
 		{
-			console.log(waiting);	
 			if(waiting)
-			{
 				match[0].push(socket.handshake.query.username);
-				console.log(socket.handshake.query.username);
-			}
-			console.log(match[0].length );
 			if (match[0].length >= 2)
 			{
 				contender = match[0][0];
