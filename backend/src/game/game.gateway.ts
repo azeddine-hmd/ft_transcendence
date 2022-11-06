@@ -54,6 +54,7 @@ export class GameGateway {
 	@SubscribeMessage('startSocket')
 	async versus(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
+		this.server.emit('startSocket', _data);	
 	}
 
 	@SubscribeMessage('getPlayer')

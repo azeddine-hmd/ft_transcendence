@@ -103,7 +103,7 @@ function Game()
 				let direction:number = ((game.ball.x + game.ball.r) < canvas.width/2) ? 1 : -1;
 				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
 				game.ball.speed.y = sBall * Math.sin(angleRad);
-				sBall += 0.08;
+				sBall += 0.1;
 
 			}
 		}
@@ -126,7 +126,7 @@ function Game()
 				let direction:number = ((game.ball.x + game.ball.r) < canvas.width/2) ? 1 : -1;
 				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
 				game.ball.speed.y = sBall * Math.sin(angleRad);
-				sBall += 0.08;
+				sBall += 0.1;
 			}
 		}	
 
@@ -182,11 +182,9 @@ function Game()
 	function drawGame()
 	{			
 		drawPaddle();
-		
 		drawNet();	
 		Sacors();
 		drawBall();
-
 	}
 
 	function initilizeGame() 
@@ -217,17 +215,7 @@ function Game()
 
 	function init_socket()
 	{	
-		socket.on("ballPos", (_data: string) =>
-		{
-			array1 = _data.split(' ');
-			if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
-			{
-				game.ball.x = array1[2];
-				game.ball.y = array1[3];
-				game.player1.score = array1[4];
-				game.player2.score = array1[5];
-			}
-		});
+		
 		socket.on("_start", (...args:any) => 
 		{
 			p1 = args[0];
@@ -251,7 +239,17 @@ function Game()
 			else if (array0[0] == p1 && playerName != p1) 
 				game.player1.y = array0[1];
 		});
-
+		socket.on("ballPos", (_data: string) =>
+		{
+			array1 = _data.split(' ');
+			if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
+			{
+				game.ball.x = array1[2];
+				game.ball.y = array1[3];
+				game.player1.score = array1[4];
+				game.player2.score = array1[5];
+			}
+		});
 		socket.on("typeOfGame",(_data: string) =>
 		{
 			array2 = _data.split(' ');
@@ -295,14 +293,13 @@ function Game()
 	{
 		setInterval( function () 
 		{
-			if (playerName === p1 || playerName === p2)
+			if (playerName == p1 || playerName === p2)
 			{					
 				drawGame();
-				if(playerName == p1)
-					ballMove();
 				canvas.addEventListener('mousemove', playerMove);
 			}		
-			
+			if(playerName == p1)
+				ballMove();
 		}, 1000 * 0.02)
 	}
 
