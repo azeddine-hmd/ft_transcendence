@@ -41,9 +41,11 @@ function Game()
 	// wall.src = "sounds/wall.mp3";
 	// comScore.src = "sounds/comScore.mp3";
 	// userScore.src = "sounds/userScore.mp3";
+	let buttomSearch:any = [];
+	buttomSearch[0] = "search";
 	var _typeOfGame:number;
 	var contender: string;
-	var checkSearching:boolean = false;
+	var matchIsMake:boolean = false;
 	var p1:string ;
 	var p2:string ;
 	var array1:any;
@@ -66,11 +68,20 @@ function Game()
 	function _search()
 	{
 		let i:number = 0;
-		checkSearching = checkSearching ? false : true;
-		if(checkSearching)
+		if (matchIsMake)
+			matchIsMake = false;
+		else
+			matchIsMake = true;
+		if(matchIsMake)
+		{
+			buttomSearch[0] = "cancel";
 			socket.emit('match', i);
+		}         
 		else
 			socket.emit('match', "cancel");
+		let v =	document.querySelector('#search-button'); 
+		if (v)
+			v.textContent = buttomSearch[0];
 	}
 
 	function ballMove()
@@ -128,8 +139,7 @@ function Game()
 				game.ball.speed.y = sBall * Math.sin(angleRad);
 				sBall += 0.1;
 			}
-		}	
-
+		}
 		game.ball.x += game.ball.speed.x;
 		game.ball.y += game.ball.speed.y;
 		socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
@@ -208,6 +218,7 @@ function Game()
 				r: ballHeight/2,
 			}
 		}
+		buttomSearch[0] = "search";
 		drawGame();
 		p1 = "";
 		p2 = "";
@@ -334,7 +345,7 @@ function Game()
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div id="game-root">					
-						<button type="button" className={style.button1} onClick={() => _search()}>{"search"}</button>
+						<button type="button" id="search-button" className={style.button1} onClick={() => _search()}>{buttomSearch[0]}</button>
 						<canvas className={style.canvas} id="canvas" width={600} height={600} style={{cursor: "none"}}></canvas>
 					</div>
     			</div>
