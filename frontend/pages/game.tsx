@@ -7,26 +7,24 @@ import { ErrorResponse } from '../network/dto/response/error-response.dto'
 import { ProfileResponse } from '../network/dto/response/profile-response.dto'
 import io from 'socket.io-client';
 import style from '../styles/game/gameStyle.module.css'
-
 interface GameOption
 {
 	player1: {
-		y:any,
+		y:number,
 		score: number,
 	},
 	player2: {
-		y:any,
+		y:number,
 		score: number,
 	},
 	ball: {
-		x: any,
-		y: any,
-		r:any,
+		x: number,
+		y: number,
+		r:number,
 		speed: {
 			x: number,
 			y: number
 		},
-		speed1:number,
 	}
 }
 
@@ -34,6 +32,15 @@ let url = "http://localhost:8080";
 
 function Game()
 {
+	
+	// let hit = new Audio();
+	// let wall = new Audio();
+	// let userScore = new Audio();
+	// let comScore = new Audio();
+	// hit.src = "sounds/hit.mp3";
+	// wall.src = "sounds/wall.mp3";
+	// comScore.src = "sounds/comScore.mp3";
+	// userScore.src = "sounds/userScore.mp3";
 	var _typeOfGame:number;
 	var contender: string;
 	var checkSearching:boolean = false;
@@ -46,7 +53,7 @@ function Game()
 	var canvas:any;
 	var colorG:string = "green";
 	var game:GameOption;
-	var playerHeight:number = 75;
+	var playerHeight:number = 75.0;
 	var playerWith:number = 10;
 	var ballHeight:number = 10;
 	var sBall:number = 2;
@@ -68,52 +75,61 @@ function Game()
 
 	function ballMove()
 	{
+		var d:number;		
+		var e:number;
+		d = Number(game.player2.y) + Number(playerHeight);
+		e = Number(game.player1.y) + Number(playerHeight);
 		if (game.ball.y > canvas.height || game.ball.y < 0) 
 			game.ball.speed.y *= -1;
 		if (game.ball.x > canvas.width - playerWith) 
 		{
-			if (game.ball.y < game.player2.y || (game.ball.y > game.player2.y + playerHeight))
+			if (game.ball.y < game.player2.y || (game.ball.y > d))
 			{
 				game.ball.x = canvas.width / 2;
 				game.ball.y = canvas.height / 2;
 				game.ball.speed.y = sBall;
 				game.ball.speed.x = sBall;
+				// userScore.play();
 				game.player2.score++;				
 			}
 			else
-				{
-					game.ball.speed.x *=-1;
-					let collidePoint = (game.ball.y - (game.player2.y + playerHeight/2));
-					collidePoint = collidePoint / (playerHeight/2);
-					let angleRad = (Math.PI/4) * collidePoint;
-					let direction = (game.ball.x + game.ball.r < canvas.width/2) ? 1 : -1;
-					game.ball.speed.x = direction * game.ball.speed1 * Math.cos(angleRad);
-					game.ball.speed.y = game.ball.speed1 * Math.sin(angleRad);
-					game.ball.speed1 += 0.1;
-				}
+			{
+				var a:number = Number(playerHeight/2);
+				var b:number = Number(game.player2.y) + a;
+				var c:number = Number(game.ball.y) - b;
+				var collidePoint:number = c;				
+				collidePoint = collidePoint / a;
+				let angleRad:number = (Math.PI/4) * collidePoint;
+				let direction:number = ((game.ball.x + game.ball.r) < canvas.width/2) ? 1 : -1;
+				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
+				game.ball.speed.y = sBall * Math.sin(angleRad);
+				sBall += 0.08;
+
+			}
 		}
 		else if (game.ball.x < playerWith)
 		{
-			if (game.ball.y < game.player1.y || game.ball.y > (game.player1.y + playerHeight)) 
-			{
+			if (game.ball.y < game.player1.y || game.ball.y > e) 
+			{ 	
 				game.ball.x = canvas.width / 2 - ballHeight / 2;
 				game.ball.y = canvas.height / 2 - ballHeight / 2;
 				game.ball.speed.x = sBall * -1;
 				game.ball.speed.y = sBall;
+				// userScore.play();
 				game.player1.score++;
 			}
 			else
 			{	
-				 game.ball.speed.x *=-1;
-				let collidePoint = (game.ball.y - (game.player1.y + playerHeight/2));
+				let collidePoint:number = (game.ball.y - (game.player1.y + playerHeight/2));
 				collidePoint = collidePoint / (playerHeight/2);
-				let angleRad = (Math.PI/4) * collidePoint;
-				let direction = (game.ball.x + game.ball.r < canvas.width/2) ? 1 : -1;
-				game.ball.speed.x = direction * game.ball.speed1 * Math.cos(angleRad);
-				game.ball.speed.y = game.ball.speed1 * Math.sin(angleRad);
-				game.ball.speed1 += 0.1;
+				let angleRad:number = (Math.PI/4) * collidePoint;
+				let direction:number = ((game.ball.x + game.ball.r) < canvas.width/2) ? 1 : -1;
+				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
+				game.ball.speed.y = sBall * Math.sin(angleRad);
+				sBall += 0.08;
 			}
-		}
+		}	
+
 		game.ball.x += game.ball.speed.x;
 		game.ball.y += game.ball.speed.y;
 		socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
@@ -164,11 +180,13 @@ function Game()
 	}
 
 	function drawGame()
-	{		
+	{			
 		drawPaddle();
-		drawBall();
-		drawNet();
+		
+		drawNet();	
 		Sacors();
+		drawBall();
+
 	}
 
 	function initilizeGame() 
@@ -189,8 +207,7 @@ function Game()
 					x: sBall,
 					y: sBall,
 				},
-				r: ballHeight,
-				speed1: 7,
+				r: ballHeight/2,
 			}
 		}
 		drawGame();
@@ -200,6 +217,17 @@ function Game()
 
 	function init_socket()
 	{	
+		socket.on("ballPos", (_data: string) =>
+		{
+			array1 = _data.split(' ');
+			if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
+			{
+				game.ball.x = array1[2];
+				game.ball.y = array1[3];
+				game.player1.score = array1[4];
+				game.player2.score = array1[5];
+			}
+		});
 		socket.on("_start", (...args:any) => 
 		{
 			p1 = args[0];
@@ -223,17 +251,7 @@ function Game()
 			else if (array0[0] == p1 && playerName != p1) 
 				game.player1.y = array0[1];
 		});
-		socket.on("ballPos", (_data: string) =>
-		{
-			array1 = _data.split(' ');
-			if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
-			{
-				game.ball.x = array1[2];
-				game.ball.y = array1[3];
-				game.player1.score = array1[4];
-				game.player2.score = array1[5];
-			}
-		});
+
 		socket.on("typeOfGame",(_data: string) =>
 		{
 			array2 = _data.split(' ');
@@ -278,13 +296,14 @@ function Game()
 		setInterval( function () 
 		{
 			if (playerName === p1 || playerName === p2)
-			{	
+			{					
 				drawGame();
+				if(playerName == p1)
+					ballMove();
 				canvas.addEventListener('mousemove', playerMove);
 			}		
-			if(playerName == p1)
-				ballMove();
-		}, 1000 * 0.04)
+			
+		}, 1000 * 0.02)
 	}
 
 	useEffect(() => {
@@ -297,8 +316,8 @@ function Game()
 				setUsername(username);
 				canvas = document.getElementById('canvas');
 				socket.emit('startSocket', playerName);
-				init_socket();
 				initilizeGame();
+				init_socket();
             },
             onFailure: (err: ErrorResponse) => {
                 alert("couldn't fetch user");
@@ -317,7 +336,7 @@ function Game()
             			<Sidebar/>
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
-						<div id="game-root">
+						<div id="game-root">					
 						<button type="button" className={style.button1} onClick={() => _search()}>{"search"}</button>
 						<canvas className={style.canvas} id="canvas" width={600} height={600} style={{cursor: "none"}}></canvas>
 					</div>
