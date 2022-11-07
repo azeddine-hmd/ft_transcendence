@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   Logger,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets/errors';
 import { Observable } from 'rxjs';

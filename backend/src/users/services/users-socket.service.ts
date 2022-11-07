@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { WsException } from '@nestjs/websockets/errors';
+import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { AuthService } from '../../auth/auth.service';
 import { UserJwtPayload } from '../../auth/types/user-jwt-payload';

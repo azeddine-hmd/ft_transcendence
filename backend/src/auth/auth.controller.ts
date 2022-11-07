@@ -1,11 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Logger,
   Next,
   Post,
@@ -28,6 +28,7 @@ import { AuthService } from './auth.service';
 import { RefreshDto } from './dto/payload/refresh.dto';
 import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { TfaDto } from './dto/payload/tfa.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
 import { JwtAuth } from './guards/jwt-auth.guard';
@@ -69,15 +70,17 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  async login(
+  login(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<LoginResponseDto> {
+  ): LoginResponseDto {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = this.authService.login(req.user);
-    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
+    const refreshToken = this.authService.getRefreshToken(req.user);
+    res.cookie('refresh_token', refreshToken, { httpOnly: true });
+    console.log(`refresh token: ${refreshToken}`);
+    const accessToken = this.authService.login(req.user);
     return {
-      access_token: login.accessToken,
+      access_token: accessToken,
     };
   }
 
@@ -85,14 +88,12 @@ export class AuthController {
   @FTAuthGuard
   @Get('/42/callback')
   @Redirect(`${process.env.FRONTEND_HOST}/auth/42/callback`)
-  async FTCallback(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = this.authService.login(req.user);
-    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
-    res.cookie('access_token', login.accessToken);
+    const refreshToken = this.authService.getRefreshToken(req.user);
+    const accessToken = this.authService.login(req.user);
+    res.cookie('refreshToken', refreshToken, { httpOnly: true });
+    res.cookie('access_token', accessToken);
   }
 
   @ApiResponse({ status: 200, description: 'verify current user credentials' })
@@ -109,7 +110,28 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh current user access token' })
   @ApiBody({ type: RefreshDto })
   @Get('/refresh')
-  async refresh(@Req() req: Request, @Body() refreshDto: RefreshDto) {
-    //TODO: impelment
+  refresh(
+    @Req() req: Request,
+    @Body() refreshDto: RefreshDto,
+  ): LoginResponseDto {
+    if (!req.headers.authorization) throw new BadRequestException();
+    const accessToken = this.authService.refreshAcessToken({
+      expiredToken: req.headers.authorization,
+      refreshToken: refreshDto.refresh_token,
+    });
+    return {
+      access_token: accessToken,
+    };
+  }
+
+  @ApiResponse({ status: 200 })
+  @ApiOperation({ summary: 'enable/disable Two Way factor for current user' })
+  @ApiBearerAuth()
+  @ApiBody({ type: TfaDto })
+  @JwtAuth
+  @Post('/tfa')
+  async tfa(@Req() req: Request, @Body() tfaDto: TfaDto) {
+    if (req.user === undefined) throw new UnauthorizedException();
+    await this.authService.tfa(req.user.username, tfaDto.value);
   }
 }
