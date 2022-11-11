@@ -32,7 +32,7 @@ let url = "http://localhost:8080";
 
 function Game()
 {
-	
+
 	// let hit = new Audio();
 	// let wall = new Audio();
 	// let userScore = new Audio();
@@ -41,11 +41,13 @@ function Game()
 	// wall.src = "sounds/wall.mp3";
 	// comScore.src = "sounds/comScore.mp3";
 	// userScore.src = "sounds/userScore.mp3";
+	var acl:number;
 	let buttomSearch:any = [];
 	buttomSearch[0] = "search";
-	var _typeOfGame:number;
+	var _typeOfGame:string = "easy";
 	var contender: string;
 	var matchIsMake:boolean = false;
+	var optionIsMake:boolean = false;
 	var p1:string ;
 	var p2:string ;
 	var array1:any;
@@ -61,29 +63,74 @@ function Game()
 	var sBall:number = 2;
 	const [user, setUser] = useState("");
 	const [username, setUsername] = React.useState("");
+	const [mode, chanScopeSet] = React.useState("Easy");
+	const [mode1, chanScopeSet1] = React.useState("Right");
+	const [is, set] = React.useState(true);
 
 	var socket:any;
 	socket = io(url + "/game",{ query: { username: username } ,transports: ['websocket']});
-
+function _mode(m:number)
+{
+	if(m == 0)
+		acl = 1;
+	else
+		acl = 4;
+}
 	function _search()
-	{
+	{		
+		// let isMounted = true;
+		// if(isMounted)
+		// 	set(false);		
+		// isMounted = false;
+		buttomSearch[0] = "search";
 		let i:number = 0;
 		if (matchIsMake)
+		{
+
 			matchIsMake = false;
+		}
 		else
 			matchIsMake = true;
 		if(matchIsMake)
 		{
 			buttomSearch[0] = "cancel";
-			socket.emit('match', i);
-		}         
+			console.log("mode = " + mode);
+			console.log("mode1 = " + mode1);
+			
+			socket.emit('match', mode + mode1);
+		}
+		
 		else
 			socket.emit('match', "cancel");
-		let v =	document.querySelector('#search-button'); 
+		let v =	document.querySelector('#search'); 
 		if (v)
 			v.textContent = buttomSearch[0];
 	}
 
+	function typegame()
+	{
+		let i:number = 0;
+		if (optionIsMake)
+		{
+			_typeOfGame = "esay";
+			optionIsMake = false;
+		}
+		else
+			optionIsMake = true;
+		if(optionIsMake)
+		{
+			
+			_typeOfGame = "hard";
+			socket.emit('match', i);
+		}
+		
+		else
+			socket.emit('type', _typeOfGame);
+		let v =	document.querySelector('#option'); 
+		if (v)
+			v.textContent = _typeOfGame;
+
+	}
 	function ballMove()
 	{
 		var d:number;		
@@ -140,8 +187,8 @@ function Game()
 				sBall += 0.1;
 			}
 		}
-		game.ball.x += game.ball.speed.x;
-		game.ball.y += game.ball.speed.y;
+		game.ball.x += game.ball.speed.x*acl;
+		game.ball.y += game.ball.speed.y*acl;
 		socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
 	}
 
@@ -223,25 +270,18 @@ function Game()
 		p1 = "";
 		p2 = "";
 	}
-
+	socket.on("_start", (...args:any) => 
+	{
+		p1 = args[0];
+		p2 = args[1];
+		_mode(args[2])
+		if (p1 != contender && p1 == playerName && game) 
+			contender = p2;
+		else if (p2 != contender && p2 == playerName && game) 
+			contender = p1;
+	});
 	function init_socket()
-	{	
-		
-		socket.on("_start", (...args:any) => 
-		{
-			p1 = args[0];
-			p2 = args[1];
-			if (p1 != contender && p1 == playerName && game) 
-			{
-				contender = p2;
-				startGame();    
-			}
-			else if (p2 != contender && p2 == playerName && game) 
-			{
-				contender = p1;
-				startGame();
-			}
-		});
+	{
 		socket.on("getPlayer", (_data: string) => 
 		{
 			array0 = _data.split(' ');
@@ -259,6 +299,8 @@ function Game()
 				game.ball.y = array1[3];
 				game.player1.score = array1[4];
 				game.player2.score = array1[5];
+
+				
 			}
 		});
 		socket.on("typeOfGame",(_data: string) =>
@@ -305,7 +347,8 @@ function Game()
 		setInterval( function () 
 		{
 			if (playerName == p1 || playerName === p2)
-			{					
+			{		
+				set(false);
 				drawGame();
 				canvas.addEventListener('mousemove', playerMove);
 			}		
@@ -322,18 +365,22 @@ function Game()
 				username = userResponse.username;
 				playerName = username;
 				setUsername(username);
+				console.log("username =  " + username);
+
 				canvas = document.getElementById('canvas');
 				socket.emit('startSocket', playerName);
+				init_socket();	
+				startGame();   			
 				initilizeGame();
-				init_socket();
             },
             onFailure: (err: ErrorResponse) => {
                 alert("couldn't fetch user");
             },
+
         });
 	}, []);
 
-
+	  
 	return (
 	    <>
          <div className="homepage w-full h-screen min-w-full relative">
@@ -344,13 +391,49 @@ function Game()
             			<Sidebar/>
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
-						<div id="game-root">					
-						<button type="button" id="search-button" className={style.button1} onClick={() => _search()}>{buttomSearch[0]}</button>
-						<canvas className={style.canvas} id="canvas" width={600} height={600} style={{cursor: "none"}}></canvas>
+
+						<canvas className={style.canvas} id="canvas" width={600} height={600} style={{cursor: "none"}}></canvas>				
+						{ is ? <div className={ style.overlay}>					
+							<div className={style.prompt}>
+								<div>How would you like to play?</div>
+								<hr className={style.hr}/>
+								<div className={style.difficulty}>
+									<span><input id="hard" type="radio" name="difficulty" value="Hard" onChange={e => chanScopeSet(e.target.value)}/>
+									<label htmlFor="hard">Hard</label></span>
+									<span><input id="Easy" type="radio" name="difficulty" value="Easy" onChange={e => chanScopeSet(e.target.value)}/>
+									<label htmlFor="Easy">Easy</label></span>
+									</div>
+									<hr className={style.hr}/>
+			
+									{/* <div className={style.character}>
+									<span><input id="Right" type="radio" name="character" value="Right" onChange={e => chanScopeSet1(e.target.value)}/>
+									<label htmlFor="Right">Right</label></span>	
+									<span><input id="Left" type="radio" name="character" value="Left" onChange={e => chanScopeSet1(e.target.value)} />
+									<label htmlFor="Left">Left</label></span>
+									</div> */}
+									<hr className={style.hr}/>
+
+									<div className={style.start}>
+							<button type="button" id="search" className={style.button1}	 onClick={() => _search()}>{buttomSearch[0]}</button>
+ 
+								</div>
+							</div>	
+						</div> : ""}
+
+
+						<div className={style.restart}> <button id="restart"> Restart </button> </div>
+
+
+
+
+
+
+
+
+
 					</div>
     			</div>
     		</div>
-    	</div>
 	</>
     );
 }

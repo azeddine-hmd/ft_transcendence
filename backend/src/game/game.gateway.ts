@@ -28,28 +28,40 @@ export class GameGateway {
 	@SubscribeMessage('match')
 	async messageMessage(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
+		var i:number = 0;
+		if (_data.includes("Easy"))
+			i = 0;
+		if (_data.includes("Hard"))
+			i = 1;
 		waiting = true;
 		if(_data.toString().includes("cancel"))
 			waiting = false;
 		if (socket.handshake.query.username)
 		{
 			if(waiting)
-				match[0].push(socket.handshake.query.username);
-			console.log(match); 
-			if (match[0].length >= 2)
+				match[i].push(socket.handshake.query.username);
+			else
 			{
-				var index = match[0].indexOf(socket.handshake.query.username);
+				const index = match[i].indexOf(socket.handshake.query.username);
+				if (index > -1) 
+				{
+					match[i].splice(index, 1);
+				}
+			}
+			if (match[i].length >= 2)
+			{
+				var index = match[i].indexOf(socket.handshake.query.username);
 				console.log(index);
 				
 				if (index != -1) 
-					match[0].splice(index, 1);
+					match[i].splice(index, 1);
 				console.log(match); 
-				let contender = match[0][0];
-				index = match[0].indexOf(contender);
+				let contender = match[i][0];
+				index = match[i].indexOf(contender);
 				if (index != -1) 
-					match[0].splice(index, 1);
+					match[i].splice(index, 1);
 				console.log(match); 
-				this.server.emit('_start',socket.handshake.query.username , contender);
+				this.server.emit('_start',socket.handshake.query.username , contender, i);
 			}
 		}
 	}
@@ -69,8 +81,8 @@ export class GameGateway {
 	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		this.server.emit('getPlayer', _data);	
 	}
-	@SubscribeMessage('typeOfGame')
-	async 0(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
-		this.server.emit('typeOfGame', _data);	
+	@SubscribeMessage('type')
+	async gameMode(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
+		this.server.emit('type', _data);	
 	}
 }
