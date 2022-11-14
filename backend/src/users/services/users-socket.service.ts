@@ -1,23 +1,28 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { AuthService } from '../../auth/auth.service';
+import { UserJwtPayload } from '../../auth/types/user-jwt-payload';
 import { UserStates } from '../../auth/types/user-states';
 
 @Injectable()
 export class UsersSocketService {
   usersState = new Map<string, UserStates>();
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+  ) {}
 
-  async authenticate(client: Socket): Promise<any> {
+  async authenticate(client: Socket): Promise<UserJwtPayload> {
     Logger.log(`Client Socket Connected: id=${client.id}`);
-    const token = client.handshake.headers.token;
+    const tokenVal = typeof client.handshake.headers.token;
+    const token = Array.isArray(tokenVal) ? (tokenVal[0] as string) : tokenVal;
     if (!token) throw new WsException('unautherized');
-    const { payload, expired } = this.authService.verifyToken(token as string);
+    const { jwtPayload, expired } = this.authService.verifyJwtToken(token);
     if (expired) throw new WsException('refresh');
-    client.user = payload;
-    return payload;
+    client.user = jwtPayload;
+    return jwtPayload;
   }
 
   addUser(userId: string) {

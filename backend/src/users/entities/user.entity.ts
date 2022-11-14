@@ -44,6 +44,11 @@ export class User {
   })
   password: string | null;
 
+  @Column({
+    default: false,
+  })
+  tfa: boolean;
+
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 

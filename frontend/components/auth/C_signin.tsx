@@ -87,19 +87,6 @@ export default function C_signin() {
                                     />
                                 </div>
                                 <br />
-                                <div className="check flex justify-between items-center">
-                                    <div className="checkb flex items-center">
-                                        <input type="checkbox"></input>
-                                        <label
-                                            htmlFor="checkbox"
-                                            className="text-[12px] ml-[4px]"
-                                        >
-                                            Remember me for 30 days.
-                                        </label>
-                                    </div>
-                                    {/* <a href="#" className="text-[12px] text-[#785cd3] ">Forgot password</a> */}
-                                </div>
-                                <br />
                                 <div className="button-container">
                                     <button
                                         type="submit"
@@ -114,12 +101,12 @@ export default function C_signin() {
                                 onClick={() => {
                                     Apis.autherizeFortytwo();
                                 }}
-                                className="w-full mt-3 pb-[6px] pt-[6px] rounded-[5px] text-[#fff] bg-[#785cd3] flex justify-center items-center"
+                                className="w-full mt-3 pb-[6px] pt-[6px] rounded-[5px] text-[#fff] bg-[#121212] flex justify-center items-center"
                             >
                                 <img
                                     src="42_logo.svg"
                                     className="w-[20px] "
-                                    alt="ddd"
+                                    alt="42 logo"
                                 />
                                 <span className="pl-2 text-[18px]">
                                     Network

@@ -2,6 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
+import { UserJwtPayload } from '../types/user-jwt-payload';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -9,7 +10,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super();
   }
 
-  async validate(username: string, password: string): Promise<any> {
+  async validate(username: string, password: string): Promise<UserJwtPayload> {
     Logger.debug('LocalStrategy#validate: validating credentials...');
     const user = await this.authService.validateUser(username, password);
 
@@ -18,6 +19,9 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('user not found');
     }
 
-    return { username: user.username, userId: user.userId };
+    return {
+      username: user.username,
+      userId: user.userId,
+    };
   }
 }

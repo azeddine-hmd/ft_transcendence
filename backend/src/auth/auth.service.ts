@@ -1,35 +1,37 @@
 import {
+  BadRequestException,
   ForbiddenException,
-  forwardRef,
-  Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config/dist/config.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { authenticator } from 'otplib';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
-import { LoginResponseDto } from './dto/response/login-response.dto';
 import { UserJwtPayload } from './types/user-jwt-payload';
 
 @Injectable()
 export class AuthService {
-  refreshTokens = new Map<string, string | null>();
+  private refreshTokens = new Map<string, string | null>();
+  private tfaSecrets = new Map<string, string>();
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string): Promise<User | null> {
     const user = await this.usersService.findOneFromUsername(username);
     if (!user || !user.password) return null;
     if (user && (await bcrypt.compare(pass, user.password))) {
       Logger.log(`AuthService#validateUser: validation was success!`);
-      const { password, ...result } = user;
-      return result;
+      return user;
     }
     return null;
   }
@@ -46,38 +48,104 @@ export class AuthService {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException('user exist');
     }
+    const optSecret = this.configService.get<string>('OTP_SECRET');
+    if (!optSecret) throw new InternalServerErrorException();
+    this.tfaSecrets.set(user.username, authenticator.generateSecret());
+    Logger.debug(
+      `'${user.username}' secret: ${this.tfaSecrets.get(user.username)}`,
+    );
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
     return user;
   }
 
-  async login(jwtPayload: UserJwtPayload): Promise<LoginResponseDto> {
+  login(jwtPayload: UserJwtPayload): string {
     Logger.log(`AuthService#login: user '${jwtPayload.username}' logged-in!`);
-    const access_token = this.jwtService.sign(jwtPayload);
-    return {
-      access_token: access_token,
-    };
+    return this.jwtService.sign(jwtPayload);
   }
 
-  verifyToken(token: string) {
+  getRefreshToken(userJwtPayload: UserJwtPayload): string {
+    const token = this.refreshTokens.get(userJwtPayload.username);
+    if (!token) return this.generateRefreshToken(userJwtPayload);
+    const { expired } = this.verifyJwtToken(token);
+    if (expired) return this.generateRefreshToken(userJwtPayload);
+    return token;
+  }
+
+  login(userJwtPayload: UserJwtPayload): Login {
+    Logger.log(
+      `AuthService#login: user '${userJwtPayload.username}' logged-in!`,
+    );
+    const accessToken = this.jwtService.sign(userJwtPayload);
+    const refreshToken = this.getRefreshToken(userJwtPayload);
+    Logger.log(
+      `refresh token for \`${userJwtPayload.username}: ${refreshToken}`,
+    );
+    return { accessToken, refreshToken };
+  }
+
+  verifyJwtToken(token: string) {
     try {
       return {
-        payload: this.jwtService.verify(token),
+        jwtPayload: this.jwtService.verify(token),
         expired: false,
       };
     } catch (error) {
       if ((error as Error).name === 'TokenExpiredError') {
         return {
-          payload: this.jwtService.decode(token),
+          jwtPayload: this.jwtService.decode(token),
           expired: true,
         };
       }
-      throw error;
+      throw new UnauthorizedException();
     }
   }
 
-  refreshToken(expiredToken: string, refreshToken: string) {
-    //TDOO: implement
+  private generateRefreshToken(userJwtPayload: UserJwtPayload): string {
+    const expirationTime = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRATION_DURATION',
+    );
+    if (!expirationTime)
+      throw new InternalServerErrorException('refresh env var not defined');
+    const newToken = this.jwtService.sign(userJwtPayload, {
+      expiresIn: expirationTime,
+    });
+    this.refreshTokens.set(userJwtPayload.username, newToken);
+    return newToken;
+  }
+
+  getRefreshToken(userJwtPayload: UserJwtPayload): string {
+    const token = this.refreshTokens.get(userJwtPayload.username);
+    if (!token) return this.generateRefreshToken(userJwtPayload);
+    try {
+      const { expired } = this.verifyToken(token);
+      if (!expired) return token;
+      return this.generateRefreshToken(userJwtPayload);
+    } catch (err) {
+      return this.generateRefreshToken(userJwtPayload);
+    }
+  }
+
+  refreshAcessToken(opts: {
+    expiredToken: string;
+    refreshToken: string;
+  }): string {
+    const { expiredToken, refreshToken } = opts;
+    try {
+      const { payload, expired } = this.verifyToken(expiredToken);
+      if (expired) {
+        if (refreshToken === this.refreshTokens.get(payload.username)) {
+          return this.login(payload);
+        }
+      }
+      throw new BadRequestException();
+    } catch (err) {
+      throw new BadRequestException();
+    }
+  }
+
+  async tfa(username: string, value: boolean) {
+    this.usersService.setTfa(username, value);
   }
 }

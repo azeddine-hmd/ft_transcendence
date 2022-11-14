@@ -8,6 +8,7 @@ import { SignupDto } from "./dto/payload/signup.dto";
 import { ErrorResponse } from "./dto/response/error-response.dto";
 import { FriendsResponse } from "./dto/response/friends-response.dto";
 import { ProfileResponse } from "./dto/response/profile-response.dto";
+import { RefreshResponse } from "./dto/response/refresh-response.dto";
 import { RelationResponse } from "./dto/response/relation-response.dto";
 import { SigninResponse } from "./dto/response/signin-response.dto";
 import { localService } from "./local.service";
@@ -36,7 +37,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -61,7 +66,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -85,7 +94,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -106,7 +119,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -133,7 +150,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -154,7 +175,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -179,7 +204,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -204,7 +233,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -227,7 +260,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -251,7 +288,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -275,7 +316,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     /*
@@ -299,7 +344,11 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
     export async function Safe(api: () => void, router: NextRouter) {
@@ -333,17 +382,21 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 
-    export async function autocompleteProfiles(options: {
-        username: string;
+    export async function AutocompleteProfiles(options: {
+        displayname: string;
         onSuccess: (profiles: ProfileResponse[]) => void;
         onFailure: (err: ErrorResponse) => void;
     }) {
         try {
             const res = await localService.post<ProfileResponse[]>(
-                `/api/profiles/autocomplete/${options.username}`
+                `/api/profiles/autocomplete/${options.displayname}`
             );
             return options.onSuccess(res.data);
         } catch (err: any) {
@@ -354,6 +407,56 @@ export namespace Apis {
                 }
             }
         }
-        return options.onFailure({ message: "something went wrong!" });
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
+    }
+
+    export async function EnableTwf(options: {
+        value: boolean;
+        onSuccess: () => void;
+        onFailure: (err: ErrorResponse) => void;
+    }) {
+        try {
+            const res = await localService.post(`/api/auth/tfa`);
+            return options.onSuccess();
+        } catch (err: any) {
+            if (axios.isAxiosError(err)) {
+                const error = err as AxiosError<ErrorResponse>;
+                if (error && error.response && error.response.data) {
+                    return options.onFailure(error.response.data);
+                }
+            }
+        }
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
+    }
+
+    export async function RefreshToken(options: {
+        onSuccess: () => void;
+        onFailure: (err: ErrorResponse) => void;
+    }) {
+        try {
+            const res = await localService.post<RefreshResponse>(`/api/auth/tfa`);
+            localStorage.setItem("access_token", res.data.access_token);
+            return options.onSuccess();
+        } catch (err: any) {
+            if (axios.isAxiosError(err)) {
+                const error = err as AxiosError<ErrorResponse>;
+                if (error && error.response && error.response.data) {
+                    return options.onFailure(error.response.data);
+                }
+            }
+        }
+        return options.onFailure({
+            statusCode: 400,
+            message: "something went wrong!",
+            error: "unknown",
+        });
     }
 }

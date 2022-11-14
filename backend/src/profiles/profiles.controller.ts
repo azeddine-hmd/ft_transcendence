@@ -26,6 +26,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
 import { Profile } from '../profiles/entities/profile.entity';
 import { AvatarDto } from './dto/payload/avatar.dto';
@@ -46,7 +47,7 @@ export class ProfilesController {
   })
   @ApiOperation({ summary: 'Get profile of current user' })
   @Get()
-  async getMyProfile(@Req() req: Express.Request): Promise<ProfileResponse> {
+  async getMyProfile(@Req() req: Request): Promise<ProfileResponse> {
     if (req.user === undefined) throw new UnauthorizedException();
     const profile = await this.profilesService.getProfile(req.user.username);
     if (!profile) throw new NotFoundException();
@@ -74,7 +75,7 @@ export class ProfilesController {
   @HttpCode(HttpStatus.OK)
   @Post('/avatar')
   async uploadAvatar(
-    @Req() req: Express.Request,
+    @Req() req: Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -93,7 +94,7 @@ export class ProfilesController {
   @ApiOperation({ summary: 'Update display name of current user' })
   @Post('/display-name')
   async updateDisplayName(
-    @Req() req: Express.Request,
+    @Req() req: Request,
     @Body() displayNameDto: DisplayNameDto,
   ) {
     if (req.user === undefined) throw new UnauthorizedException();
@@ -104,18 +105,19 @@ export class ProfilesController {
   }
 
   @ApiResponse({ type: [ProfileResponse] })
-  @ApiQuery({ name: 'username', type: 'string' })
+  @ApiQuery({ name: 'displayname', type: 'string' })
   @ApiOperation({ summary: 'Autocomplete profiles' })
   @Get('/autocomplete')
   async autocompleteProfile(
-    @Req() req: Express.Request,
-    @Query('username') usernameLike: string,
+    @Req() req: Request,
+    @Query('displayname') displaynameLike: string,
   ): Promise<ProfileResponse[]> {
     if (req.user === undefined) throw new UnauthorizedException();
-    const profiles: Profile[] = await this.profilesService.autocompleteUsername(
-      req.user.userId,
-      usernameLike,
-    );
+    const profiles: Profile[] =
+      await this.profilesService.autocompleteDisplayname(
+        req.user.userId,
+        displaynameLike,
+      );
 
     return profiles.map((value) => {
       return profileToProfileResponse(value);

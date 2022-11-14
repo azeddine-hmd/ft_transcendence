@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist';
+import { Request } from 'express';
 import { plainToClass } from 'class-transformer';
 import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from '../dto/payload/update-user.dto';
@@ -39,7 +40,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(
-    @Req() req: Express.Request,
+    @Req() req: Request,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     if (req.user === undefined) throw new UnauthorizedException();
@@ -61,7 +62,7 @@ export class UsersController {
   })
   @ApiOperation({ summary: 'Delete current user' })
   @Delete()
-  async deleteUser(@Req() req: Express.Request) {
+  async deleteUser(@Req() req: Request) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.usersService.removeById(req.user.userId);
     Logger.log(

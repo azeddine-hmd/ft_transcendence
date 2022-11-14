@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { ProfilesModule } from './profiles/profiles.module';
         index: false,
       },
     }),
+    UsersModule,
     ProfilesModule,
     ChatModule,
   ],

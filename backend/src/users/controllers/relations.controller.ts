@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger/dist';
+import { Request } from 'express';
 import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
 import { Profile } from '../../profiles/entities/profile.entity';
 import { profileToProfileResponse } from '../../profiles/utils/entity-payload-converter';
@@ -48,7 +49,7 @@ export class RelationsController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/friend')
-  async addFriend(@Req() req: Express.Request, @Body() friendDto: FriendDto) {
+  async addFriend(@Req() req: Request, @Body() friendDto: FriendDto) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.relationsService.addFriend(
       req.user.userId,
@@ -66,7 +67,7 @@ export class RelationsController {
   @HttpCode(HttpStatus.OK)
   @Post('/unfriend')
   async removeFriend(
-    @Req() req: Express.Request,
+    @Req() req: Request,
     @Body() friendDto: FriendDto,
   ) {
     if (req.user === undefined) throw new UnauthorizedException();
@@ -82,7 +83,7 @@ export class RelationsController {
   })
   @ApiOperation({ summary: 'Get Friends List of current user' })
   @Get('/friends')
-  async getFriends(@Req() req: Express.Request): Promise<FriendsResponse[]> {
+  async getFriends(@Req() req: Request): Promise<FriendsResponse[]> {
     if (req.user === undefined) throw new UnauthorizedException();
     const pairs: Pair<UserRelation, Profile>[] =
       await this.relationsService.getAllFriendsRelations(req.user.userId);
@@ -107,7 +108,7 @@ export class RelationsController {
   })
   @Get('/username/:username')
   async getRelationWithOther(
-    @Req() req: Express.Request,
+    @Req() req: Request,
     @Param('username') otherUsername: string,
   ): Promise<RelationResponse> {
     if (req.user === undefined) throw new UnauthorizedException();
@@ -137,7 +138,7 @@ export class RelationsController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/block')
-  async block(@Req() req: Express.Request, @Body() addFriendDto: FriendDto) {
+  async block(@Req() req: Request, @Body() addFriendDto: FriendDto) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.relationsService.blockUser(
       req.user.userId,
@@ -154,7 +155,7 @@ export class RelationsController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/unblock')
-  async unblock(@Req() req: Express.Request, @Body() addFriendDto: FriendDto) {
+  async unblock(@Req() req: Request, @Body() addFriendDto: FriendDto) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.relationsService.unblockUser(
       req.user.userId,
