@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Injectable,
   Logger,
-  Next,
   Post,
   Redirect,
   Req,
@@ -52,6 +51,18 @@ export class AuthController {
     return { url: getIntraAuthUrl(this.configService) };
   }
 
+  @ApiExcludeEndpoint()
+  @FTAuthGuard
+  @Get('/42/callback')
+  @Redirect(`${process.env.FRONTEND_HOST}/auth/42/callback`)
+  FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (req.user === undefined) throw new UnauthorizedException();
+    const refreshToken = this.authService.getRefreshToken(req.user);
+    const accessToken = this.authService.login(req.user);
+    res.cookie('refreshToken', refreshToken, { httpOnly: true });
+    res.cookie('access_token', accessToken);
+  }
+
   @ApiResponse({ type: LoginResponseDto })
   @ApiOperation({ summary: 'Register user' })
   @ApiBody({ type: SignupUserDto })
@@ -75,25 +86,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): LoginResponseDto {
     if (req.user === undefined) throw new UnauthorizedException();
-    const refreshToken = this.authService.getRefreshToken(req.user);
-    res.cookie('refresh_token', refreshToken, { httpOnly: true });
-    console.log(`refresh token: ${refreshToken}`);
-    const accessToken = this.authService.login(req.user);
+    const login = this.authService.login(req.user);
+    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
     return {
-      access_token: accessToken,
+      access_token: login.accessToken,
     };
-  }
-
-  @ApiExcludeEndpoint()
-  @FTAuthGuard
-  @Get('/42/callback')
-  @Redirect(`${process.env.FRONTEND_HOST}/auth/42/callback`)
-  FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    if (req.user === undefined) throw new UnauthorizedException();
-    const refreshToken = this.authService.getRefreshToken(req.user);
-    const accessToken = this.authService.login(req.user);
-    res.cookie('refreshToken', refreshToken, { httpOnly: true });
-    res.cookie('access_token', accessToken);
   }
 
   @ApiResponse({ status: 200, description: 'verify current user credentials' })
