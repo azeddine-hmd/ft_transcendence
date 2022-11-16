@@ -13,6 +13,7 @@ import { authenticator } from 'otplib';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { Login } from './types/login';
 import { UserJwtPayload } from './types/user-jwt-payload';
 
 @Injectable()
@@ -58,19 +59,6 @@ export class AuthService {
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
     return user;
-  }
-
-  login(jwtPayload: UserJwtPayload): string {
-    Logger.log(`AuthService#login: user '${jwtPayload.username}' logged-in!`);
-    return this.jwtService.sign(jwtPayload);
-  }
-
-  getRefreshToken(userJwtPayload: UserJwtPayload): string {
-    const token = this.refreshTokens.get(userJwtPayload.username);
-    if (!token) return this.generateRefreshToken(userJwtPayload);
-    const { expired } = this.verifyJwtToken(token);
-    if (expired) return this.generateRefreshToken(userJwtPayload);
-    return token;
   }
 
   login(userJwtPayload: UserJwtPayload): Login {
@@ -119,7 +107,7 @@ export class AuthService {
     const token = this.refreshTokens.get(userJwtPayload.username);
     if (!token) return this.generateRefreshToken(userJwtPayload);
     try {
-      const { expired } = this.verifyToken(token);
+      const { expired } = this.verifyJwtToken(token);
       if (!expired) return token;
       return this.generateRefreshToken(userJwtPayload);
     } catch (err) {
@@ -133,10 +121,10 @@ export class AuthService {
   }): string {
     const { expiredToken, refreshToken } = opts;
     try {
-      const { payload, expired } = this.verifyToken(expiredToken);
+      const { jwtPayload, expired } = this.verifyJwtToken(expiredToken);
       if (expired) {
-        if (refreshToken === this.refreshTokens.get(payload.username)) {
-          return this.login(payload);
+        if (refreshToken === this.refreshTokens.get(jwtPayload.username)) {
+          return this.login(jwtPayload).accessToken;
         }
       }
       throw new BadRequestException();
