@@ -13,6 +13,10 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
+  app.setGlobalPrefix('api');
+
+  app.use(helmet());
+
   const config = new DocumentBuilder()
     .setTitle('Ping Pong Game')
     .setVersion('1.0.0')
@@ -20,8 +24,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-
-  app.use(helmet());
 
   const configService: ConfigService = app.get(ConfigService);
 
