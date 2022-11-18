@@ -36,7 +36,7 @@ import { relationToFriendsStatus } from '../utils/entity-response-converter';
 @ApiBearerAuth()
 @JwtAuth
 @Injectable()
-@Controller('api/users/relations')
+@Controller('users/relations')
 export class RelationsController {
   constructor(private readonly relationsService: RelationsService) {}
 
@@ -66,10 +66,7 @@ export class RelationsController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/unfriend')
-  async removeFriend(
-    @Req() req: Request,
-    @Body() friendDto: FriendDto,
-  ) {
+  async removeFriend(@Req() req: Request, @Body() friendDto: FriendDto) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.relationsService.removeFriend(
       req.user.userId,

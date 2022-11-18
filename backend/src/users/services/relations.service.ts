@@ -130,7 +130,6 @@ export class RelationsService {
 
     const { user1, user2 } = normalizeTwoUsersRelation(current, other);
     const relation = await this.findOrCreate(user1, user2);
-    console.log(relation);
 
     if (current.userId === user1.userId) {
       if (relation.friend1_2)

@@ -1,11 +1,10 @@
-import Head from 'next/head'
-import styles from '../../styles/chat/Layout.module.css'
-import NavBar from '../../components/utils/Navbar'
+import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { io } from "socket.io-client";
-import ListView from '../../components/chat/ListView'
-import ChatView from '../../components/chat/ChatView'
-import Sidebar from '../../components/profile/Sidebar'
-import { useRouter } from 'next/router'
+import ChatView from '../../components/chat/ChatView';
+import ListView from '../../components/chat/ListView';
+import Sidebar from '../../components/profile/Sidebar';
+import styles from '../../styles/chat/Layout.module.css';
 
 // import localStorage from 'localStorage';
 

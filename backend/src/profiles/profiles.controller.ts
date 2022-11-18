@@ -38,7 +38,7 @@ import { profileToProfileResponse } from './utils/entity-payload-converter';
 @ApiBearerAuth()
 @ApiTags('profile')
 @JwtAuth
-@Controller('/api/profiles')
+@Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 

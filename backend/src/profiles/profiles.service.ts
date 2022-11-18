@@ -61,7 +61,7 @@ export class ProfilesService {
     });
     if (!profile) throw new InternalServerErrorException();
     profile.displayName = displayName;
-    this.profilesRepository.save(profile);
+    await this.profilesRepository.save(profile);
   }
 
   async autocompleteDisplayname(

@@ -10,64 +10,44 @@ import { useRouter } from "next/router";
 import Sidebar from "../components/profile/Sidebar";
 
 const Home: NextPage = () => {
-    const router = useRouter();
-    const [isopen, setisopen] = useState(false);
-    const [user, setUser] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
+  const router = useRouter();
+  const [isopen, setisopen] = useState(false);
+  const [user, setUser] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
-    useEffect(() => {
-        Apis.Safe(() => {
-            Apis.CurrentProfile({
-                onSuccess: (userResponse: ProfileResponse) => {
-                    console.log(userResponse);
-                    setUser(userResponse.username);
-                    setImageUrl(userResponse.avatar);
-                    console.log(userResponse.avatar);
-                    userResponse.username;
-                },
-                onFailure: (err: ErrorResponse) => {
-                    alert("couldn't fetch user");
-                },
-            }); // CurrentProfile
-        }, router);
+  useEffect(() => {
+    Apis.CurrentProfile({
+      onSuccess: (userResponse: ProfileResponse) => {
+        console.log(userResponse);
+        setUser(userResponse.username);
+        setImageUrl(userResponse.avatar);
+        console.log(userResponse.avatar);
+        userResponse.username;
+      },
+      onFailure: (err: ErrorResponse) => {
+        alert("couldn't fetch user");
+      },
     });
+  });
 
-    // useEffect(() => {
-    //   Apis.CurrentProfile({
-    //     onSuccess: (userResponse: ProfileResponse) => {
-    //       console.log(userResponse);
-    //       setUser(userResponse.username);
-    //       setImageUrl(userResponse.avatar);
-    //       console.log(userResponse.avatar);
-    //       userResponse.username;
-    //     },
-    //     onFailure: (err: ErrorResponse) => {
-    //       alert("couldn't fetch user");
-    //     },
-    //   });
-    // });
-
-    return (
-        <div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
-            <img
-                src="/profile/bg.png"
-                className="  w-full h-screen min-w-full "
-                alt=""
-            />
-            <div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
-            <div className="contain absolute  top-0 w-full h-screen flex justify-between">
-                <div className="sidebarsize top-0  ">
-                    <Sidebar />
-                </div>
-                <div className="contentss w-full  h-screen  flex-col ">
-                    <Useravatar
-                        avata={"/profile/Avatar.png"}
-                        userid={"amine ajdahim"}
-                    />
-                </div>
-            </div>
+  return (
+    <div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
+      <img
+        src="/profile/bg.png"
+        className="  w-full h-screen min-w-full "
+        alt=""
+      />
+      <div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
+      <div className="contain absolute  top-0 w-full h-screen flex justify-between">
+        <div className="sidebarsize top-0  ">
+          <Sidebar />
         </div>
-    );
+        <div className="contentss w-full  h-screen  flex-col ">
+          <Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Home;

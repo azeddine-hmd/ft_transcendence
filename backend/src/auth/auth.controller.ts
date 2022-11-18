@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   Logger,
   Post,
   Redirect,
@@ -23,8 +24,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger/dist/decorators';
 import { Request, Response } from 'express';
+import { expiresMaxTime } from 'src/utils/constants';
 import { AuthService } from './auth.service';
-import { RefreshDto } from './dto/payload/refresh.dto';
 import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
 import { TfaDto } from './dto/payload/tfa.dto';
@@ -36,7 +37,7 @@ import { getIntraAuthUrl } from './utils/url-constructor';
 
 @ApiTags('authentication')
 @Injectable()
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(
     private readonly configService: ConfigService,
@@ -54,13 +55,21 @@ export class AuthController {
   @ApiExcludeEndpoint()
   @FTAuthGuard
   @Get('/42/callback')
-  @Redirect(`${process.env.FRONTEND_HOST}/auth/42/callback`)
+  @Redirect()
   FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const refreshToken = this.authService.getRefreshToken(req.user);
-    const accessToken = this.authService.login(req.user);
-    res.cookie('refreshToken', refreshToken, { httpOnly: true });
-    res.cookie('access_token', accessToken);
+    const login = this.authService.login(req.user);
+    const frontendHost = this.configService.get<string>('FRONTEND_HOST');
+    if (!frontendHost)
+      throw new InternalServerErrorException('FRONTEND_HOST env not defined');
+    res.cookie('refreshToken', login.refreshToken, {
+      httpOnly: true,
+      expires: expiresMaxTime,
+    });
+    res.cookie('access_token', login.accessToken);
+    return {
+      url: `${frontendHost}/auth/42/callback`,
+    };
   }
 
   @ApiResponse({ type: LoginResponseDto })
@@ -87,7 +96,10 @@ export class AuthController {
   ): LoginResponseDto {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = this.authService.login(req.user);
-    res.cookie('refresh_token', login.refreshToken, { httpOnly: true });
+    res.cookie('refresh_token', login.refreshToken, {
+      httpOnly: true,
+      expires: expiresMaxTime,
+    });
     return {
       access_token: login.accessToken,
     };
@@ -105,16 +117,12 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Refresh current user access token' })
-  @ApiBody({ type: RefreshDto })
   @Get('/refresh')
-  refresh(
-    @Req() req: Request,
-    @Body() refreshDto: RefreshDto,
-  ): LoginResponseDto {
+  refresh(@Req() req: Request): LoginResponseDto {
     if (!req.headers.authorization) throw new BadRequestException();
     const accessToken = this.authService.refreshAcessToken({
       expiredToken: req.headers.authorization,
-      refreshToken: refreshDto.refresh_token,
+      refreshToken: /* TODO: extract refresh token from cookie */ '',
     });
     return {
       access_token: accessToken,

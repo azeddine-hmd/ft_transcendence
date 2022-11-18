@@ -1,13 +1,6 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthService } from 'src/auth/auth.service';
 import { Repository } from 'typeorm';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
 import { FtProfile } from '../../auth/types/ft-profile';
@@ -27,9 +20,7 @@ export class UsersService {
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
     private readonly usersSocketService: UsersSocketService,
-  ) {
-    console.log('UsersService initialized');
-  }
+  ) {}
 
   /* search operations */
 
@@ -101,7 +92,7 @@ export class UsersService {
       return null;
     }
     Logger.debug(`updateUser#user: user ${user.username} updated successfully`);
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
 
   async setTfa(username: string, value: boolean) {

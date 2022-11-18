@@ -52,9 +52,6 @@ export class AuthService {
     const optSecret = this.configService.get<string>('OTP_SECRET');
     if (!optSecret) throw new InternalServerErrorException();
     this.tfaSecrets.set(user.username, authenticator.generateSecret());
-    Logger.debug(
-      `'${user.username}' secret: ${this.tfaSecrets.get(user.username)}`,
-    );
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );

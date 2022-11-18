@@ -28,7 +28,7 @@ import { UsersService } from '../services/users.service';
 @ApiBearerAuth()
 @JwtAuth
 @Injectable()
-@Controller('api/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -36,7 +36,7 @@ export class UsersController {
     status: 201,
     type: UserResponseDto,
   })
-  @ApiOperation({ summary: 'Update user data', deprecated: true })
+  @ApiOperation({ summary: 'Update user data (deprecated)', deprecated: true })
   @ApiBody({ type: UpdateUserDto })
   @Post('/update')
   async updateUsername(

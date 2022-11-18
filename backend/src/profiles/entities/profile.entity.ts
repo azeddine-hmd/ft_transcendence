@@ -20,7 +20,9 @@ export class Profile {
   @JoinColumn()
   user: User;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   displayName: string;
 
   @Column()
