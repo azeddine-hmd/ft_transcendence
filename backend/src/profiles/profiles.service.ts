@@ -59,14 +59,6 @@ export class ProfilesService {
         user: { userId: userId },
       },
     });
-    const result = await this.profilesRepository.update({
-      displayName: displayName,
-    });
-    const foundDuplicate = await this.profilesRepository.findOne({
-      where: {
-        displayName: displayName,
-      },
-    });
     if (!profile) throw new InternalServerErrorException();
     profile.displayName = displayName;
     await this.profilesRepository.save(profile);
