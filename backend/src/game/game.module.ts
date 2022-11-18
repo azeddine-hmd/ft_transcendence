@@ -8,4 +8,6 @@ import { GameService } from './game.service';
     providers: [ GameService,GameGateway],
     exports: [GameService]
 })
-export class GameModule { }
+export class GameModule {
+    
+ }

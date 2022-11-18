@@ -246,23 +246,16 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 }
 
 .canvas {
+	margin:   auto;
+
   background: black !important;
   padding: 50px !important;
    border: .4rem solid white; 
-  position: sticky;
+  position: sticky; 
   margin-bottom: 50px;
   transition-duration: 1s;
   width: 50% !important;
   height: 80% !important;
-}
-
-.button1 {
-  display: block;
-  margin-bottom: 10px;
-  border: none;
-  padding: 12px 18px;
-  background-color: rgb(37, 110, 182);
-  color: #FFF;
 }
 
 #holder {
@@ -274,10 +267,11 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 }
 
 .overlay{
-  position: fixed;
+  
+    position: fixed;
     top:0;
     padding-top: 7%;
-    height: 100%;
+    height: 440%;
     background: rgba(0,0,0,0.3);
     width: 100%;
     /* display: none; */
@@ -290,22 +284,20 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
   }
 
 .prompt{
-	/* display:none; */
-	/* margin: 0   auto; */
+	margin: auto; 
 	background: rgba(255,255,255,1);
-	width: 325px;
-	
-	min-height: 310px;
+	width: 440px;
+	min-height: 150px;
 	border: 0px solid #f4f4f4;
 	padding: 25px;
 	border-radius: 10px;
 	font-size: 22pt;
 	color: #666;
 	box-shadow: 0 3px 2px 1px rgba(0, 0, 0, 0.15);
-	
 }
 
 .difficulty, .character{
+  
 	margin: 20px 0px;
 	font-size: 18pt;
 	white-space: nowrap;
@@ -325,6 +317,7 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 
 
 .start button{ 
+
 	background: #34D468;
 	color: white;
 	padding: 7px 20px;
@@ -337,12 +330,16 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 } 
 
 .start button:hover{
+ 
+	padding: 7px 20px;
+	border-radius: 5px;
 	background: #4AE47C;
 }
 
 .start button:active{
 	background: #66FD97;
 	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.15);
+  
 }
 
 .animate {
@@ -350,13 +347,13 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
   -moz-animation-duration: 800ms;
   animation-duration: 800ms;
 }
-.Left {
+/* .Left {
 	color: #6EB4FF;
 }
 
 .Right {
 	color: #35EF71;
-}
+} */
 
 .difficulty input[type=radio]{
   width   : 0;
@@ -374,7 +371,7 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 .difficulty input[type="radio"]+label{ 
 	background: #bbb;
 	color: white;
-	padding: 5px 20px;
+	padding: 7px 20px;
 	border-radius: 5px;
 	
 } 
@@ -382,12 +379,12 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 .difficulty  input[type="radio"]:checked+label{ 
 	background: #FD0A35;
 	color: white;
-	padding: 5px 20px;
+	padding: 7px 20px;
 	border-radius: 5px;
-	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
+	/* box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1); */
 } 
 
-.character input[type="radio"]+label{ 
+/* .character input[type="radio"]+label{ 
 	background: #bbb;
 	color: white;
 	padding: 10px 20px;
@@ -399,5 +396,5 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 	color: white;
 	padding: 10px 20px;
 	border-radius: 5px;
-	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1);
-} 
+	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1); 
+} */

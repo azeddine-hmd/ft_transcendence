@@ -42,6 +42,7 @@ function Game()
 	// comScore.src = "sounds/comScore.mp3";
 	// userScore.src = "sounds/userScore.mp3";
 	var acl:number;
+	let counter:any ;
 	let buttomSearch:any = [];
 	buttomSearch[0] = "search";
 	var _typeOfGame:string = "easy";
@@ -66,22 +67,19 @@ function Game()
 	const [mode, chanScopeSet] = React.useState("Easy");
 	const [mode1, chanScopeSet1] = React.useState("Right");
 	const [is, set] = React.useState(true);
+	
 
 	var socket:any;
 	socket = io(url + "/game",{ query: { username: username } ,transports: ['websocket']});
-function _mode(m:number)
-{
-	if(m == 0)
-		acl = 1;
-	else
-		acl = 4;
-}
+	function _mode(m:number)
+	{
+		if(m == 0)
+			acl = 1;
+		else
+			acl = 4;
+	}
 	function _search()
 	{		
-		// let isMounted = true;
-		// if(isMounted)
-		// 	set(false);		
-		// isMounted = false;
 		buttomSearch[0] = "search";
 		let i:number = 0;
 		if (matchIsMake)
@@ -94,9 +92,6 @@ function _mode(m:number)
 		if(matchIsMake)
 		{
 			buttomSearch[0] = "cancel";
-			console.log("mode = " + mode);
-			console.log("mode1 = " + mode1);
-			
 			socket.emit('match', mode + mode1);
 		}
 		
@@ -105,32 +100,8 @@ function _mode(m:number)
 		let v =	document.querySelector('#search'); 
 		if (v)
 			v.textContent = buttomSearch[0];
-	}
+	}	
 
-	function typegame()
-	{
-		let i:number = 0;
-		if (optionIsMake)
-		{
-			_typeOfGame = "esay";
-			optionIsMake = false;
-		}
-		else
-			optionIsMake = true;
-		if(optionIsMake)
-		{
-			
-			_typeOfGame = "hard";
-			socket.emit('match', i);
-		}
-		
-		else
-			socket.emit('type', _typeOfGame);
-		let v =	document.querySelector('#option'); 
-		if (v)
-			v.textContent = _typeOfGame;
-
-	}
 	function ballMove()
 	{
 		var d:number;		
@@ -148,7 +119,8 @@ function _mode(m:number)
 				game.ball.speed.y = sBall;
 				game.ball.speed.x = sBall;
 				// userScore.play();
-				game.player2.score++;				
+				game.player2.score++;	
+		
 			}
 			else
 			{
@@ -175,6 +147,13 @@ function _mode(m:number)
 				game.ball.speed.y = sBall;
 				// userScore.play();
 				game.player1.score++;
+				if (game.player1.score === 3) 
+				{
+					stop();
+					initilizeGame();
+					set(false);
+
+				}
 			}
 			else
 			{	
@@ -187,9 +166,7 @@ function _mode(m:number)
 				sBall += 0.1;
 			}
 		}
-		game.ball.x += game.ball.speed.x*acl;
-		game.ball.y += game.ball.speed.y*acl;
-		socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
+
 	}
 
 	function colorRect(leftX:number , topY:number, width:number, height:number, drawColor:string) 
@@ -244,8 +221,11 @@ function _mode(m:number)
 		drawBall();
 	}
 
+
 	function initilizeGame() 
 	{
+		p1 = "";
+		p2 = "";
 		game = {
 			player1: {
 				y: canvas.height / 2 - playerHeight / 2,
@@ -266,22 +246,34 @@ function _mode(m:number)
 			}
 		}
 		buttomSearch[0] = "search";
-		drawGame();
-		p1 = "";
-		p2 = "";
+		clearInterval(counter);
 	}
-	socket.on("_start", (...args:any) => 
-	{
-		p1 = args[0];
-		p2 = args[1];
-		_mode(args[2])
-		if (p1 != contender && p1 == playerName && game) 
-			contender = p2;
-		else if (p2 != contender && p2 == playerName && game) 
-			contender = p1;
-	});
+
 	function init_socket()
-	{
+	{	
+
+		socket.on("_start", (...args:any) => 
+		{
+			console.log("Made socket connection", socket.id);
+			p1 = args[0];
+			p2 = args[1];
+			_mode(args[2])
+			
+			if (p1 != contender && p1 == playerName ) 
+			{
+				clearInterval(counter);
+				contender = p2;
+				startGame();
+			}
+			else if (p2 != contender && p2 == playerName ) 
+			{
+				clearInterval(counter);
+				contender = p1;
+				startGame();
+			}
+			socket.emit("getStart", playerName + contender);
+		});
+		
 		socket.on("getPlayer", (_data: string) => 
 		{
 			array0 = _data.split(' ');
@@ -298,17 +290,10 @@ function _mode(m:number)
 				game.ball.x = array1[2];
 				game.ball.y = array1[3];
 				game.player1.score = array1[4];
-				game.player2.score = array1[5];
-
-				
+				game.player2.score = array1[5];	
 			}
 		});
-		socket.on("typeOfGame",(_data: string) =>
-		{
-			array2 = _data.split(' ');
-			_typeOfGame = array2[0];
-		}
-		);
+
 	}
 
 	function playerMove(event:any) 
@@ -341,47 +326,80 @@ function _mode(m:number)
 				socket.emit('getPlayer', playerName + " " + game.player2.y);
 		}
 	}
+	function getResult() 
+	{
+		console.log(game.player1.score);
+		console.log(game.player2.score);
+		
+		if (game.player1.score > game.player2.score ) 
+		{
+			console.log("game.player1.score...");
+			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score);
+		}
+		if (game.player1.score < game.player2.score ) 
+		{
+			console.log("game.player2.score...");
+			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score);
+		}		
+		game.ball.speed.x = 0;
+		game.ball.speed.y = 0;
+		game.ball.x = canvas.width / 2 - ballHeight / 2;
+		game.ball.y = canvas.height / 2 - ballHeight / 2;
+		game.player1.y = canvas.height / 2 - playerHeight / 2;
+		game.player2.y = canvas.height / 2 - playerHeight / 2;
+	}
 
 	function startGame()
 	{
-		setInterval( function () 
+		function ft()
 		{
 			if (playerName == p1 || playerName === p2)
-			{		
+			{
 				set(false);
 				drawGame();
-				canvas.addEventListener('mousemove', playerMove);
-			}		
+				canvas.addEventListener('mousemove', playerMove);		
+			}
 			if(playerName == p1)
+			{
 				ballMove();
-		}, 1000 * 0.02)
+				if (game.player2.score === 3 || game.player1.score === 3) 
+				{
+					console.log("game.player2.score === 3 || game.player1.score === 3")
+					getResult();
+					initilizeGame();
+					set(false); 
+				}
+				game.ball.x += game.ball.speed.x*acl;
+				game.ball.y += game.ball.speed.y*acl;	
+				socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
+			}
+		}
+		counter = setInterval(ft, 1000 * 0.02);
 	}
 
 	useEffect(() => {
-		Apis.CurrentProfile( {
-            onSuccess: (userResponse: ProfileResponse) => {
-				let username = "";
-				setUser(userResponse.username);
-				username = userResponse.username;
-				playerName = username;
-				setUsername(username);
-				console.log("username =  " + username);
+	Apis.CurrentProfile( {
+		onSuccess: (userResponse: ProfileResponse) => {
+			let username = "";
+			setUser(userResponse.username);
+			username = userResponse.username;
+			playerName = username;
+			setUsername(username);		
+			canvas = document.getElementById('canvas');
+			init_socket();
+			startGame();
+			initilizeGame();	
+			drawGame();
 
-				canvas = document.getElementById('canvas');
-				socket.emit('startSocket', playerName);
-				init_socket();	
-				startGame();   			
-				initilizeGame();
-            },
-            onFailure: (err: ErrorResponse) => {
-                alert("couldn't fetch user");
-            },
-
-        });
+		},
+		onFailure: (err: ErrorResponse) => {
+			alert("couldn't fetch user");
+		},
+	});
 	}, []);
+			// socket.emit("getStart", playerName + contender);
 
-	  
-	return (
+	return ( 
 	    <>
          <div className="homepage w-full h-screen min-w-full relative">
         	<img src="/profile/bg.png" className="  w-full h-full min-w-full " alt="" />
@@ -404,36 +422,22 @@ function _mode(m:number)
 									<label htmlFor="Easy">Easy</label></span>
 									</div>
 									<hr className={style.hr}/>
-			
 									{/* <div className={style.character}>
 									<span><input id="Right" type="radio" name="character" value="Right" onChange={e => chanScopeSet1(e.target.value)}/>
 									<label htmlFor="Right">Right</label></span>	
 									<span><input id="Left" type="radio" name="character" value="Left" onChange={e => chanScopeSet1(e.target.value)} />
 									<label htmlFor="Left">Left</label></span>
 									</div> */}
-									<hr className={style.hr}/>
-
+									{/* <hr className={style.hr}/> */}
 									<div className={style.start}>
-							<button type="button" id="search" className={style.button1}	 onClick={() => _search()}>{buttomSearch[0]}</button>
- 
+									<button type="button" id="search" className={style.button1}	 onClick={() => _search()}>{buttomSearch[0]}</button>
 								</div>
-							</div>	
+							</div>
 						</div> : ""}
-
-
-						<div className={style.restart}> <button id="restart"> Restart </button> </div>
-
-
-
-
-
-
-
-
-
-					</div>
-    			</div>
+					<div className={style.restart}> <button id="restart"> Restart </button> </div>
+				</div>
     		</div>
+    	</div>
 	</>
     );
 }
