@@ -1,10 +1,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { EnvService } from './conf/env.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,21 +25,19 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const configService: ConfigService = app.get(ConfigService);
+  const envService = app.get(EnvService);
+
+  envService.get('FRONTEND_HOST');
 
   app.enableCors({
-    origin: [
-      configService.get('FRONTEND_HOST') as string,
-      configService.get('BACKEND_HOST') as string,
-    ],
+    origin: [envService.get('FRONTEND_HOST'), envService.get('BACKEND_HOST')],
     methods: ['GET', 'POST', 'HEAD', 'OPTIONS', 'DELETE'],
     credentials: true,
   });
 
-  await app.listen(configService.get('PORT') as string);
+  await app.listen(envService.get<number>('PORT'));
 
-  Logger.log(`FRONTEND_HOST: ${configService.get('FRONTEND_HOST') as string}`);
-  Logger.log(`BACKEND_HOST: ${configService.get('BACKEND_HOST') as string}`);
+  Logger.log(`BACKEND_HOST: ${envService.get('BACKEND_HOST')}`);
 }
 
 bootstrap();

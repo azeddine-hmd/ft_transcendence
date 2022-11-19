@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,40 +6,41 @@ import {
   HttpStatus,
   Injectable,
   InternalServerErrorException,
-  Logger,
-  Post,
   Redirect,
   Req,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Post } from '@nestjs/common/decorators';
+import { Logger } from '@nestjs/common/services';
 import {
-  ApiBearerAuth,
   ApiBody,
   ApiExcludeEndpoint,
   ApiOperation,
   ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger/dist/decorators';
+} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger/dist';
 import { Request, Response } from 'express';
-import { expiresMaxTime } from 'src/utils/constants';
-import { AuthService } from './auth.service';
-import { SigninUserDto } from './dto/payload/signin-user.dto';
-import { SignupUserDto } from './dto/payload/signup-user.dto';
-import { TfaDto } from './dto/payload/tfa.dto';
-import { LoginResponseDto } from './dto/response/login-response.dto';
-import { FTAuthGuard } from './guards/ft.guard';
-import { JwtAuth } from './guards/jwt-auth.guard';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { getIntraAuthUrl } from './utils/url-constructor';
+import { EnvService } from 'src/conf/env.service';
+import {
+  accessCookieOptions,
+  refreshCookieOptions,
+} from 'src/utils/cookie-options';
+import { AuthService } from '../auth.service';
+import { SigninUserDto } from '../dto/payload/signin-user.dto';
+import { SignupUserDto } from '../dto/payload/signup-user.dto';
+import { TfaDto } from '../dto/payload/tfa.dto';
+import { LoginResponseDto } from '../dto/response/login-response.dto';
+import { FTAuthGuard } from '../guards/ft.guard';
+import { JwtAuth } from '../guards/jwt-auth.guard';
+import { LocalAuthGuard } from '../guards/local-auth.guard';
 
 @ApiTags('authentication')
 @Injectable()
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly envService: EnvService,
     private readonly authService: AuthService,
   ) {}
 
@@ -49,7 +49,22 @@ export class AuthController {
   @Get('/intra')
   @Redirect()
   intraAuth() {
-    return { url: getIntraAuthUrl(this.configService) };
+    const intraAuthUrl = new URL(this.envService.get('INTRA_AUTH_URL'));
+    intraAuthUrl.searchParams.set(
+      'client_id',
+      this.envService.get('CLIENT_ID'),
+    );
+    intraAuthUrl.searchParams.set(
+      'redirect_uri',
+      this.envService.get('BACKEND_HOST') + this.envService.get('REDIRECT_URI'),
+    );
+    intraAuthUrl.searchParams.set(
+      'response_type',
+      this.envService.get('RESPONSE_TYPE'),
+    );
+    return {
+      url: intraAuthUrl.toString(),
+    };
   }
 
   @ApiExcludeEndpoint()
@@ -59,14 +74,15 @@ export class AuthController {
   FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = this.authService.login(req.user);
-    const frontendHost = this.configService.get<string>('FRONTEND_HOST');
+    const frontendHost = this.envService.get('FRONTEND_HOST');
     if (!frontendHost)
       throw new InternalServerErrorException('FRONTEND_HOST env not defined');
-    res.cookie('refreshToken', login.refreshToken, {
-      httpOnly: true,
-      expires: expiresMaxTime,
+    res.cookie('refresh_token', login.refreshToken, {
+      ...refreshCookieOptions,
     });
-    res.cookie('access_token', login.accessToken);
+    res.cookie('access_token', login.accessToken, {
+      ...accessCookieOptions,
+    });
     return {
       url: `${frontendHost}/auth/42/callback`,
     };
@@ -90,19 +106,15 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  login(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): LoginResponseDto {
+  login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = this.authService.login(req.user);
     res.cookie('refresh_token', login.refreshToken, {
-      httpOnly: true,
-      expires: expiresMaxTime,
+      ...refreshCookieOptions,
     });
-    return {
-      access_token: login.accessToken,
-    };
+    res.cookie('access_token', login.accessToken, {
+      ...accessCookieOptions,
+    });
   }
 
   @ApiResponse({ status: 200, description: 'verify current user credentials' })
@@ -117,16 +129,16 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Refresh current user access token' })
-  @Get('/refresh')
-  refresh(@Req() req: Request): LoginResponseDto {
-    if (!req.headers.authorization) throw new BadRequestException();
+  @Post('/refresh')
+  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log(`refresh_token: ${req.cookies.refresh_token}`);
     const accessToken = this.authService.refreshAcessToken({
-      expiredToken: req.headers.authorization,
-      refreshToken: /* TODO: extract refresh token from cookie */ '',
+      expiredToken: req.cookies.access_token,
+      refreshToken: req.cookies.refresh_token,
     });
-    return {
-      access_token: accessToken,
-    };
+    res.cookie('access_token', accessToken, {
+      ...accessCookieOptions,
+    });
   }
 
   @ApiResponse({ status: 200 })
