@@ -19,6 +19,7 @@ import { getRandomValues } from 'crypto';
 import { UpdateRoomDto } from './dto/update-rooms.dto';
 import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 import { use } from 'passport';
+import { Block } from './entities/block.entity';
 
 
 let roomsusers = new Map<number, number[]>();
@@ -38,6 +39,8 @@ export class ChatService {
     private readonly conversationRepository: Repository<Conversation>,
     @InjectRepository(DM)
     private readonly dmRepository: Repository<DM>,
+    @InjectRepository(Block)
+    private readonly blockRepository: Repository<Block>,
   )
   {}
 
@@ -343,6 +346,54 @@ export class ChatService {
   }
 
 /*********************************END CHAT ROOMS PUBLIC AND PROTECTED********************************/
+
+
+/***************************************BLOCK USER SERVICE*******************************************/
+
+async getBlockedUsers(joinRoomDto: JoinRoomDto, auth: any)
+{
+  let u1:User = new User();
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .where("user1.userId = :id", { id: auth })
+  .getMany();
+  return (ret);
+}
+
+
+async blockU(block: ConversationDto, auth: any) {
+  let user = await this.checkUserByUserName(block.user);
+  if (!user)
+    return 0;
+  let u1:User = new User(), u2:User = new User();
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("user1.profile", "profile1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .innerJoinAndSelect("user2.profile", "profile2")
+  .where("(user1.userId = :id AND user2.userId = :id2)", { id: auth, id2: user.userId })
+  .getOne();
+  let tmp = await this.checkUser(auth);
+  let tmp2 = await this.checkUser(user.userId);
+  if (!tmp || !tmp2)
+    return (0);
+  u1.id = tmp.id;
+  u2.id = tmp2.id;
+  if (!ret)
+  {
+    const cnv = this.blockRepository.create({ user1: u1 , user2: u2 });
+    await this.blockRepository.save(cnv);
+  }
+  return (1);
+}
+
+
+/***************************************END BLOCK USER SERVICE**************************************/
+
+
+
+
 
 
 
