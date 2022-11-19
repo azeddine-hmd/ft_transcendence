@@ -15,6 +15,7 @@ interface props {
     date: string;
     msg: string;
     currentUser: boolean;
+    userState: string
 }
 
 interface Props {
@@ -26,6 +27,7 @@ var roomTitle = '..';
 var roomType = 'DM';
 var userID = '';
 var userRole = 'member';
+var userState = 'none'
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
@@ -136,7 +138,9 @@ function Layout({ data }: Props) {
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} role={userRole} />
+                            <ChatCard id={messages.username} date={messages.date} 
+                            name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
+                            role={userRole} state={messages.userState} />
                         );
                     }) : null}
                     <div ref={bottom}></div>
@@ -162,7 +166,6 @@ export default function ChatView() {
     const [visible, setVisibility] = useState(false)
 
     socket.on('createMsg', ({ created, room, tmp }) => {
-        console.log("last message " + tmp);
 
         if (created && room === roomID) {
             let newData = [...data];
@@ -171,7 +174,8 @@ export default function ChatView() {
                 avatar: tmp.avatar,
                 date: tmp.date,
                 msg: tmp.msg,
-                currentUser: tmp.currentUser
+                currentUser: tmp.currentUser,
+                userState: tmp.userState
             }
             newData.push(dd);
             setData(newData);
@@ -191,7 +195,8 @@ export default function ChatView() {
             avatar: newDmMsg.avatar,
             date: newDmMsg.date,
             msg: newDmMsg.msg,
-            currentUser: newDmMsg.currentUser
+            currentUser: newDmMsg.currentUser,
+            userState: "none"
         }
         newData.push(dd);
         setData(newData);

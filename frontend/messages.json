@@ -4,6 +4,7 @@
         "avatar" : "",
         "date" : "",
         "msg" : "",
-        "currentUser" : false
+        "currentUser" : false,
+        "userState" : "none"
     }
 ]

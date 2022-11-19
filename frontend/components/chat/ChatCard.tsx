@@ -4,7 +4,11 @@ import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'
 import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
 import { useState } from "react";
-import { on } from "stream";
+import { HiSpeakerXMark } from "react-icons/hi2";
+import { GiBootKick } from "react-icons/gi";
+import { ImBlocked } from "react-icons/im";
+
+
 
 
 interface props {
@@ -15,10 +19,63 @@ interface props {
     avatar: string | undefined;
     currentUser: boolean;
     role: string;
+    state: string;
 }
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser, role }: props) {
+
+export default function ChatCard({ name, message, date, avatar, currentUser, role, state }: props) {
+
+    const [isMuteMenu, setMuteMenu] = useState(false);
+    const [isBanMenu, setBanMenu] = useState(false);
+    const [isKickMenu, setKickMenu] = useState(false);
+
+    
+    function Ban() {
+        function Confirm() { socket.emit('Ban', {user: name}); setBanMenu(false); };
+        function Cancel() { setBanMenu(false); };
+        return (
+            <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to ban this user? </p>
+                <div style={{"display": "flex" }}>
+                    <button id={style.messageBarSendBtn} onClick={Confirm}>Ban</button>
+                    <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
+                </div>
+            </div>
+        );
+    }
+    
+    function Kick() {
+        function Confirm() { socket.emit('Kick', {user: name}); setKickMenu(false); };
+        function Cancel() { setKickMenu(false); };
+        return (
+            <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to kick this user? </p>
+                <div style={{"display": "flex" }}>
+                    <button id={style.messageBarSendBtn} onClick={Confirm}>Kick</button>
+                    <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
+                </div>
+            </div>
+        );
+    }
+
+    function TimePop() {
+        function T1() { socket.emit('Mute', {time :"T1"} ); setMuteMenu(false); };
+        function T2() { socket.emit('Mute', {time :"T2"} ); setMuteMenu(false); };
+        function T3() { socket.emit('Mute', {time :"T3"} ); setMuteMenu(false); };
+        function Cancel() { setMuteMenu(false); };
+        return (
+            <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for a: </p>
+                <div style={{"display": "flex" }}>
+                    <button id={style.messageBarSendBtn} onClick={T1}>Day</button>
+                    <button id={style.messageBarSendBtn} onClick={T2}>Week</button>
+                    <button id={style.messageBarSendBtn} onClick={T3}>Year</button>
+                    <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
+                </div>
+            </div>
+        );
+    }
 
     const Menu = () => {
         
@@ -28,7 +85,8 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
             "Block",
             "Invite to game",
             "Mute",
-            "Ban"
+            "Ban",
+            "Kick"
         ];
 
         if (role === 'member')
@@ -65,10 +123,13 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
             }
             else if (event.item === "Mute"){
-                
+                setMuteMenu(true);
             }
             else if (event.item === "Ban"){
-
+                setBanMenu(true);
+            }
+            else if (event.item === "Kick"){
+                setKickMenu(true);
             }
             else {
                 console.log(event.item);
@@ -95,9 +156,15 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
         <div className={style.row}>
             <div className={style.column} style={currentUser ? { "float": "right" } : { "float": "left" }}>
 
-                <div style={{ "display": "flex", "justifyContent": "spaceBetween" }}>
+                { (isMuteMenu) ? <TimePop /> : <></> }
+                { (isBanMenu) ? <Ban /> : <></> }
+                { (isKickMenu) ? <Kick /> : <></> }
+                <div style={{"display": "flex", "justifyContent": "spaceBetween", "alignItems":"center"}}>
                     <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px" }} />
                     <span id={style.username}>{name}</span>
+                    { (state == 'blocked') ? <ImBlocked style={{"marginLeft":"5px", "filter":"invert(12%) sepia(97%) saturate(5624%) hue-rotate(358deg) brightness(104%) contrast(114%)"}}/> : <></>}
+                    { (state == 'muted') ? <HiSpeakerXMark style={{"marginLeft":"5px"}}/> : <></>}
+                    { (state == 'kicked') ? <GiBootKick style={{"marginLeft":"5px"}}/> : <></>}
                     {(!currentUser) ? <Menu /> : <></>}
                 </div>
 

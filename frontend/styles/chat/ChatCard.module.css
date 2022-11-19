@@ -82,3 +82,19 @@
   align-items: flex-start;
   justify-content: center;
 }
+
+#messageBarSendBtn {
+  color: rgb(212, 47, 29);
+  background-color: #ffffff;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-left: 5px;
+  border: none;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+#messageBarSendBtn:hover {
+  color: #ffffff;
+  background-color: rgba(243, 207, 124, 1);
+}
