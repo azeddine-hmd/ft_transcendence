@@ -4,8 +4,7 @@ export default function Logout() {
     const router = useRouter();
 
     if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-        router.push("/");
+        //TODO: remove all cookeis if possible
     }
 
     return <></>;
