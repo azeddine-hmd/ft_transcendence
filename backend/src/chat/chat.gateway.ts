@@ -17,6 +17,7 @@ import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';
 import { UpdateRoomDto } from './dto/update-rooms.dto';
 import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
+import { inBlockedList } from './tools/tools';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
@@ -137,6 +138,7 @@ export class ChatGateway {
       this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
   }
 
+
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
   {
@@ -156,10 +158,13 @@ export class ChatGateway {
       const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
       
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
+      const blockedUsers = await this.chatService.getBlockedUsers(joinRoomDto, clientId);
       try{    
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
+            if (!inBlockedList(blockedUsers, msgs[index].id))
+              continue;
             let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
@@ -357,6 +362,33 @@ export class ChatGateway {
 
 /******************************END DM SUBSCRIBE MESSAGE******************************/
 
+
+
+
+
+
+/************************************BLOCK USER**************************************/
+
+
+
+@SubscribeMessage('blockUser')
+async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client: Socket) {
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    let test = await this.chatService.blockU(user, clientId);
+    if (!test)
+      this.server.to(client.id).emit('blockUser', {isBlocked: false});
+    else
+      this.server.to(client.id).emit('blockUser', {isBlocked: true});
+    
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+
+/**********************************END BLOCK USER************************************/
 
 
 

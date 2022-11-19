@@ -4,6 +4,7 @@ import { User } from 'src/users/entities/user.entity';
 import { UsersModule } from 'src/users/users.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { Block } from './entities/block.entity';
 import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
 import { Join } from './entities/join.entity';
@@ -13,7 +14,7 @@ import { Rooms } from './entities/rooms.entity';
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([User, Rooms, Msg, Join, Conversation, DM]),
+    TypeOrmModule.forFeature([User, Rooms, Msg, Join, Conversation, DM, Block]),
   ],
   providers: [ChatGateway, ChatService],
 })

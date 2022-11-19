@@ -3,6 +3,8 @@ import {socket} from '../../pages/chat/[chat]'
 import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'
 import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
+import { useState } from "react";
+import { on } from "stream";
 
 
 interface props {
@@ -12,19 +14,38 @@ interface props {
     date: string;
     avatar: string | undefined;
     currentUser: boolean;
+    role: string;
 }
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser }: props) {
+export default function ChatCard({ name, message, date, avatar, currentUser, role }: props) {
 
     const Menu = () => {
-
-        const items = [
+        
+        var items = [
             "Profile",
             "Message",
             "Block",
             "Invite to game",
+            "Mute",
+            "Ban"
         ];
+
+        if (role === 'member')
+        {
+            items.pop();
+            items.pop();
+        }
+
+        socket.on('blockUser', (isBlocked) => {
+            if (isBlocked)
+                items[2] = 'Unblock';
+        })
+        
+        socket.on('unblockUser', (isBlocked) => {
+            if (isBlocked)
+                items[2] = 'Block';
+        })
 
         function handleItemClick(event:DropDownButtonItemClickEvent) {
             if (event.item === "Profile"){
@@ -35,9 +56,18 @@ export default function ChatCard({ name, message, date, avatar, currentUser }: p
                 socket.emit('conversation');
             }
             else if (event.item === "Block"){
-
+                if (items[2] == 'Block')
+                    socket.emit('blockUser', {user: name});
+                else
+                    socket.emit('unblockUser', {user: name});
             }
             else if (event.item === "Invite to game"){
+
+            }
+            else if (event.item === "Mute"){
+                
+            }
+            else if (event.item === "Ban"){
 
             }
             else {

@@ -136,7 +136,7 @@ function Layout({ data }: Props) {
                 <div className={style.scroll}>
                     {(data !== undefined) ? data.map(messages => {
                         return (
-                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} />
+                            <ChatCard id={messages.username} date={messages.date} name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} role={userRole} />
                         );
                     }) : null}
                     <div ref={bottom}></div>
