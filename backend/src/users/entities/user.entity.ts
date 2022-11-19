@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRelation } from './user-relation.entity';
 
@@ -45,10 +45,9 @@ export class User {
   password: string | null;
 
   @Column({
-    type: 'varchar',
-    nullable: true,
+    default: false,
   })
-  token: string | null;
+  tfa: boolean;
 
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
@@ -63,5 +62,4 @@ export class User {
 
   @OneToMany(() => Rooms, (room) => room.owner)
   rooms: Rooms[];
-
 }

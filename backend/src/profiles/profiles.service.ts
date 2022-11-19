@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { InjectRepository } from '@nestjs/typeorm/dist';
-import { NotEquals } from 'class-validator';
-import { Like, Not, Repository } from 'typeorm';
-import { UploadService } from '../upload/upload.service';
+import { ILike, Not, Repository } from 'typeorm';
+import { UploadService } from '../users/services/upload.service';
 import { Profile } from './entities/profile.entity';
 
 @Injectable()
@@ -62,19 +61,20 @@ export class ProfilesService {
     });
     if (!profile) throw new InternalServerErrorException();
     profile.displayName = displayName;
-    this.profilesRepository.save(profile);
+    await this.profilesRepository.save(profile);
   }
 
-  async autocompleteUsername(
+  async autocompleteDisplayname(
     userId: string,
-    usernameLike: string,
+    displaynameLike: string,
   ): Promise<Profile[]> {
     return await this.profilesRepository.find({
       relations: {
         user: true,
       },
       where: {
-        user: { username: Like(`${usernameLike}%`), userId: Not(userId) },
+        displayName: ILike(`${displaynameLike}%`),
+        user: { userId: Not(userId) },
       },
     });
   }

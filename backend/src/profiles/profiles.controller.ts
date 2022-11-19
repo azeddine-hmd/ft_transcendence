@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { JwtAuth } from '../auth/guards/jwt-auth.guard';
 import { Profile } from '../profiles/entities/profile.entity';
 import { AvatarDto } from './dto/payload/avatar.dto';
@@ -36,7 +38,7 @@ import { profileToProfileResponse } from './utils/entity-payload-converter';
 @ApiBearerAuth()
 @ApiTags('profile')
 @JwtAuth
-@Controller('/api/profiles')
+@Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
@@ -45,7 +47,8 @@ export class ProfilesController {
   })
   @ApiOperation({ summary: 'Get profile of current user' })
   @Get()
-  async getMyProfile(@Req() req: any): Promise<ProfileResponse> {
+  async getMyProfile(@Req() req: Request): Promise<ProfileResponse> {
+    if (req.user === undefined) throw new UnauthorizedException();
     const profile = await this.profilesService.getProfile(req.user.username);
     if (!profile) throw new NotFoundException();
     return profileToProfileResponse(profile);
@@ -72,7 +75,7 @@ export class ProfilesController {
   @HttpCode(HttpStatus.OK)
   @Post('/avatar')
   async uploadAvatar(
-    @Req() req: any,
+    @Req() req: Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -83,6 +86,7 @@ export class ProfilesController {
     )
     avatar: Express.Multer.File,
   ) {
+    if (req.user === undefined) throw new UnauthorizedException();
     this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
   }
 
@@ -90,9 +94,10 @@ export class ProfilesController {
   @ApiOperation({ summary: 'Update display name of current user' })
   @Post('/display-name')
   async updateDisplayName(
-    @Req() req: any,
+    @Req() req: Request,
     @Body() displayNameDto: DisplayNameDto,
   ) {
+    if (req.user === undefined) throw new UnauthorizedException();
     await this.profilesService.updateDisplayName(
       req.user.userId,
       displayNameDto.displayName,
@@ -100,17 +105,19 @@ export class ProfilesController {
   }
 
   @ApiResponse({ type: [ProfileResponse] })
-  @ApiQuery({ name: 'username', type: 'string' })
+  @ApiQuery({ name: 'displayname', type: 'string' })
   @ApiOperation({ summary: 'Autocomplete profiles' })
   @Get('/autocomplete')
   async autocompleteProfile(
-    @Req() req: any,
-    @Query('username') usernameLike: string,
+    @Req() req: Request,
+    @Query('displayname') displaynameLike: string,
   ): Promise<ProfileResponse[]> {
-    const profiles: Profile[] = await this.profilesService.autocompleteUsername(
-      req.user.userId,
-      usernameLike,
-    );
+    if (req.user === undefined) throw new UnauthorizedException();
+    const profiles: Profile[] =
+      await this.profilesService.autocompleteDisplayname(
+        req.user.userId,
+        displaynameLike,
+      );
 
     return profiles.map((value) => {
       return profileToProfileResponse(value);

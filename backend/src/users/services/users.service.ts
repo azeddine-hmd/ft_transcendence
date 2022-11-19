@@ -1,19 +1,15 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FtProfileDto } from '../../auth/dto/payload/ft-profile.dto';
+import { Repository } from 'typeorm';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
+import { FtProfile } from '../../auth/types/ft-profile';
 import { ftProfileDtoToUserProfile } from '../../auth/utils/entity-payload-converter';
 import { Profile } from '../../profiles/entities/profile.entity';
-import { Repository } from 'typeorm';
 import { UserUpdateOptions } from '../dto/types/user-update-options';
 import { User } from '../entities/user.entity';
 import { signupUserDtoToUserProfile } from '../utils/entity-payload-converter';
+import { UsersSocketService } from './users-socket.service';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +19,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
+    private readonly usersSocketService: UsersSocketService,
   ) {}
 
   /* search operations */
@@ -51,6 +48,7 @@ export class UsersService {
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
     const profile = await this.profileRepository.save(unsavedProfile);
+    this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
 
@@ -68,16 +66,14 @@ export class UsersService {
     return user;
   }
 
-  async findOrCreate(ftProfileDto: FtProfileDto): Promise<User> {
+  async findOrCreate(profile: FtProfile): Promise<User> {
     const foundUser = await this.userRepository.findOneBy({
-      ftId: +ftProfileDto.ftId,
+      ftId: +profile.ftId,
     });
-
     if (!foundUser) {
-      const { userLike, profileLike } = ftProfileDtoToUserProfile(ftProfileDto);
+      const { userLike, profileLike } = ftProfileDtoToUserProfile(profile);
       return await this.createUser(userLike, profileLike);
     }
-
     return foundUser;
   }
 
@@ -96,18 +92,33 @@ export class UsersService {
       return null;
     }
     Logger.debug(`updateUser#user: user ${user.username} updated successfully`);
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
+  }
+
+  async setTfa(username: string, value: boolean) {
+    const user = await this.findOneFromUsername(username);
+    if (!user) throw new NotFoundException('user not found!');
+    user.tfa = value;
+    await this.userRepository.save(user);
   }
 
   /* delete operation */
 
   async removeByUsername(username: string): Promise<void> {
     Logger.log(`user \`${username}\` is removed from database`);
-    await this.userRepository.delete({ username: username });
+    const user = await this.findOneFromUsername(username);
+    if (user) {
+      this.usersSocketService.removeUser(user.userId);
+      await this.userRepository.delete({ username: username });
+    }
   }
 
-  async removeById(id: number): Promise<void> {
+  async removeById(id: string): Promise<void> {
     Logger.log(`user id \`${id}\` is removed from database`);
-    await this.userRepository.delete({ id: id });
+    const user = await this.findOneFromUserId(id);
+    if (user) {
+      this.usersSocketService.removeUser(user.userId);
+      await this.userRepository.delete({ userId: id });
+    }
   }
 }

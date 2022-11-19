@@ -1,4 +1,4 @@
-export class FtProfileDto {
+export class FtProfile {
   ftId: string;
   username: string;
   avatar: string;

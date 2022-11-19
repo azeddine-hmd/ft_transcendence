@@ -2,12 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameModule } from 'src/game/game.module';
-import { ChatModule } from '../chat/chat.module';
-import { ProfilesModule } from '../profiles/profiles.module';
-import { UploadModule } from '../upload/upload.module';
-import { UsersModule } from '../users/users.module';
-import { AppGateway } from './app.gateway';
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { ProfilesModule } from './profiles/profiles.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -37,12 +35,9 @@ import { AppGateway } from './app.gateway';
         index: false,
       },
     }),
-    ProfilesModule,
     UsersModule,
+    ProfilesModule,
     ChatModule,
-    GameModule,
-    UploadModule,
   ],
-  providers: [AppGateway],
 })
 export class AppModule {}

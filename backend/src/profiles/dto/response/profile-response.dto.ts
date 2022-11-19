@@ -1,18 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger/dist';
 
 export class ProfileResponse {
-  @ApiProperty({ example: '807b56d2-41b9-4704-9b02-2ab2b5fda9cb' })
+  @ApiProperty()
   id: string;
 
-  @ApiProperty({ example: 'ahamdaou' })
+  @ApiProperty()
   username: string;
 
-  @ApiPropertyOptional({ type: 'string', example: 'azeddine' })
+  @ApiPropertyOptional()
   displayName: string;
 
-  @ApiPropertyOptional({
-    type: 'string',
-    example: 'https://cdn.intra.42.fr/users/ahamdaou.jpg',
-  })
+  @ApiPropertyOptional()
   avatar: string;
 }
