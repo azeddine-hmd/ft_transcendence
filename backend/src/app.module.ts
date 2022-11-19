@@ -2,30 +2,27 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { ChatModule } from './chat/chat.module';
-import { ProfilesModule } from './profiles/profiles.module';
-import { UsersModule } from './users/users.module';
+import { ChatModule } from 'src/chat/chat.module';
+import { ConfModule } from 'src/conf/conf.module';
+import { EnvService } from 'src/conf/env.service';
+import { ProfilesModule } from 'src/profiles/profiles.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.postgres.env', '.env', '.profile.env'],
-      expandVariables: true,
-    }),
+    ConfModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (envServcie: EnvService) => ({
         type: 'postgres',
-        host: configService.get('POSTGRES_HOST'),
-        port: configService.get('POSTGRES_PORT'),
-        database: configService.get('POSTGRES_DB'),
-        username: configService.get('POSTGRES_USER'),
-        password: configService.get('POSTGRES_PASSWORD'),
+        host: envServcie.get('POSTGRES_HOST'),
+        port: envServcie.get<number>('POSTGRES_PORT'),
+        database: envServcie.get('POSTGRES_DB'),
+        username: envServcie.get('POSTGRES_USER'),
+        password: envServcie.get('POSTGRES_PASSWORD'),
         autoLoadEntities: true,
-        synchronize: configService.get('SYCHRONIZE'),
+        synchronize: envServcie.get('SYCHRONIZE'),
       }),
     }),
     ServeStaticModule.forRoot({

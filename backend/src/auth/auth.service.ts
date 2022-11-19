@@ -6,10 +6,10 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config/dist/config.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { authenticator } from 'otplib';
+import { EnvService } from 'src/conf/env.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
@@ -22,7 +22,7 @@ export class AuthService {
   private tfaSecrets = new Map<string, string>();
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly envService: EnvService,
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
   ) {}
@@ -49,7 +49,7 @@ export class AuthService {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException('user exist');
     }
-    const optSecret = this.configService.get<string>('OTP_SECRET');
+    const optSecret = this.envService.get('OTP_SECRET');
     if (!optSecret) throw new InternalServerErrorException();
     this.tfaSecrets.set(user.username, authenticator.generateSecret());
     Logger.log(
@@ -64,9 +64,6 @@ export class AuthService {
     );
     const accessToken = this.jwtService.sign(userJwtPayload);
     const refreshToken = this.getRefreshToken(userJwtPayload);
-    Logger.log(
-      `refresh token for \`${userJwtPayload.username}: ${refreshToken}`,
-    );
     return { accessToken, refreshToken };
   }
 
@@ -88,7 +85,7 @@ export class AuthService {
   }
 
   private generateRefreshToken(userJwtPayload: UserJwtPayload): string {
-    const expirationTime = this.configService.get<string>(
+    const expirationTime = this.envService.get(
       'JWT_REFRESH_EXPIRATION_DURATION',
     );
     if (!expirationTime)
@@ -124,9 +121,9 @@ export class AuthService {
           return this.login(jwtPayload).accessToken;
         }
       }
-      throw new BadRequestException();
+      throw new BadRequestException('access token is still valid');
     } catch (err) {
-      throw new BadRequestException();
+      throw new BadRequestException('unknown error');
     }
   }
 
