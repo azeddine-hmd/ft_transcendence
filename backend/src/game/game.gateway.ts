@@ -1,45 +1,9 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
-import { table } from 'console';
 import { Server, Socket } from 'socket.io';
-// import { UserService } from './game.service';
+import { PlayerInfo } from './game-queue';
+import GameService from './game.service';
 
-let match:any = [
-	// easy : 0
-	[
-		/*
-		{
-			username: abel-haj,cket
-			sockets: [
-				1,
-				2,
-				3,
-			],
-		},
-
-		{
-			username: murachi,
-			sockets: [
-				10,
-				11,
-				12,
-				342,
-			]
-		},
-
-		{
-			username: fbouibao,
-			sockets: [
-				20,
-			]
-		},
-
-		murachid
-		*/
-	],
-	// hard : 1
-	[],
-];
-let _game:any =
+let _game:any = 
 [
 	[
 		/*
@@ -83,48 +47,51 @@ let _game:any =
 ];
 
 let waiting:boolean = true;
-@WebSocketGateway(
-{ 
+@WebSocketGateway({ 
 	namespace: 'game',
 	cors: {origin: '*'},
-}
-)
-  
+})
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;
 
-	// constructor(
-    //         private readonly user: UserService
-    // ) { }
+	constructor(
+        private readonly gameService: GameService,
+    ) {}
    
 	handleConnection(client: Socket, ...args: any[]) {
 	}
 	
 	handleDisconnect(client: Socket, ...args: any[]) {
+	
 		if (!client.handshake.query.username || !client.handshake.query.mode)
 			return
 		let usern = client.handshake.query.username
 		let mode = client.handshake.query.mode;
 		let i:any = mode === 'Easy' ? 0 : 1
 
-		let ind = match[i].findIndex(function (obj:any) { return (obj.username === usern) } ) // -1, >= 0
+		const queue = this.gameService.matches[i];
+
+		let ind = queue.findIndex((player: PlayerInfo) => { 
+			return (player.username === usern) 
+		}) // -1, >= 0
 
 		if ( ind !== -1 ) {
-			if (match[i][ind].sockets.indexOf(client.id) !== -1)
-				match[i][ind].sockets.splice(match[i][ind].sockets.indexOf(client.id))
+			if (queue[ind].sockets.indexOf(client.id) !== -1) {
+				queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
+			}
 		}
 	}
 
 	@SubscribeMessage('match')
 	messageMessage(@ConnectedSocket()  client: Socket,  @MessageBody() data: string)
 	{
-		
 		var i:number = 0;
 		if (data.includes("Easy"))
 			i = 0;
 		if (data.includes("Hard"))
 			i = 1;
+		const queue = this.gameService.matches[i];
 		waiting = true;
 		if(data.toString().includes("cancel"))
 			waiting = false;
@@ -132,37 +99,32 @@ export class GameGateway {
 		{
 			if(waiting) 
 			{
-				let ind = match[i].findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } ) // -1, >= 0
+				let ind = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } ) // -1, >= 0
 				// not found
 				if ( ind === -1 ) 
-					match[i].push({ sockets: [client.id], username: client.handshake.query.username});
+					queue.push({ sockets: [client.id], username: client.handshake.query.username as string});
 				// found
 				else 
-					match[i][ind].sockets.push(client.id)
+					queue[ind].sockets.push(client.id)
 			}
 			else
 			{
-				const index = match[i].findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } )
+				const index = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } )
 				if (index > -1) 
 				{
-					match[i].splice(index, 1);
+					queue.splice(index, 1);
 				}
 			}
-			if (match[i].length >= 2)
+			if (queue.length >= 2)
 			{				
-				let contender = match[i][0].username;
-				let ind = _game[i].push( { left: match[i].splice(0, 1)[0] } ) - 1;
+				let contender = queue[0].username;
+				let ind = _game[i].push( { left: queue.splice(0, 1)[0] } ) - 1;
 
-				var index = match[i].findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } );
+				var index = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } );
 				if (index != -1) 
-					_game[i][ind].right = match[i].splice(index, 1)[0];
+					_game[i][ind].right = queue.splice(index, 1)[0];
 				this.server.to([..._game[i][ind].left.sockets, ..._game[i][ind].right.sockets]).emit('abcd',client.handshake.query.username , contender, i,  ind);
-			
 			}
-			if (_game[i] && _game[i].left)
-				table(_game[i].left)
-			if (_game[i] && _game[i].right)
-				table(_game[i].right)
 		}
 	}
 
@@ -170,25 +132,35 @@ export class GameGateway {
 	gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
 		const arr = _data.split(' ');
-		// console.log("arr[0] = " + arr[0]);
-		// console.log("arr[1] = " + arr[1]);
+		console.log(arr);
+		
+		this.gameService.createGameMatch({
+			winner: arr[0],
+			loser: arr[1],
+			winnerScore: Number(arr[2]),
+			loserScore: Number(arr[3]),
+			mode: String(arr[4]),
+		});
 	}
 
 	@SubscribeMessage('ballPos')
-	ball(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
+	ball(@ConnectedSocket() client: Socket, @MessageBody() _data: string) 
+	{
 		let arr:any = _data.split(" ");
 		let i = arr[7] === 'Easy' ? 0 : 1
 		this.server.to([..._game[i][arr[6]].left.sockets, ..._game[i][arr[6]].right.sockets]).emit('ballPos', _data);
-		
 	}
 
 	@SubscribeMessage('getPlayer')
-	getPlayer(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
+	getPlayer(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	{
 		this.server.emit('getPlayer', _data);	
-	} 
+	}
 
-	@SubscribeMessage('fofo')
-	fofo(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-		this.server.emit('fofo', _data);	
-	} 
+	@SubscribeMessage('test')
+	test(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
+	{
+		const b = body.split(':');
+		this.server.emit('live', body);
+	}
 }

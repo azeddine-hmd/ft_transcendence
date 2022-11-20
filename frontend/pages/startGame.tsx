@@ -12,7 +12,7 @@ function Game()
 		if(window.top)
         	window.top.location = url.concat("/game")
     }
-
+	
 	return (
 	    <>
 		<div className="homepage w-full h-screen min-w-full relative">

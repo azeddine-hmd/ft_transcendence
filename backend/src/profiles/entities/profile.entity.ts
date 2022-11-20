@@ -27,4 +27,9 @@ export class Profile {
 
   @Column()
   avatar: string;
+
+  @Column({
+    default: 0,
+  })
+  level: number;
 }

@@ -57,7 +57,6 @@ function Game()
 	const [mode, chanScopeSet] = React.useState("Easy");
 	const [mode1, chanScopeSet1] = React.useState("Right");
 	const [is, set] = React.useState(true);
-	
 
 	var socket:any;
 	socket = io(url + "/game",{ query: { username: username, mode: "Easy"} ,transports: ['websocket']});
@@ -135,13 +134,7 @@ function Game()
 				game.ball.speed.y = sBall;
 				// userScore.play();
 				game.player1.score++;
-				if (game.player1.score === 3) 
-				{
-					stop();
-					initilizeGame();
-					set(false);
-
-				}
+	
 			}
 			else
 			{	
@@ -155,7 +148,7 @@ function Game()
 			}
 		}
 	}
-
+	
 	function colorRect(leftX:number , topY:number, width:number, height:number, drawColor:string) 
 	{
 		var context = canvas.getContext('2d');
@@ -208,7 +201,6 @@ function Game()
 		drawBall();
 	}
 
-
 	function initilizeGame() 
 	{
 		p1 = "";
@@ -236,6 +228,22 @@ function Game()
 		clearInterval(counter);
 	}
 
+
+
+	socket.on("live", (...args:any) => {
+		if (playerName != p2 && playerName != p1)
+			if(window.top)
+				window.top.location = url.concat("/live");
+		if (playerName == p2) 
+		{
+			const arr = args[0].split(':');
+			p1 = arr[1];
+			p2 = arr[2];
+			game.player1.score = arr[3];
+			game.player2.score = arr[4];
+		}
+	});
+
 	socket.on("abcd", (...args:any) => 
 	{
 		p1 = args[0];
@@ -255,28 +263,28 @@ function Game()
 			startGame();
 		}
 	});
-		
+	socket.on("getPlayer", (_data: string) => 
+	{
+		array0 = _data.split(' ');
+		if (array0[0] == p2 && playerName != p2) 
+			game.player2.y = array0[1];
+		else if (array0[0] == p1 && playerName != p1) 
+			game.player1.y = array0[1];
+	});
+	socket.on("ballPos", (_data: string) =>
+	{
+		array1 = _data.split(' ');
+		if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
+		{
+			game.ball.x = array1[2];
+			game.ball.y = array1[3];
+			game.player1.score = array1[4];
+			game.player2.score = array1[5];	
+		}
+	});
 	function init_socket()
 	{
-		socket.on("getPlayer", (_data: string) => 
-		{
-			array0 = _data.split(' ');
-			if (array0[0] == p2 && playerName != p2) 
-				game.player2.y = array0[1];
-			else if (array0[0] == p1 && playerName != p1) 
-				game.player1.y = array0[1];
-		});
-		socket.on("ballPos", (_data: string) =>
-		{
-			array1 = _data.split(' ');
-			if (playerName == p2 && p2 == array1[1] && p1 == array1[0])
-			{
-				game.ball.x = array1[2];
-				game.ball.y = array1[3];
-				game.player1.score = array1[4];
-				game.player2.score = array1[5];	
-			}
-		});
+
 	}
 
 	function playerMove(event:any) 
@@ -316,11 +324,11 @@ function Game()
 		
 		if (game.player1.score > game.player2.score ) 
 		{
-			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score);
+			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score+" "+ mode);
 		}
 		if (game.player1.score < game.player2.score ) 
 		{
-			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score);
+			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score +" "+ mode);
 		}		
 		game.ball.speed.x = 0;
 		game.ball.speed.y = 0;
@@ -343,14 +351,15 @@ function Game()
 			if(playerName == p1)
 			{
 				ballMove();
-				if (game.player2.score === 300 || game.player1.score === 300) 
-				{
-					getResult();
-					initilizeGame();
-					set(false); 
-				}
+				// if (game.player2.score === 3 || game.player1.score === 3) 
+				// {
+				// 	getResult();
+				// 	initilizeGame();
+				// 	set(false); 
+				// }
 				game.ball.x += game.ball.speed.x*acl;
 				game.ball.y += game.ball.speed.y*acl;	
+				
 				socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score+ " " + a + " " + mode);
 			}
 		}
