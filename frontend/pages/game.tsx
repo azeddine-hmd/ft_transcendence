@@ -7,6 +7,7 @@ import { ErrorResponse } from '../network/dto/response/error-response.dto'
 import { ProfileResponse } from '../network/dto/response/profile-response.dto'
 import io from 'socket.io-client';
 import style from '../styles/game/gameStyle.module.css'
+
 interface GameOption
 {
 	player1: {
@@ -32,28 +33,17 @@ let url = "http://localhost:8080";
 
 function Game()
 {
-
-	// let hit = new Audio();
-	// let wall = new Audio();
-	// let userScore = new Audio();
-	// let comScore = new Audio();
-	// hit.src = "sounds/hit.mp3";
-	// wall.src = "sounds/wall.mp3";
-	// comScore.src = "sounds/comScore.mp3";
-	// userScore.src = "sounds/userScore.mp3";
+	var a:any;
 	var acl:number;
 	let counter:any ;
 	let buttomSearch:any = [];
 	buttomSearch[0] = "search";
-	var _typeOfGame:string = "easy";
 	var contender: string;
 	var matchIsMake:boolean = false;
-	var optionIsMake:boolean = false;
 	var p1:string ;
 	var p2:string ;
 	var array1:any;
 	var array0:any;
-	var array2:any;
 	var playerName: string ;
 	var canvas:any;
 	var colorG:string = "green";
@@ -70,7 +60,7 @@ function Game()
 	
 
 	var socket:any;
-	socket = io(url + "/game",{ query: { username: username } ,transports: ['websocket']});
+	socket = io(url + "/game",{ query: { username: username, mode: "Easy"} ,transports: ['websocket']});
 	function _mode(m:number)
 	{
 		if(m == 0)
@@ -78,15 +68,13 @@ function Game()
 		else
 			acl = 4;
 	}
+
 	function _search()
-	{		
+	{
 		buttomSearch[0] = "search";
 		let i:number = 0;
 		if (matchIsMake)
-		{
-
 			matchIsMake = false;
-		}
 		else
 			matchIsMake = true;
 		if(matchIsMake)
@@ -166,7 +154,6 @@ function Game()
 				sBall += 0.1;
 			}
 		}
-
 	}
 
 	function colorRect(leftX:number , topY:number, width:number, height:number, drawColor:string) 
@@ -249,31 +236,28 @@ function Game()
 		clearInterval(counter);
 	}
 
-	function init_socket()
-	{	
-
-		socket.on("_start", (...args:any) => 
+	socket.on("abcd", (...args:any) => 
+	{
+		p1 = args[0];
+		p2 = args[1];
+		_mode(args[2])
+		a = args[3];
+		if (p1 != contender && p1 == playerName ) 
 		{
-			console.log("Made socket connection", socket.id);
-			p1 = args[0];
-			p2 = args[1];
-			_mode(args[2])
-			
-			if (p1 != contender && p1 == playerName ) 
-			{
-				clearInterval(counter);
-				contender = p2;
-				startGame();
-			}
-			else if (p2 != contender && p2 == playerName ) 
-			{
-				clearInterval(counter);
-				contender = p1;
-				startGame();
-			}
-			socket.emit("getStart", playerName + contender);
-		});
+			clearInterval(counter);
+			contender = p2;
+			startGame();
+		}
+		else if (p2 != contender && p2 == playerName ) 
+		{
+			clearInterval(counter);
+			contender = p1;
+			startGame();
+		}
+	});
 		
+	function init_socket()
+	{
 		socket.on("getPlayer", (_data: string) => 
 		{
 			array0 = _data.split(' ');
@@ -293,7 +277,6 @@ function Game()
 				game.player2.score = array1[5];	
 			}
 		});
-
 	}
 
 	function playerMove(event:any) 
@@ -333,12 +316,10 @@ function Game()
 		
 		if (game.player1.score > game.player2.score ) 
 		{
-			console.log("game.player1.score...");
 			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score);
 		}
 		if (game.player1.score < game.player2.score ) 
 		{
-			console.log("game.player2.score...");
 			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score);
 		}		
 		game.ball.speed.x = 0;
@@ -357,47 +338,42 @@ function Game()
 			{
 				set(false);
 				drawGame();
-				canvas.addEventListener('mousemove', playerMove);		
+				addEventListener('mousemove', playerMove);		
 			}
 			if(playerName == p1)
 			{
 				ballMove();
-				if (game.player2.score === 3 || game.player1.score === 3) 
+				if (game.player2.score === 300 || game.player1.score === 300) 
 				{
-					console.log("game.player2.score === 3 || game.player1.score === 3")
 					getResult();
 					initilizeGame();
 					set(false); 
 				}
 				game.ball.x += game.ball.speed.x*acl;
 				game.ball.y += game.ball.speed.y*acl;	
-				socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score);
+				socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score+ " " + a + " " + mode);
 			}
 		}
 		counter = setInterval(ft, 1000 * 0.02);
 	}
 
-	useEffect(() => {
 	Apis.CurrentProfile( {
 		onSuccess: (userResponse: ProfileResponse) => {
 			let username = "";
 			setUser(userResponse.username);
 			username = userResponse.username;
 			playerName = username;
-			setUsername(username);		
+			setUsername(username);	
+			console.log(playerName);	
 			canvas = document.getElementById('canvas');
 			init_socket();
-			startGame();
 			initilizeGame();	
 			drawGame();
-
 		},
 		onFailure: (err: ErrorResponse) => {
-			alert("couldn't fetch user");
+			// callAlert();
 		},
 	});
-	}, []);
-			// socket.emit("getStart", playerName + contender);
 
 	return ( 
 	    <>
@@ -410,7 +386,7 @@ function Game()
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 
-						<canvas className={style.canvas} id="canvas" width={600} height={600} style={{cursor: "none"}}></canvas>				
+						<canvas className={style.canvas} id="canvas" width={600} height={600}></canvas>				
 						{ is ? <div className={ style.overlay}>					
 							<div className={style.prompt}>
 								<div>How would you like to play?</div>
@@ -422,13 +398,6 @@ function Game()
 									<label htmlFor="Easy">Easy</label></span>
 									</div>
 									<hr className={style.hr}/>
-									{/* <div className={style.character}>
-									<span><input id="Right" type="radio" name="character" value="Right" onChange={e => chanScopeSet1(e.target.value)}/>
-									<label htmlFor="Right">Right</label></span>	
-									<span><input id="Left" type="radio" name="character" value="Left" onChange={e => chanScopeSet1(e.target.value)} />
-									<label htmlFor="Left">Left</label></span>
-									</div> */}
-									{/* <hr className={style.hr}/> */}
 									<div className={style.start}>
 									<button type="button" id="search" className={style.button1}	 onClick={() => _search()}>{buttomSearch[0]}</button>
 								</div>

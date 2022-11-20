@@ -245,18 +245,6 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
     left:15%;
 }
 
-.canvas {
-	margin:   auto;
-
-  background: black !important;
-  padding: 50px !important;
-   border: .4rem solid white; 
-  position: sticky; 
-  margin-bottom: 50px;
-  transition-duration: 1s;
-  width: 50% !important;
-  height: 80% !important;
-}
 
 #holder {
   height: 100%;
@@ -270,10 +258,12 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
   
     position: fixed;
     top:0;
-    padding-top: 7%;
-    height: 440%;
     background: rgba(0,0,0,0.3);
+    height: 100%;
     width: 100%;
+    display: flex;
+
+
     /* display: none; */
   }
   
@@ -294,16 +284,19 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 	font-size: 22pt;
 	color: #666;
 	box-shadow: 0 3px 2px 1px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .difficulty, .character{
-  
-	margin: 20px 0px;
 	font-size: 18pt;
 	white-space: nowrap;
-}
-.difficulty span{
-	margin: 0 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .character span{
@@ -313,7 +306,7 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 .restart button:active{
 	background: #FF5775;
 	
-}
+} 
 
 
 .start button{ 
@@ -373,8 +366,9 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 	color: white;
 	padding: 7px 20px;
 	border-radius: 5px;
+  
 	
-} 
+}
 
 .difficulty  input[type="radio"]:checked+label{ 
 	background: #FD0A35;
@@ -398,3 +392,26 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 	border-radius: 5px;
 	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.1); 
 } */
+
+.canvas {
+	margin:   auto;
+
+  background: black !important;
+  padding: 50px !important;
+   border: .4rem solid white; 
+  position: sticky; 
+  margin-bottom: 50px;
+  transition-duration: 1s;
+  width: 50% !important;
+  height: 80% !important;
+
+}
+@media only screen and (max-width: 1179px) {
+
+  .canvas{
+    width: 100vw !important;
+  }
+  .prompt{
+    width: 100vw;
+  } 
+}
