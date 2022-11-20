@@ -93,6 +93,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
         {
             items.pop();
             items.pop();
+            items.pop();
         }
 
         socket.on('blockUser', (isBlocked) => {
