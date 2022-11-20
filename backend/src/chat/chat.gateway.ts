@@ -20,6 +20,7 @@ import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 import { inBlockedList } from './tools/tools';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
+let roomClients:Map<string, clientObj[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
 {
   try {
@@ -44,6 +45,11 @@ class roomModel {
   members : string;
   privacy: boolean;
   admin: string;
+}
+
+class clientObj {
+  id: string;
+  clientId: string;
 }
 
 class dmModel {
@@ -153,18 +159,39 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else
     {
-      client.join(joinRoomDto.roomId.toString());
+      // client.join(joinRoomDto.roomId.toString());
+      // roomClients.set(joinRoomDto.roomId.toString(), )
+      
+      
+      if (roomClients.get(joinRoomDto.roomId.toString()) === undefined)
+        roomClients.set(joinRoomDto.roomId.toString(), [{"id": clientId, "clientId":client.id}]);
+      else
+      {
+        let arr: clientObj[] | undefined = new Array();
+        arr = roomClients.get(joinRoomDto.roomId.toString());
+        let bl = 0;
+        arr.forEach(element => {
+          if (element.id == clientId)
+            bl = 1;
+        });
+        if (bl == 0)
+          arr?.push({"id": clientId, "clientId":client.id});
+        
+        roomClients.set(joinRoomDto.roomId.toString(), arr);
+      }
+      
       const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
       const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
       
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
-      const blockedUsers = await this.chatService.getBlockedUsers(joinRoomDto, clientId);
+      // const blockedUsers = await this.chatService.getBlockedUsers(joinRoomDto, clientId);
+      
       try{    
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
-            if (!inBlockedList(blockedUsers, msgs[index].id))
-              continue;
+            // if (inBlockedList(blockedUsers, msgs[index].user.id))
+            //   continue;
             let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
@@ -222,6 +249,7 @@ export class ChatGateway {
     {
       client.join(createMsgDto.room.toString());
       const userInfo:User | null = await this.chatService.checkUserProfileByUserId(clientId);
+
       try{
         if (!userInfo) return;
         let tmp:msgModel = new msgModel();
@@ -236,9 +264,26 @@ export class ChatGateway {
         tmp.avatar = userInfo.profile.avatar;
         tmp.currentUser = false;
         
-        client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
-        tmp.currentUser = true;
-        this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        // client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        // this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        const roomid:string | string[] = createMsgDto.room.toString();
+        if (roomid == undefined)
+          return;
+        else{
+          let room = roomClients.get(roomid);
+          for (let i = 0; i < room.length; i++) {
+            const element = room[i];
+            if (clientId == element.id)
+              continue;
+            const isbck = await this.chatService.isblock(element.id, clientId);
+            if (isbck)
+              continue;
+            this.server.to(element.clientId).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+          }
+          //client.broadcast.to(roomClients.get(roomid)).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+          tmp.currentUser = true;
+          this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        }
       }
       catch(e){}
     }

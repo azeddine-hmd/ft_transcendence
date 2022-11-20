@@ -350,7 +350,7 @@ export class ChatService {
 
 /***************************************BLOCK USER SERVICE*******************************************/
 
-async getBlockedUsers(joinRoomDto: JoinRoomDto, auth: any)
+async getBlockedUsers(auth: any)
 {
   let u1:User = new User();
   let ret = await this.blockRepository.createQueryBuilder('block')
@@ -361,6 +361,19 @@ async getBlockedUsers(joinRoomDto: JoinRoomDto, auth: any)
   return (ret);
 }
 
+async isblock(userId: string, auth: string)
+{
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .where("user1.userId = :id AND user2.userId = :id2", { id: userId, id2: auth })
+  .getOne();
+  console.log(ret);
+  console.log(userId);
+  console.log(auth);
+  
+  return (ret);
+}
 
 async blockU(block: ConversationDto, auth: any) {
   let user = await this.checkUserByUserName(block.user);
