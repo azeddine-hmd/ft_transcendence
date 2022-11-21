@@ -38,7 +38,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
         function Cancel() { setBanMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
-                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Ban for: </p>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Ban for : </p>
                 <div style={{"display": "flex" }}>
                     <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
                     <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
