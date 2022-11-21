@@ -13,6 +13,8 @@ export default function Profile() {
         ></div>
       ) : null}
       <Sidebar isopen={isopen} setisopen={setisopen} />
+
+     <div className="bg-[red] h-full w-full">fefwefwefwef</div>
       <ProfileM />
     </div>
     // <Sidebar/>

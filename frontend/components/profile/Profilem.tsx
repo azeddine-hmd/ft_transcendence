@@ -11,7 +11,6 @@ export default function ProfileM(){
                     <div className={`imgprofile flex justify-center relative top-[-70px] `}>
                         <div className={` ${style.imgprofile} rounded-full absolute w-[153px] h-[153px]`}></div>
                         <Image className={` ${style.imgprf}`} src={profilePic} width={153} height={153}/>
-                        <div className="bg-[red]">Here</div>
                     </div>
             </div>
        </div>
