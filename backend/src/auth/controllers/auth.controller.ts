@@ -75,8 +75,6 @@ export class AuthController {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = this.authService.login(req.user);
     const frontendHost = this.envService.get('FRONTEND_HOST');
-    if (!frontendHost)
-      throw new InternalServerErrorException('FRONTEND_HOST env not defined');
     res.cookie('refresh_token', login.refreshToken, {
       ...refreshCookieOptions,
     });
@@ -93,8 +91,22 @@ export class AuthController {
   @ApiBody({ type: SignupUserDto })
   @HttpCode(HttpStatus.OK)
   @Post('/signup')
-  async signup(@Body() signupUserDto: SignupUserDto) {
-    await this.authService.registerUser(signupUserDto);
+  @Redirect()
+  async signup(
+    @Res({ passthrough: true }) res: Response,
+    @Body() signupUserDto: SignupUserDto,
+  ) {
+    const user = await this.authService.registerUser(signupUserDto);
+    const login = this.authService.login({
+      username: user.username,
+      userId: user.userId,
+    });
+    res.cookie('refresh_token', login.refreshToken, {
+      ...refreshCookieOptions,
+    });
+    res.cookie('access_token', login.accessToken, {
+      ...accessCookieOptions,
+    });
   }
 
   @ApiResponse({

@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
   forwardRef,
   Inject,
   Injectable,
@@ -54,7 +55,12 @@ export class UsersService {
     const unsavedUser = this.userRepository.create(userLike);
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
-    const profile = await this.profileRepository.save(unsavedProfile);
+    let profile: Profile | null;
+    try {
+      profile = await this.profileRepository.save(unsavedProfile);
+    } catch (err) {
+      throw new BadRequestException('display name already exist!');
+    }
     this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
