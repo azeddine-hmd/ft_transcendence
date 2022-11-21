@@ -29,7 +29,6 @@ export namespace Apis {
         "api/auth/signin",
         options.signDto
       );
-      localStorage.setItem("access_token", res.data.access_token);
       return options.onSuccess(res.data);
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -428,7 +427,6 @@ export namespace Apis {
   }) {
     try {
       const res = await localService.post<RefreshResponse>(`/api/auth/tfa`);
-      localStorage.setItem("access_token", res.data.access_token);
       return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {

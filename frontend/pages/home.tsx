@@ -28,7 +28,7 @@ const Home: NextPage = () => {
         }
       },
     });
-  });
+  }, [router]);
 
   return (
     <div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
