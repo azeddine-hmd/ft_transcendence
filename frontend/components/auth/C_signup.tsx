@@ -19,6 +19,7 @@ export default function C_signup() {
     messages: [""],
     severity: "",
   });
+  const router = useRouter();
 
   return (
     <>
@@ -72,7 +73,7 @@ export default function C_signup() {
                         severity: "success",
                       });
                       setTimeout(() => {
-                        window.location.assign('/home');
+                        router.push("/home");
                       }, 1500);
                     },
                     onFailure: (err: ErrorResponse) => {
