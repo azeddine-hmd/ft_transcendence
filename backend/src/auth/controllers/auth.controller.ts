@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Redirect,
   Req,
   Res,
@@ -91,7 +90,6 @@ export class AuthController {
   @ApiBody({ type: SignupUserDto })
   @HttpCode(HttpStatus.OK)
   @Post('/signup')
-  @Redirect()
   async signup(
     @Res({ passthrough: true }) res: Response,
     @Body() signupUserDto: SignupUserDto,
@@ -126,6 +124,21 @@ export class AuthController {
     });
     res.cookie('access_token', login.accessToken, {
       ...accessCookieOptions,
+    });
+  }
+
+  @ApiOperation({ summary: 'Logout out current user' })
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @JwtAuth
+  @Get('/logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    if (req.user === undefined) throw new UnauthorizedException();
+    res.cookie('access_token', '', { expires: new Date(0), httpOnly: true });
+    res.cookie('refresh_token', '', {
+      expires: new Date(0),
+      path: '/api/auth/refresh',
+      httpOnly: true,
     });
   }
 
