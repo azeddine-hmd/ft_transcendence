@@ -33,9 +33,9 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
     
     function Ban() {
-        function T1() { socket.emit('Ban', {time :"T1", user: name, room: room} ); setBanMenu(false); };
-        function T2() { socket.emit('Ban', {time :"T2", user: name, room: room} ); setBanMenu(false); };
-        function T3() { socket.emit('Ban', {time :"T3", user: name, room: room} ); setBanMenu(false); };
+        function T1() { socket.emit('Ban', {time: 1, user: name, room: room} ); setBanMenu(false); };
+        function T2() { socket.emit('Ban', {time: 3, user: name, room: room} ); setBanMenu(false); };
+        function T3() { socket.emit('Ban', {time: 10, user: name, room: room} ); setBanMenu(false); };
         function Cancel() { setBanMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>

@@ -1,6 +1,12 @@
 import { IsNumber, IsString } from 'class-validator'
-export class ConversationDto {
+export class BanDto {
     
     @IsString()
     user: string;
+
+    @IsNumber()
+    time: number;
+
+    @IsNumber()
+    room: number;
 }
