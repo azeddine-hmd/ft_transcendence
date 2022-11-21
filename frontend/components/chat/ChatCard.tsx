@@ -20,11 +20,12 @@ interface props {
     currentUser: boolean;
     role: string;
     state: string;
+    room: number;
 }
 
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser, role, state }: props) {
+export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room }: props) {
 
     const [isMuteMenu, setMuteMenu] = useState(false);
     const [isBanMenu, setBanMenu] = useState(false);
@@ -32,13 +33,17 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
     
     function Ban() {
-        function Confirm() { socket.emit('Ban', {user: name}); setBanMenu(false); };
+        function T1() { socket.emit('Ban', {time: 1, user: name, room: room} ); setBanMenu(false); };
+        function T2() { socket.emit('Ban', {time: 3, user: name, room: room} ); setBanMenu(false); };
+        function T3() { socket.emit('Ban', {time: 10, user: name, room: room} ); setBanMenu(false); };
         function Cancel() { setBanMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
-                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to ban this user? </p>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Ban for : </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={Confirm}>Ban</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
+                    <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
                 </div>
             </div>
@@ -60,17 +65,17 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     }
 
     function TimePop() {
-        function T1() { socket.emit('Mute', {time :"T1"} ); setMuteMenu(false); };
-        function T2() { socket.emit('Mute', {time :"T2"} ); setMuteMenu(false); };
-        function T3() { socket.emit('Mute', {time :"T3"} ); setMuteMenu(false); };
+        function T1() { socket.emit('Mute', {time :"T1", user: name, room: room} ); setMuteMenu(false); };
+        function T2() { socket.emit('Mute', {time :"T2", user: name, room: room} ); setMuteMenu(false); };
+        function T3() { socket.emit('Mute', {time :"T3", user: name, room: room} ); setMuteMenu(false); };
         function Cancel() { setMuteMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
-                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for a: </p>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for: </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={T1}>Day</button>
-                    <button id={style.messageBarSendBtn} onClick={T2}>Week</button>
-                    <button id={style.messageBarSendBtn} onClick={T3}>Year</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
+                    <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
                 </div>
             </div>
@@ -91,6 +96,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
         if (role === 'member')
         {
+            items.pop();
             items.pop();
             items.pop();
         }

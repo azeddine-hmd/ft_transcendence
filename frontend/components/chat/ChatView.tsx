@@ -140,7 +140,7 @@ function Layout({ data }: Props) {
                         return (
                             <ChatCard id={messages.username} date={messages.date} 
                             name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
-                            role={userRole} state={messages.userState} />
+                            role={userRole} state={messages.userState} room={roomID} />
                         );
                     }) : null}
                     <div ref={bottom}></div>
