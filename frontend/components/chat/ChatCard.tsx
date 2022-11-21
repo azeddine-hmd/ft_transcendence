@@ -32,13 +32,17 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
     
     function Ban() {
-        function Confirm() { socket.emit('Ban', {user: name}); setBanMenu(false); };
+        function T1() { socket.emit('Ban', {time :"T1", user: name} ); setBanMenu(false); };
+        function T2() { socket.emit('Ban', {time :"T2", user: name} ); setBanMenu(false); };
+        function T3() { socket.emit('Ban', {time :"T3", user: name} ); setBanMenu(false); };
         function Cancel() { setBanMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
-                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to ban this user? </p>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Ban for: </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={Confirm}>Ban</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
+                    <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
                 </div>
             </div>
@@ -60,17 +64,17 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     }
 
     function TimePop() {
-        function T1() { socket.emit('Mute', {time :"T1"} ); setMuteMenu(false); };
-        function T2() { socket.emit('Mute', {time :"T2"} ); setMuteMenu(false); };
-        function T3() { socket.emit('Mute', {time :"T3"} ); setMuteMenu(false); };
+        function T1() { socket.emit('Mute', {time :"T1", user: name} ); setMuteMenu(false); };
+        function T2() { socket.emit('Mute', {time :"T2", user: name} ); setMuteMenu(false); };
+        function T3() { socket.emit('Mute', {time :"T3", user: name} ); setMuteMenu(false); };
         function Cancel() { setMuteMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
-                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for a: </p>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for: </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={T1}>Day</button>
-                    <button id={style.messageBarSendBtn} onClick={T2}>Week</button>
-                    <button id={style.messageBarSendBtn} onClick={T3}>Year</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
+                    <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
                 </div>
             </div>
