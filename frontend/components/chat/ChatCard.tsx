@@ -20,11 +20,12 @@ interface props {
     currentUser: boolean;
     role: string;
     state: string;
+    room: number;
 }
 
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser, role, state }: props) {
+export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room }: props) {
 
     const [isMuteMenu, setMuteMenu] = useState(false);
     const [isBanMenu, setBanMenu] = useState(false);
@@ -32,9 +33,9 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
 
     
     function Ban() {
-        function T1() { socket.emit('Ban', {time :"T1", user: name} ); setBanMenu(false); };
-        function T2() { socket.emit('Ban', {time :"T2", user: name} ); setBanMenu(false); };
-        function T3() { socket.emit('Ban', {time :"T3", user: name} ); setBanMenu(false); };
+        function T1() { socket.emit('Ban', {time :"T1", user: name, room: room} ); setBanMenu(false); };
+        function T2() { socket.emit('Ban', {time :"T2", user: name, room: room} ); setBanMenu(false); };
+        function T3() { socket.emit('Ban', {time :"T3", user: name, room: room} ); setBanMenu(false); };
         function Cancel() { setBanMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
@@ -64,9 +65,9 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     }
 
     function TimePop() {
-        function T1() { socket.emit('Mute', {time :"T1", user: name} ); setMuteMenu(false); };
-        function T2() { socket.emit('Mute', {time :"T2", user: name} ); setMuteMenu(false); };
-        function T3() { socket.emit('Mute', {time :"T3", user: name} ); setMuteMenu(false); };
+        function T1() { socket.emit('Mute', {time :"T1", user: name, room: room} ); setMuteMenu(false); };
+        function T2() { socket.emit('Mute', {time :"T2", user: name, room: room} ); setMuteMenu(false); };
+        function T3() { socket.emit('Mute', {time :"T3", user: name, room: room} ); setMuteMenu(false); };
         function Cancel() { setMuteMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
