@@ -47,7 +47,7 @@ export class AuthService {
     const user = await this.usersService.create(signupUserDto);
     if (!user) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
-      throw new ForbiddenException('user exist');
+      throw new ForbiddenException('User already exist');
     }
     const optSecret = this.envService.get('OTP_SECRET');
     if (!optSecret) throw new InternalServerErrorException();
