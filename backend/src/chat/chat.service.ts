@@ -19,6 +19,10 @@ import { getRandomValues } from 'crypto';
 import { UpdateRoomDto } from './dto/update-rooms.dto';
 import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 import { use } from 'passport';
+import { Block } from './entities/block.entity';
+import { BanDto } from './dto/ban.dto';
+import { Ban } from './entities/ban.entity';
+import { time } from 'console';
 
 
 let roomsusers = new Map<number, number[]>();
@@ -38,6 +42,10 @@ export class ChatService {
     private readonly conversationRepository: Repository<Conversation>,
     @InjectRepository(DM)
     private readonly dmRepository: Repository<DM>,
+    @InjectRepository(Block)
+    private readonly blockRepository: Repository<Block>,
+    @InjectRepository(Ban)
+    private readonly banRepository: Repository<Ban>,
   )
   {}
 
@@ -343,6 +351,112 @@ export class ChatService {
   }
 
 /*********************************END CHAT ROOMS PUBLIC AND PROTECTED********************************/
+
+
+/***************************************BLOCK USER SERVICE*******************************************/
+
+async getBlockedUsers(auth: any)
+{
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .where("user1.userId = :id", { id: auth })
+  .getMany();
+  return (ret);
+}
+
+async isblock(userId: string, auth: string)
+{
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .where("user1.userId = :id AND user2.userId = :id2", { id: userId, id2: auth })
+  .getOne();
+  console.log(ret);
+  console.log(userId);
+  console.log(auth);
+  
+  return (ret);
+}
+
+async blockU(block: ConversationDto, auth: any) {
+  let user = await this.checkUserByUserName(block.user);
+  if (!user)
+    return 0;
+  let u1:User = new User(), u2:User = new User();
+  let ret = await this.blockRepository.createQueryBuilder('block')
+  .innerJoinAndSelect("block.user1", "user1")
+  .innerJoinAndSelect("user1.profile", "profile1")
+  .innerJoinAndSelect("block.user2", "user2")
+  .innerJoinAndSelect("user2.profile", "profile2")
+  .where("(user1.userId = :id AND user2.userId = :id2)", { id: auth, id2: user.userId })
+  .getOne();
+  let tmp = await this.checkUser(auth);
+  let tmp2 = await this.checkUser(user.userId);
+  if (!tmp || !tmp2)
+    return (0);
+  u1.id = tmp.id;
+  u2.id = tmp2.id;
+  if (!ret)
+  {
+    const cnv = this.blockRepository.create({ user1: u1 , user2: u2 });
+    await this.blockRepository.save(cnv);
+  }
+  return (1);
+}
+
+
+/***************************************END BLOCK USER SERVICE**************************************/
+
+
+/***************************************BLOCK USER SERVICE*******************************************/
+
+async banUser(ban:  BanDto, auth: any)
+{
+
+  let user = await this.checkUserByUserName(ban.user);
+  if (!user)
+    return 0;
+  let u1:User = new User(), u2:User = new User();
+  let ret = await this.banRepository.createQueryBuilder('ban')
+  .innerJoinAndSelect("ban.user1", "user1")
+  .innerJoinAndSelect("user1.profile", "profile1")
+  .innerJoinAndSelect("ban.user2", "user2")
+  .innerJoinAndSelect("user2.profile", "profile2")
+  .where("(user1.userId = :id AND user2.userId = :id2)", { id: auth, id2: user.userId })
+  .getOne();
+  let tmp = await this.checkUser(auth);
+  let tmp2 = await this.checkUser(user.userId);
+  let rmid: JoinRoomDto = {
+    "roomId" : ban.room,
+    "privacy": true,
+    "password": ""
+  };
+  const roleBaner = await this.getMemberRole(rmid, auth)
+  const roleBaned = await this.getMemberRole(rmid, auth)
+  console.log("hhhhhhh");
+  
+  if (((roleBaner?.role == "owner" || roleBaner?.role == "admin") && roleBaned?.role != "member")
+  || (roleBaner?.role == "owner"))
+  {
+    if (!tmp || !tmp2)
+    return (0);
+    u1.id = tmp.id;
+    u2.id = tmp2.id;
+    if (!ret)
+    {
+      console.log({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      
+      const cnv = this.banRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      await this.banRepository.save(cnv);
+    }
+    return (1);
+  }
+  return (0)
+}
+
+/***************************************END BLOCK USER SERVICE**************************************/
+
 
 
 

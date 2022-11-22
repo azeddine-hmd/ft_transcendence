@@ -1,4 +1,4 @@
-import { UseFilters } from '@nestjs/common';
+import { forwardRef, Inject, UseFilters } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -15,10 +15,15 @@ import { UsersSocketService } from './users-socket.service';
   transports: ['websocket'],
   namespace: 'states',
   cors: [process.env.BACKEND_HOST, process.env.FRONTEND_HOST],
+  cookie: true,
 })
 export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly usersSocketService: UsersSocketService) {}
+  constructor(
+    @Inject(forwardRef(() => UsersSocketService))
+    private readonly usersSocketService: UsersSocketService,
+  ) {}
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   async handleConnection(client: Socket, ..._args: any[]) {
     try {
       const payload = await this.usersSocketService.authenticate(client);

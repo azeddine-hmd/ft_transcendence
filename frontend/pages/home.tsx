@@ -1,34 +1,34 @@
 import type { NextPage } from "next";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-// import Sidebar from '../components/app/Sidebar'
+import Sidebar from "../components/profile/Sidebar";
 import Useravatar from "../components/profile/Useravatar";
 import { Apis } from "../network/apis";
 import { ErrorResponse } from "../network/dto/response/error-response.dto";
 import { ProfileResponse } from "../network/dto/response/profile-response.dto";
-// import { UserResponse } from '../network/dto/user-response.dto'
-import { useRouter } from "next/router";
-import Sidebar from "../components/profile/Sidebar";
 
 const Home: NextPage = () => {
   const router = useRouter();
   const [isopen, setisopen] = useState(false);
-  const [user, setUser] = useState("");
+  const [username, setUsername] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
     Apis.CurrentProfile({
       onSuccess: (userResponse: ProfileResponse) => {
         console.log(userResponse);
-        setUser(userResponse.username);
+        setUsername(userResponse.username);
         setImageUrl(userResponse.avatar);
         console.log(userResponse.avatar);
         userResponse.username;
       },
       onFailure: (err: ErrorResponse) => {
-        alert("couldn't fetch user");
+        if (err.statusCode === 401) {
+          router.push("/signin");
+        }
       },
     });
-  });
+  }, [router]);
 
   return (
     <div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
@@ -43,7 +43,7 @@ const Home: NextPage = () => {
           <Sidebar />
         </div>
         <div className="contentss w-full  h-screen  flex-col ">
-          <Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
+          <Useravatar avata={imageUrl} userid={username} />
         </div>
       </div>
     </div>

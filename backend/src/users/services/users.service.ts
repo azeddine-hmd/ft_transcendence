@@ -1,6 +1,13 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+    BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EnvService } from 'src/conf/env.service';
 import { Repository } from 'typeorm';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
 import { FtProfile } from '../../auth/types/ft-profile';
@@ -14,11 +21,12 @@ import { UsersSocketService } from './users-socket.service';
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly envService: EnvService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
+    @Inject(forwardRef(() => UsersSocketService))
     private readonly usersSocketService: UsersSocketService,
   ) {}
 
@@ -47,7 +55,12 @@ export class UsersService {
     const unsavedUser = this.userRepository.create(userLike);
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
-    const profile = await this.profileRepository.save(unsavedProfile);
+    let profile: Profile | null;
+    try {
+      profile = await this.profileRepository.save(unsavedProfile);
+    } catch (err) {
+      throw new BadRequestException('display name already exist!');
+    }
     this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
@@ -60,7 +73,7 @@ export class UsersService {
       return null;
     }
     const { userLike, profileLike } = signupUserDtoToUserProfile(signupUserDto);
-    profileLike.avatar = this.configService.get<string>('DEFAULT_AVATAR');
+    profileLike.avatar = this.envService.get('DEFAULT_AVATAR');
     const user = await this.createUser(userLike, profileLike);
     Logger.debug(`user \`${user.username}\` is created and saved to database`);
     return user;

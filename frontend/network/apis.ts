@@ -14,14 +14,7 @@ import { localService } from "./local.service";
 
 export namespace Apis {
 
-  function interceptFailure(err: any, onFailure: any) {
-      if (axios.isAxiosError(err)) {
-        const error = err as AxiosError<ErrorResponse>;
-        if (error && error.response && error.response.data) {
-          return onFailure(error.response.data);
-        }
-      }
-  }
+  const networkError = "Network Failure";
 
   /*
     login user
@@ -36,14 +29,18 @@ export namespace Apis {
         "api/auth/signin",
         options.signDto
       );
-      localStorage.setItem("access_token", res.data.access_token);
       return options.onSuccess(res.data);
     } catch (err) {
-      return interceptFailure(err, options.onFailure);
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -69,7 +66,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -97,7 +94,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -122,7 +119,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -153,7 +150,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -178,7 +175,7 @@ export namespace Apis {
   //     }
   //     return options.onFailure({
   //         statusCode: 400,
-  //         message: "something went wrong!",
+  //         message: networkError,
   //         error: "bad request",
   //     });
   // }
@@ -207,7 +204,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -236,7 +233,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -263,7 +260,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -291,7 +288,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -317,7 +314,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -345,7 +342,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -371,7 +368,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -396,7 +393,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -419,7 +416,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }
@@ -430,7 +427,6 @@ export namespace Apis {
   }) {
     try {
       const res = await localService.post<RefreshResponse>(`/api/auth/tfa`);
-      localStorage.setItem("access_token", res.data.access_token);
       return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
@@ -442,7 +438,7 @@ export namespace Apis {
     }
     return options.onFailure({
       statusCode: 400,
-      message: "something went wrong!",
+      message: networkError,
       error: "bad request",
     });
   }

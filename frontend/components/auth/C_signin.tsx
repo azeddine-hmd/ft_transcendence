@@ -12,11 +12,6 @@ export default function C_signin() {
     const [password, setpassword] = useState("");
     const [signup, setsignup] = useState(true);
     const router = useRouter();
-    useEffect(() => {
-        if (localStorage.getItem("access_token")) {
-            router.push("/home");
-        }
-    });
 
     return (
         <>
@@ -38,9 +33,6 @@ export default function C_signin() {
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
-                                    //    router.push('/home');
-                                    //    console.log(username);
-                                    //    console.log(password);
                                     Apis.Signin({
                                         signDto: {
                                             username: username,

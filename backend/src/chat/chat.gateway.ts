@@ -3,7 +3,7 @@ import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-rooms.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { Server, Socket } from 'socket.io';
-import { flatten, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { flatten, NotFoundException, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { CreateMsgDto } from './dto/create-msg.dto';
 import { ConversationDto } from './dto/conversation.dto';
@@ -17,8 +17,12 @@ import { Profile } from 'src/profiles/entities/profile.entity';
 import { use } from 'passport';
 import { UpdateRoomDto } from './dto/update-rooms.dto';
 import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
+import { inBlockedList } from './tools/tools';
+import { BanDto } from './dto/ban.dto';
+import { WsExceptionFilter } from 'src/filter/ws-filter';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
+let roomClients:Map<string, clientObj[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
 {
   try {
@@ -43,6 +47,11 @@ class roomModel {
   members : string;
   privacy: boolean;
   admin: string;
+}
+
+class clientObj {
+  id: string;
+  clientId: string;
 }
 
 class dmModel {
@@ -70,6 +79,7 @@ class msgModel{
   currentUser:boolean;
 };
 
+@UseFilters(WsExceptionFilter)
 @WebSocketGateway({
   namespace: 'chat',
   cors: {
@@ -137,6 +147,7 @@ export class ChatGateway {
       this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
   }
 
+
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
   {
@@ -151,15 +162,45 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else
     {
-      client.join(joinRoomDto.roomId.toString());
+      // client.join(joinRoomDto.roomId.toString());
+      // roomClients.set(joinRoomDto.roomId.toString(), )
+      
+      
+      if (roomClients.get(joinRoomDto.roomId.toString()) === undefined)
+        roomClients.set(joinRoomDto.roomId.toString(), [{"id": clientId, "clientId":client.id}]);
+      else
+      {
+        let arr: clientObj[] | undefined = new Array();
+        arr = roomClients.get(joinRoomDto.roomId.toString());
+        if (arr)
+        {
+
+          let bl = 0;
+          arr.forEach(element => {
+            if (element.id == clientId)
+              bl = 1;
+          });
+          if (bl == 0)
+          {
+            arr?.push({"id": clientId, "clientId":client.id});
+            roomClients.set(joinRoomDto.roomId.toString(), arr);
+          }
+          
+        }
+      }
+      
       const userRole = await this.chatService.getMemberRole(joinRoomDto, clientId);
       const roomInfo = await this.chatService.getRoomById(joinRoomDto.roomId);
       
       const msgs = await this.chatService.getAllMsgsPerRoom(joinRoomDto);
+      const blockedUsers = await this.chatService.getBlockedUsers(clientId);
+      
       try{    
         if (msgs)
         {
           for (let index = 0; index < msgs.length; index++) {
+            if (inBlockedList(blockedUsers, msgs[index].user.id))
+              continue;
             let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
@@ -217,6 +258,7 @@ export class ChatGateway {
     {
       client.join(createMsgDto.room.toString());
       const userInfo:User | null = await this.chatService.checkUserProfileByUserId(clientId);
+
       try{
         if (!userInfo) return;
         let tmp:msgModel = new msgModel();
@@ -231,9 +273,30 @@ export class ChatGateway {
         tmp.avatar = userInfo.profile.avatar;
         tmp.currentUser = false;
         
-        client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
-        tmp.currentUser = true;
-        this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        // client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        // this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+        const roomid:string | string[] = createMsgDto.room.toString();
+        if (roomid == undefined)
+          return;
+        else{
+          let room = roomClients.get(roomid);
+          if (room !== undefined)
+          {
+
+            for (let i = 0; i < room.length; i++) {
+              const element = room[i];
+              if (clientId == element.id)
+                continue;
+              const isbck = await this.chatService.isblock(element.id, clientId);
+              if (isbck)
+                continue;
+              this.server.to(element.clientId).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+            }
+            //client.broadcast.to(roomClients.get(roomid)).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+            tmp.currentUser = true;
+            this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+          }
+        }
       }
       catch(e){}
     }
@@ -247,8 +310,8 @@ export class ChatGateway {
 /********************************DM SUBSCRIBE MESSAGE********************************/
 
   /* 
-    when the you user chat with other user, add I add them to the table 
-    conversation table, in this subscribe message i emit all the users that
+    when the you user DM another user, I add them to
+    "conversation" table, in this subscribe message i emit all the users that
     the current user talk with them 
   */
   @SubscribeMessage('conversation')
@@ -260,27 +323,31 @@ export class ChatGateway {
       all the users that the current user talk with them
     */
     let test =  await this.chatService.conversation(clientId);
+    const blockedUsers = await this.chatService.getBlockedUsers(clientId);
     let arr = new Array();
-
+    
     if (test.length > 0)
     {
       test.forEach(element => {
-        let userConversation:userModel = new userModel();        
-        if (element.user1.userId == clientId)
+        if (!inBlockedList(blockedUsers, element.user1.userId == clientId ?  element.user2.id : element.user1.id))
         {
-          userConversation.avatar = element.user2.profile.avatar;
-          userConversation.displayName = element.user2.profile.displayName;
-          userConversation.userId = element.user2.userId;
-          userConversation.username = element.user2.username;
-          arr.push(userConversation);
-        }
-        else
-        {
-          userConversation.avatar = element.user1.profile.avatar;
-          userConversation.displayName = element.user1.profile.displayName;
-          userConversation.userId = element.user1.userId;
-          userConversation.username = element.user1.username;
-          arr.push(userConversation);
+          let userConversation:userModel = new userModel();        
+          if (element.user1.userId == clientId)
+          {
+            userConversation.avatar = element.user2.profile.avatar;
+            userConversation.displayName = element.user2.profile.displayName;
+            userConversation.userId = element.user2.userId;
+            userConversation.username = element.user2.username;
+            arr.push(userConversation);
+          }
+          else
+          {
+            userConversation.avatar = element.user1.profile.avatar;
+            userConversation.displayName = element.user1.profile.displayName;
+            userConversation.userId = element.user1.userId;
+            userConversation.username = element.user1.username;
+            arr.push(userConversation);
+          }
         }
       });
     }
@@ -295,6 +362,8 @@ export class ChatGateway {
     let clientId:any =  getClientId(client, this.jwtService);
     
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
+    const blockedUsers = await this.chatService.getBlockedUsers(clientId);
+    
     if (!test)
     {
       this.server.to(client.id).emit('getPrivateMsg', {success: false, error: "user not found"});
@@ -302,15 +371,18 @@ export class ChatGateway {
     }
     let arr = new Array();
     test.forEach(element => {
-      let dm: dmModel = new dmModel();
-      dm.userId = element.sender.userId;
-      dm.username = element.sender.username;
-      dm.msg = element.message;
-      dm.avatar = element.sender.profile.avatar;
-      let date = element.date.toString().split(':');
-      dm.date = date[0] + ':' + date[1].split(' ')[0];
-      dm.currentUser = (element.sender.userId == clientId) ? true : false;
-      arr.push(dm);
+      if (!inBlockedList(blockedUsers, element.sender.userId == clientId ?  element.receiver.id : element.sender.id))
+      {
+        let dm: dmModel = new dmModel();
+        dm.userId = element.sender.userId;
+        dm.username = element.sender.username;
+        dm.msg = element.message;
+        dm.avatar = element.sender.profile.avatar;
+        let date = element.date.toString().split(':');
+        dm.date = date[0] + ':' + date[1].split(' ')[0];
+        dm.currentUser = (element.sender.userId == clientId) ? true : false;
+        arr.push(dm);
+      }
     });
     let u = await this.chatService.checkUserByUserName(conversationDto.user);
     
@@ -324,6 +396,10 @@ export class ChatGateway {
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
     
     let clientId:any =  getClientId(client, this.jwtService);
+    const blockedUsers = await this.chatService.getBlockedUsers(clientId);
+    const usr:User | null = await this.chatService.checkUserByUserName(privateMsgDto.user);
+    if (usr && inBlockedList(blockedUsers, usr.id))
+      return;
     if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
     {
       this.server.to(client.id).emit("receiveNewPrivateMsg", {error: "Something went wrong: the message is not inserted"});
@@ -331,7 +407,6 @@ export class ChatGateway {
     }
     let newDmMsg:dmModel = new dmModel();
     let chatUser = await this.chatService.checkUserProfileByUserId(clientId);
-    console.log(chatUser);
     if (!chatUser)
       return;
     newDmMsg.userId = chatUser.userId;
@@ -357,6 +432,58 @@ export class ChatGateway {
 
 /******************************END DM SUBSCRIBE MESSAGE******************************/
 
+
+
+
+
+
+/************************************BLOCK USER**************************************/
+
+
+
+@SubscribeMessage('blockUser')
+async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client: Socket) {
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    let test = await this.chatService.blockU(user, clientId);
+    if (!test)
+      this.server.to(client.id).emit('blockUser', {isBlocked: false});
+    else
+      this.server.to(client.id).emit('blockUser', {isBlocked: true});
+    
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+
+/**********************************END BLOCK USER************************************/
+
+
+/************************************BAN USER**************************************/
+
+
+
+@SubscribeMessage('Ban')
+async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
+  console.log("here");
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    let test = await this.chatService.banUser(ban, clientId);
+    if (!test)
+      this.server.to(client.id).emit('Ban', {isBaned: false});
+    else
+      this.server.to(client.id).emit('Ban', {isBaned: true});
+    
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+
+/**********************************END BLOCK USER************************************/
 
 
 
