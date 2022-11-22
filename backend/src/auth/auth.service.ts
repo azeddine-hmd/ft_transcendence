@@ -70,13 +70,13 @@ export class AuthService {
   verifyJwtToken(token: string) {
     try {
       return {
-        jwtPayload: this.jwtService.verify(token),
+        jwtPayload: this.jwtService.verify(token) as UserJwtPayload,
         expired: false,
       };
     } catch (error) {
       if ((error as Error).name === 'TokenExpiredError') {
         return {
-          jwtPayload: this.jwtService.decode(token),
+          jwtPayload: this.jwtService.decode(token) as UserJwtPayload,
           expired: true,
         };
       }
