@@ -21,11 +21,7 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     @Inject(forwardRef(() => UsersSocketService))
     private readonly usersSocketService: UsersSocketService,
-  ) {
-    setInterval(() => {
-      //TODO: notify users online offline
-    }, 2000);
-  }
+  ) {}
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   async handleConnection(client: Socket, ..._args: any[]) {

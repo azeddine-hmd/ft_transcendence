@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IoArrowBackCircle } from "react-icons/io5";
 
 import { Apis } from "../../network/apis";
