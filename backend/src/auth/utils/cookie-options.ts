@@ -7,12 +7,10 @@ export const refreshCookieOptions: CookieOptions = {
   expires: expiresMaxTime,
   path: '/api/auth/refresh',
   maxAge: expiresMaxTime.getTime(),
-  sameSite: 'strict',
 };
 
 export const accessCookieOptions: CookieOptions = {
   httpOnly: true,
   expires: expiresMaxTime,
   maxAge: expiresMaxTime.getTime(),
-  sameSite: 'strict',
 };
