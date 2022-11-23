@@ -70,18 +70,25 @@ export class AuthController {
   @FTAuthGuard
   @Get('/42/callback')
   @Redirect()
-  FTCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async FTCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = this.authService.login(req.user);
+    const login = await this.authService.login(req.user);
     const frontendHost = this.envService.get('FRONTEND_HOST');
-    res.cookie('refresh_token', login.refreshToken, {
+    res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
-    res.cookie('access_token', login.accessToken, {
+    res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    let url = `${frontendHost}/home`;
+    if (login.tfa && login.tfa === 'pending') {
+      url = `${frontendHost}/auth/tfa`;
+    }
     return {
-      url: `${frontendHost}/auth/42/callback`,
+      url: url,
     };
   }
 
@@ -95,14 +102,14 @@ export class AuthController {
     @Body() signupUserDto: SignupUserDto,
   ) {
     const user = await this.authService.registerUser(signupUserDto);
-    const login = this.authService.login({
+    const login = await this.authService.login({
       username: user.username,
       userId: user.userId,
     });
-    res.cookie('refresh_token', login.refreshToken, {
+    res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
-    res.cookie('access_token', login.accessToken, {
+    res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
   }
@@ -116,13 +123,13 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  login(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async signin(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = this.authService.login(req.user);
-    res.cookie('refresh_token', login.refreshToken, {
+    const login = await this.authService.login(req.user);
+    res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
-    res.cookie('access_token', login.accessToken, {
+    res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
   }

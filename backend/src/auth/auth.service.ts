@@ -13,7 +13,7 @@ import { EnvService } from 'src/conf/env.service';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
-import { Login } from './types/login';
+import { Tokens } from './types/login';
 import { UserJwtPayload } from './types/user-jwt-payload';
 
 @Injectable()
@@ -58,13 +58,27 @@ export class AuthService {
     return user;
   }
 
-  login(userJwtPayload: UserJwtPayload): Login {
+  async login(
+    userJwtPayload: Express.User,
+  ): Promise<{ tokens: Tokens; tfa?: string }> {
     Logger.log(
       `AuthService#login: user '${userJwtPayload.username}' logged-in!`,
     );
+    const isTfaEnabled = await this.usersService.getTfa(userJwtPayload.userId);
+    if (isTfaEnabled) {
+      if (userJwtPayload.tfa === undefined) userJwtPayload.tfa = 'pending';
+    } else {
+      userJwtPayload.tfa = undefined;
+    }
     const accessToken = this.jwtService.sign(userJwtPayload);
     const refreshToken = this.getRefreshToken(userJwtPayload);
-    return { accessToken, refreshToken };
+    return {
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+      tfa: userJwtPayload.tfa,
+    };
   }
 
   verifyJwtToken(token: string) {
@@ -109,16 +123,16 @@ export class AuthService {
     }
   }
 
-  refreshAcessToken(opts: {
+  async refreshAcessToken(opts: {
     expiredToken: string;
     refreshToken: string;
-  }): string {
+  }): Promise<string> {
     const { expiredToken, refreshToken } = opts;
     try {
       const { jwtPayload, expired } = this.verifyJwtToken(expiredToken);
       if (expired) {
         if (refreshToken === this.refreshTokens.get(jwtPayload.username)) {
-          return this.login(jwtPayload).accessToken;
+          return (await this.login(jwtPayload)).tokens.accessToken;
         }
       }
       throw new BadRequestException('access token is still valid');
