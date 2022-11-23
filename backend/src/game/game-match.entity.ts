@@ -22,4 +22,31 @@ export class GameMatch {
 
     @Column()
     mode: string;
+
+    @Column({ nullable: true, default: 0 })
+    totalGames: number;
+
+    @Column({ nullable: true, default: 0 })
+    totalWins: number;
+
+    @Column({ nullable: true, default: 0 })
+    totalLoss: number;
+
+    @Column({ nullable: true, type: 'decimal', precision: 5, scale: 2, default: 0 })
+    ration: number;
+
+    @Column({ nullable: true })
+    rank: number;
+
+    @Column({ nullable: true, default: 1000 })
+    points: number;
+
+    @Column({ nullable: true, default: 0 })
+    xp: number;
+
+    @Column({ nullable: true, type: 'decimal', precision: 5, scale: 2, default: 0 })
+    percentLevel: number;
+
+    @Column({ nullable: true, default: 1 })
+    level: number;
 }
