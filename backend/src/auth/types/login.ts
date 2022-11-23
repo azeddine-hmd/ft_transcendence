@@ -1,4 +1,4 @@
-export class Login {
+export class Tokens {
   accessToken: string;
   refreshToken: string;
 }

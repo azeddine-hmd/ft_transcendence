@@ -46,6 +46,12 @@ export class UsersService {
     return user.id;
   }
 
+  async getTfa(userId: string): Promise<boolean> {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException();
+    return user.tfa;
+  }
+
   /* creation operations */
 
   private async createUser(

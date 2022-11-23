@@ -4,15 +4,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
 import { EnvService } from 'src/conf/env.service';
 import { UsersService } from '../../users/services/users.service';
-import { AuthService } from '../auth.service';
 import { FtProfile } from '../types/ft-profile';
 
 @Injectable()
 export class FtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private envService: EnvService,
-    private authService: AuthService,
-    private usersSerivce: UsersService,
+    private readonly envService: EnvService,
+    private readonly usersSerivce: UsersService,
   ) {
     super({
       clientID: envService.get('CLIENT_ID'),
@@ -29,8 +27,8 @@ export class FtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(
-    accessToken: string,
-    refreshToken: string,
+    _accessToken: string,
+    _refreshToken: string,
     ftProfile: FtProfile,
   ): Promise<Express.User> {
     if (!ftProfile.avatar) {
