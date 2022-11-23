@@ -8,7 +8,6 @@ import settingstyle from '../../styles/chat/Setting.module.css'
 import stylee from '../../styles/chat/Card.module.css'
 
 
-
 interface props {
     username: string | undefined;
     avatar: string | undefined;
@@ -33,6 +32,8 @@ function Layout({ data }: Props) {
     const [text, setText] = useState('');
     const [showSetting, setShowSetiig] = useState(false);
 
+    console.log("socket = ", socket.id);
+    
 
     function Setting() {
         const [password, setPassword] = useState('');
@@ -163,7 +164,26 @@ function Layout({ data }: Props) {
 
 export default function ChatView() {
     const [data, setData] = useState(messages);
+    const [username, setUsername] = useState('');
     const [visible, setVisibility] = useState(false)
+
+
+    socket.emit('clientId');
+
+    socket.on('clientId', ({username}) => {
+        console.log("username=", username);
+        setUsername(username);
+    })
+
+    socket.on('Ban', ({isBaned, user}) => {
+        console.log("BAN - ", isBaned, user, username);
+        
+        if (isBaned && user === username)
+        {
+            setVisibility(false);
+            setData(messages);
+        }
+    });
 
     socket.on('createMsg', ({ created, room, tmp }) => {
 

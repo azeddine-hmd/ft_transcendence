@@ -20,6 +20,7 @@ import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 import { inBlockedList } from './tools/tools';
 import { BanDto } from './dto/ban.dto';
 import { WsExceptionFilter } from 'src/filter/ws-filter';
+import cookieParser from 'cookie-parser';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 let roomClients:Map<string, clientObj[] | undefined> = new Map();
@@ -28,7 +29,7 @@ function getClientId(client: Socket, jwt: JwtService): number
   try {
     let auth:any = "";
     let tmp;
-    auth =  client.handshake.auth.token;
+    auth =  client.handshake.headers.cookie;
     const claims = atob(auth.split('.')[1]);
     tmp = JSON.parse(claims);
     return (tmp.userId);
@@ -51,7 +52,7 @@ class roomModel {
 
 class clientObj {
   id: string;
-  clientId: string;
+  clientId: string[];
 }
 
 class dmModel {
@@ -85,6 +86,7 @@ class msgModel{
   cors: {
     origin: '*',
   },
+  cookie: true,
 })
 export class ChatGateway {
   @WebSocketServer()
@@ -160,14 +162,14 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "room not found", msgs: null });
     else if (join == 3)
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
+    else if (join > 9)
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "the administrator baned you " + join + "H", msgs: null });
     else
     {
       // client.join(joinRoomDto.roomId.toString());
       // roomClients.set(joinRoomDto.roomId.toString(), )
-      
-      
       if (roomClients.get(joinRoomDto.roomId.toString()) === undefined)
-        roomClients.set(joinRoomDto.roomId.toString(), [{"id": clientId, "clientId":client.id}]);
+        roomClients.set(joinRoomDto.roomId.toString(), [{"id": clientId, "clientId":[client.id]}]);
       else
       {
         let arr: clientObj[] | undefined = new Array();
@@ -182,7 +184,7 @@ export class ChatGateway {
           });
           if (bl == 0)
           {
-            arr?.push({"id": clientId, "clientId":client.id});
+            arr?.push({"id": clientId, "clientId":[client.id]});
             roomClients.set(joinRoomDto.roomId.toString(), arr);
           }
           
@@ -472,9 +474,36 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
   try {
     let test = await this.chatService.banUser(ban, clientId);
     if (!test)
-      this.server.to(client.id).emit('Ban', {isBaned: false});
+    {
+      let room = roomClients.get(ban.room.toString());
+      // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
+
+      console.log("!test ",room);
+      if (room)
+      {
+        
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          this.server.to(element.clientId).emit('Ban', {isBaned: false, user: ban.user});
+        }
+      }
+    }
     else
-      this.server.to(client.id).emit('Ban', {isBaned: true});
+    {
+      let room = roomClients.get(ban.room.toString());
+
+      if (room)
+      {
+        console.log("test ", room);
+
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          console.log(element);
+          
+          this.server.to(element.clientId).emit('Ban', {isBaned: true, user: ban.user});
+        }
+      }
+    }
     
   } catch (error) {
     console.error(error);
@@ -487,7 +516,13 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
 
 
-
+@SubscribeMessage('Ban')
+async clientUsername(@ConnectedSocket() client: Socket) {
+  let clientId:any =  getClientId(client, this.jwtService);
+  const usr: User | null = await this.chatService.checkUser(clientId);
+  if (usr)
+    this.server.to(client.id).emit('clientId', { username: usr.username });
+}
 
 
 
@@ -497,11 +532,18 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
+    
+    const myCookies = client.handshake.headers.cookie;
+    console.log(myCookies);
+    
+    // const result = cookieParser.;
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
     try {
-      this.server.to(client.id).emit('clientId', { userId: clientId });     
+      const usr: User | null = await this.chatService.checkUser(clientId);
+      if (usr)
+        this.server.to(client.id).emit('clientId', { username: usr.username });     
       let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
       checkUserJoined.forEach(element => {
         client.join(element.rid.toString());

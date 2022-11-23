@@ -1,5 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { userAgent } from 'next/server';
+import { useEffect } from 'react';
 import { io } from "socket.io-client";
 import ChatView from '../../components/chat/ChatView';
 import ListView from '../../components/chat/ListView';
@@ -30,6 +32,9 @@ let socket = io(URL, {
     token: token,
   },
 });
+
+
+
 export { socket };
 
 
@@ -37,6 +42,9 @@ export { socket };
 
 function Layout() {
 
+  useEffect(()=>{
+    console.log(socket.id);
+  }, [socket])
 
   return (
     <div className="homepage w-full h-screen min-w-full relative">

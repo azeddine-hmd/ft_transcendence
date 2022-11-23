@@ -1,5 +1,6 @@
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Rooms } from "./rooms.entity";
 
 @Entity()
 export class Ban {
@@ -14,6 +15,10 @@ export class Ban {
 
     @Column()
     limit_time: number;
+
+    @ManyToOne(type => Rooms, (room) => room.id)
+    room: number;
+
 
     @Column()
     time: Date;

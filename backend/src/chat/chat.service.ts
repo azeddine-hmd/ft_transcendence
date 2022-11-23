@@ -55,6 +55,8 @@ export class ChatService {
 
   async checkUser(auth: any)
   {
+    console.log(auth);
+    
     let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
     .where("user.userId = :id", { id: auth })
@@ -127,6 +129,35 @@ export class ChatService {
     .where("rooms.id = :id", { id: roomId })
     .getOne()
     return checkroom;
+  }
+
+  async checkRoomBan(auth:any, joinRoomDto: JoinRoomDto)
+  {
+    let checkBanroom = await this.banRepository.createQueryBuilder('ban')
+    .leftJoinAndSelect("ban.user1","user1")
+    .leftJoinAndSelect("ban.user2","user2")
+    .where("user2.userId = :id AND ban.room = :rid", { id: auth, rid: joinRoomDto.roomId })
+    .select()
+    .getOne()
+    
+    if (checkBanroom)
+    {
+      var currentDate = new Date();
+      const banTime: number = checkBanroom.time.getTime();
+
+      const unbanTime: number = banTime + 30000;//checkBanroom.limit_time *  * 60 * 60 * 1000;
+      if (unbanTime < currentDate.getTime())
+      {
+        await this.banRepository.createQueryBuilder('ban')
+        .where('"ban"."roomId" = :rid', { rid: joinRoomDto.roomId })
+        .leftJoin('ban.user2','user2')
+        .having('"user2"."userId" = :id', { id: auth})
+        .delete()
+        .execute();
+        return undefined;
+      }
+    }
+    return checkBanroom;
   }
 
   async checkProtectedRoomPassword(joinRoomDto: JoinRoomDto)
@@ -300,6 +331,10 @@ export class ChatService {
       if (checkroomPass == null)
         return 3;
     }
+    let checkBan = await this.checkRoomBan(auth , joinRoomDto);
+    if (checkBan)
+      return checkBan.limit_time * 10;
+
     u1.id = checkuser.id;
     let ret = await this.getRole(auth, joinRoomDto.roomId);
     let role = "member";
@@ -423,7 +458,7 @@ async banUser(ban:  BanDto, auth: any)
   .innerJoinAndSelect("user1.profile", "profile1")
   .innerJoinAndSelect("ban.user2", "user2")
   .innerJoinAndSelect("user2.profile", "profile2")
-  .where("(user1.userId = :id AND user2.userId = :id2)", { id: auth, id2: user.userId })
+  .where("(user1.userId = :id AND user2.userId = :id2) AND ban.room = :roomid", { id: auth, id2: user.userId, roomid: ban.room })
   .getOne();
   let tmp = await this.checkUser(auth);
   let tmp2 = await this.checkUser(user.userId);
@@ -434,7 +469,6 @@ async banUser(ban:  BanDto, auth: any)
   };
   const roleBaner = await this.getMemberRole(rmid, auth)
   const roleBaned = await this.getMemberRole(rmid, auth)
-  console.log("hhhhhhh");
   
   if (((roleBaner?.role == "owner" || roleBaner?.role == "admin") && roleBaned?.role != "member")
   || (roleBaner?.role == "owner"))
@@ -447,7 +481,7 @@ async banUser(ban:  BanDto, auth: any)
     {
       console.log({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
       
-      const cnv = this.banRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      const cnv = this.banRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, room: ban.room, time: new Date() });
       await this.banRepository.save(cnv);
     }
     return (1);
