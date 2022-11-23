@@ -148,9 +148,7 @@ export class GameGateway {
 	@SubscribeMessage('getResult')
 	gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
-		const arr = _data.split(' ');
-		console.log(arr);
-		
+		const arr = _data.split(' ');		
 		this.gameService.createGameMatch({
 			winner: arr[0],
 			loser: arr[1],
@@ -174,5 +172,10 @@ export class GameGateway {
 		this.server.emit('getPlayer', _data);	
 	}
 
+	@SubscribeMessage('live')
+	live(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	{
+		this.server.emit('live', _data);	
+	}
 
 }

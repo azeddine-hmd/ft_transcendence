@@ -143,6 +143,12 @@ function live()
             <div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
                 <Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
                 <canvas className={style.canvas} id="canvas" width={600} height={600}></canvas>
+				<div>
+
+					p1 3 vs 2 p2 
+
+
+				</div>
             </div>
             </div>
             </div>

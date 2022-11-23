@@ -187,7 +187,7 @@ function Game()
 		context.fillStyle = 'black';
 		context.fillRect(0, 0, canvas.width, canvas.height);
 		context.strokeStyle = colorG;
-		context.beginPath();
+		// context.beginPath();
 		context.fillStyle = colorG;
 		context.fillRect(0, game.player1.y, playerWith, playerHeight);
 		context.fillRect(canvas.width - playerWith, game.player2.y, playerWith, playerHeight);		
@@ -280,10 +280,6 @@ function Game()
 			game.player2.score = array1[5];	
 		}
 	});
-	function init_socket()
-	{
-
-	}
 
 	function playerMove(event:any) 
 	{
@@ -315,6 +311,16 @@ function Game()
 				socket.emit('getPlayer', playerName + " " + game.player2.y);
 		}
 	}
+	function winer()
+	{
+		var c = canvas.getContext('2d');		
+		c.fillText("winer", 200, 100);
+	}
+	function loser()
+	{
+		var c = canvas.getContext('2d');
+		c.fillText("loser", 200, 100);
+ 	}
 	function getResult() 
 	{
 		console.log(game.player1.score);
@@ -322,10 +328,18 @@ function Game()
 		
 		if (game.player1.score > game.player2.score ) 
 		{
+			if(playerName === p1)
+				winer();
+			else
+				loser();
 			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score+" "+ mode);
 		}
 		if (game.player1.score < game.player2.score ) 
 		{
+			if(playerName === p2)
+				winer();
+			else
+				loser();
 			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score +" "+ mode);
 		}		
 		game.ball.speed.x = 0;
@@ -349,12 +363,14 @@ function Game()
 			if(playerName == p1)
 			{
 				ballMove();
-				// if (game.player2.score === 3 || game.player1.score === 3) 
-				// {
-				// 	getResult();
-				// 	initilizeGame();
-				// 	set(false); 
-				// }
+				if (game.player2.score === 3 || game.player1.score === 3) 
+				{
+
+					getResult();
+					initilizeGame();
+					set(false); 
+					
+				}
 				game.ball.x += game.ball.speed.x*acl;
 				game.ball.y += game.ball.speed.y*acl;	
 				
@@ -364,18 +380,16 @@ function Game()
 		counter = setInterval(ft, 1000 * 0.02);
 	}
 
-	Apis.CurrentProfile( {
+	Apis.CurrentProfile({
 		onSuccess: (userResponse: ProfileResponse) => {
-			let username = "";
 			setUser(userResponse.username);
-			username = userResponse.username;
-			playerName = username;
-			setUsername(username);	
+			playerName = userResponse.username;
+			setUsername(userResponse.username);	
 			console.log(playerName);	
 			canvas = document.getElementById('canvas');
-			init_socket();
 			initilizeGame();	
 			drawGame();
+			socket.user.username = userResponse.username;
 		},
 		onFailure: (err: ErrorResponse) => {
 			// callAlert();
