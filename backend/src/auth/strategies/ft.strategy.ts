@@ -1,7 +1,8 @@
+import { BadRequestException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common/decorators';
-import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
+import { EnvService } from 'src/conf/env.service';
 import { UsersService } from '../../users/services/users.service';
 import { AuthService } from '../auth.service';
 import { FtProfile } from '../types/ft-profile';
@@ -9,19 +10,19 @@ import { FtProfile } from '../types/ft-profile';
 @Injectable()
 export class FtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private configService: ConfigService,
+    private envService: EnvService,
     private authService: AuthService,
     private usersSerivce: UsersService,
   ) {
     super({
-      clientID: configService.get('CLIENT_ID'),
-      clientSecret: configService.get('SECRET'),
-      callbackURL: configService.get('BACKEND_HOST') + '/api/auth/42/callback',
+      clientID: envService.get('CLIENT_ID'),
+      clientSecret: envService.get('SECRET'),
+      callbackURL: envService.get('BACKEND_HOST') + '/api/auth/42/callback',
       scope: 'public',
       profileFields: {
         ftId: (obj: any) => String(obj.id),
         username: 'login',
-        avatar: 'image_url',
+        avatar: 'image.link',
         displayName: 'displayname',
       },
     });
@@ -30,9 +31,17 @@ export class FtStrategy extends PassportStrategy(Strategy) {
   async validate(
     accessToken: string,
     refreshToken: string,
-    profile: FtProfile,
+    ftProfile: FtProfile,
   ): Promise<Express.User> {
-    const user = await this.usersSerivce.findOrCreate(profile);
+    if (!ftProfile.avatar) {
+      ftProfile.avatar = this.envService.get('DEFAULT_AVATAR');
+    }
+    if (!ftProfile.displayName) {
+      throw new BadRequestException(
+        `could'nt fetch display name from 42 intra`,
+      );
+    }
+    const user = await this.usersSerivce.findOrCreate(ftProfile);
     return { username: user.username, userId: user.userId };
   }
 }
