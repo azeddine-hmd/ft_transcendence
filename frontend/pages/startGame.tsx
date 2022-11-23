@@ -12,7 +12,11 @@ function Game()
 		if(window.top)
         	window.top.location = url.concat("/game")
     }
-	
+	const live = (e: any) => {    
+        e.preventDefault();
+		if(window.top)
+        	window.top.location = url.concat("/live")
+    }
 	return (
 	    <>
 		<div className="homepage w-full h-screen min-w-full relative">
@@ -23,7 +27,9 @@ function Game()
             			<Sidebar/>
             		<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
-						<div className={style.start}>
+						<div className={style.start}>							
+						 <button onClick={live}>live</button>
+
 						<div className={style.wrapper}>
 						<div className={style.left_wall}></div>
 						<div className={style.ball}></div>
@@ -32,13 +38,12 @@ function Game()
 						</div>
   							<div className={style.cont}>
   							<button className={style.button} onClick={changeStyle}>
-							  <div className={style.line}></div>
+							<div className={style.line}></div>
 							<div className={style.text}>
-							<p className={style.p1}>S</p>
-							<p className={style.p2}>T</p>
+							<p className={style.p1}>P</p>
+							<p className={style.p2}>L</p>
 							<p className={style.p3}>A</p>
-							<p className={style.p4}>R</p>
-							<p className={style.p5}>T</p>
+							<p className={style.p4}>Y</p>
      						 </div>
 							 </button>
        						</div>

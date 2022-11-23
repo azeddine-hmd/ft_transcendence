@@ -1,5 +1,9 @@
+import { Logger, UseFilters } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { WSAuthGuard } from 'src/auth/guards/ws-auth.guard';
+import { handleWsException, WsExceptionFilter } from 'src/filter/ws-filter';
+import { UsersSocketService } from 'src/users/services/users-socket.service';
 import { PlayerInfo } from './game-queue';
 import GameService from './game.service';
 
@@ -47,9 +51,13 @@ let _game:any =
 ];
 
 let waiting:boolean = true;
+
+@UseFilters(WsExceptionFilter)
+@WSAuthGuard
 @WebSocketGateway({ 
 	namespace: 'game',
-	cors: {origin: '*'},
+	cors: [process.env.FRONTEND_HOST, process.env.BACKEND_HOST],
+	cookie: true,
 })
 export class GameGateway {
 	@WebSocketServer()
@@ -57,28 +65,37 @@ export class GameGateway {
 
 	constructor(
         private readonly gameService: GameService,
-    ) {}
+		private readonly usersSocketService: UsersSocketService,
+    ){}
    
-	handleConnection(client: Socket, ...args: any[]) {
+	async handleConnection(client: Socket, ...args: any[]) {
+		Logger.debug(`Client Game Socket connect: id=${client.id}`);
+		try {
+			await this.usersSocketService.authenticate(client);
+		  } catch (exception) {
+			handleWsException(client, exception);
+		  }
 	}
 	
 	handleDisconnect(client: Socket, ...args: any[]) {
-	
-		if (!client.handshake.query.username || !client.handshake.query.mode)
-			return
-		let usern = client.handshake.query.username
-		let mode = client.handshake.query.mode;
-		let i:any = mode === 'Easy' ? 0 : 1
+		Logger.debug(`Client Game Socket disconnected: id=${client.id}`);
+		if (client.user.username) {
+			if (!client.user.username || !client.handshake.query.mode)
+				return
+			let usern = client.user.username
+			let mode = client.handshake.query.mode;
+			let i:any = mode === 'Easy' ? 0 : 1
 
-		const queue = this.gameService.matches[i];
+			const queue = this.gameService.matches[i];
 
-		let ind = queue.findIndex((player: PlayerInfo) => { 
-			return (player.username === usern) 
-		}) // -1, >= 0
+			let ind = queue.findIndex((player: PlayerInfo) => { 
+				return (player.username === usern) 
+			}) // -1, >= 0
 
-		if ( ind !== -1 ) {
-			if (queue[ind].sockets.indexOf(client.id) !== -1) {
-				queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
+			if ( ind !== -1 ) {
+				if (queue[ind].sockets.indexOf(client.id) !== -1) {
+					queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
+				}
 			}
 		}
 	}
@@ -95,21 +112,21 @@ export class GameGateway {
 		waiting = true;
 		if(data.toString().includes("cancel"))
 			waiting = false;
-		if (client.handshake.query.username)
+		if (client.user.username)
 		{
 			if(waiting) 
 			{
-				let ind = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } ) // -1, >= 0
+				let ind = queue.findIndex(function (obj:any) { return (obj.username === client.user.username) } ) // -1, >= 0
 				// not found
 				if ( ind === -1 ) 
-					queue.push({ sockets: [client.id], username: client.handshake.query.username as string});
+					queue.push({ sockets: [client.id], username: client.user.username as string});
 				// found
 				else 
 					queue[ind].sockets.push(client.id)
 			}
 			else
 			{
-				const index = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } )
+				const index = queue.findIndex(function (obj:any) { return (obj.username === client.user.username) } )
 				if (index > -1) 
 				{
 					queue.splice(index, 1);
@@ -120,10 +137,10 @@ export class GameGateway {
 				let contender = queue[0].username;
 				let ind = _game[i].push( { left: queue.splice(0, 1)[0] } ) - 1;
 
-				var index = queue.findIndex(function (obj:any) { return (obj.username === client.handshake.query.username) } );
+				var index = queue.findIndex(function (obj:any) { return (obj.username === client.user.username) } );
 				if (index != -1) 
 					_game[i][ind].right = queue.splice(index, 1)[0];
-				this.server.to([..._game[i][ind].left.sockets, ..._game[i][ind].right.sockets]).emit('abcd',client.handshake.query.username , contender, i,  ind);
+				this.server.to([..._game[i][ind].left.sockets, ..._game[i][ind].right.sockets]).emit('abcd',client.user.username , contender, i,  ind);
 			}
 		}
 	}
@@ -157,10 +174,5 @@ export class GameGateway {
 		this.server.emit('getPlayer', _data);	
 	}
 
-	@SubscribeMessage('test')
-	test(@ConnectedSocket() socket: Socket, @MessageBody() body: string) 
-	{
-		const b = body.split(':');
-		this.server.emit('live', body);
-	}
+
 }

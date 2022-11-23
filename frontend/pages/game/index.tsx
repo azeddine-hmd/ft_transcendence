@@ -1,12 +1,12 @@
-import Sidebar from '../components/profile/Sidebar'
-import Useravatar from '../components/profile/Useravatar'
+import Sidebar from '../../components/profile/Sidebar'
+import Useravatar from '../../components/profile/Useravatar'
 import { useEffect, useState } from 'react'
 import React from "react";
-import {Apis} from "../network/apis"
-import { ErrorResponse } from '../network/dto/response/error-response.dto'
-import { ProfileResponse } from '../network/dto/response/profile-response.dto'
+import {Apis} from "../../network/apis"
+import { ErrorResponse } from '../../network/dto/response/error-response.dto'
+import { ProfileResponse } from '../../network/dto/response/profile-response.dto'
 import io from 'socket.io-client';
-import style from '../styles/game/gameStyle.module.css'
+import style from '../../styles/game/gameStyle.module.css'
 
 interface GameOption
 {
@@ -59,7 +59,7 @@ function Game()
 	const [is, set] = React.useState(true);
 
 	var socket:any;
-	socket = io(url + "/game",{ query: { username: username, mode: "Easy"} ,transports: ['websocket']});
+	socket = io(url + "/game",{ query: { mode: "Easy"} ,transports: ['websocket'], withCredentials: true});
 	function _mode(m:number)
 	{
 		if(m == 0)
@@ -227,8 +227,6 @@ function Game()
 		buttomSearch[0] = "search";
 		clearInterval(counter);
 	}
-
-
 
 	socket.on("live", (...args:any) => {
 		if (playerName != p2 && playerName != p1)

@@ -17,7 +17,6 @@ class WSAuthGuardClass implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    Logger.debug(`WebSocket Guard on verify token`);
     const client = context.switchToWs().getClient() as Socket;
     return this.usersSocketService
       .authenticate(client)

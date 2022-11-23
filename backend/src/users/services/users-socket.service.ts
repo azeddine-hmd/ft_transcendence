@@ -16,7 +16,6 @@ export class UsersSocketService {
   ) {}
 
   async authenticate(client: Socket): Promise<UserJwtPayload> {
-    Logger.log(`Client Socket Connected: id=${client.id}`);
     const rawCookies = client.handshake.headers.cookie;
     if (!rawCookies) throw new WsException('unautherized');
     const token = parse(rawCookies).access_token;
