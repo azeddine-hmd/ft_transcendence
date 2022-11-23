@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
+import { parse } from 'cookie';
 import { Socket } from 'socket.io';
 import { AuthService } from '../../auth/auth.service';
 import { UserJwtPayload } from '../../auth/types/user-jwt-payload';
@@ -16,8 +17,9 @@ export class UsersSocketService {
 
   async authenticate(client: Socket): Promise<UserJwtPayload> {
     Logger.log(`Client Socket Connected: id=${client.id}`);
-    const tokenVal = typeof client.handshake.headers.token;
-    const token = Array.isArray(tokenVal) ? (tokenVal[0] as string) : tokenVal;
+    const rawCookies = client.handshake.headers.cookie;
+    if (!rawCookies) throw new WsException('unautherized');
+    const token = parse(rawCookies).access_token;
     if (!token) throw new WsException('unautherized');
     const { jwtPayload, expired } = this.authService.verifyJwtToken(token);
     if (expired) throw new WsException('refresh');

@@ -8,24 +8,26 @@ import {
 import { WsException } from '@nestjs/websockets/errors';
 import { Observable } from 'rxjs';
 import { Socket } from 'socket.io';
-import { AuthService } from '../auth.service';
+import { UsersSocketService } from 'src/users/services/users-socket.service';
 
 @Injectable()
 class WSAuthGuardClass implements CanActivate {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly usersSocketService: UsersSocketService) {}
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     Logger.debug(`WebSocket Guard on verify token`);
     const client = context.switchToWs().getClient() as Socket;
-    const tokenVal = client.handshake.headers.token;
-    const token = Array.isArray(tokenVal) ? (tokenVal[0] as string) : tokenVal;
-    if (!token) throw new WsException('unautherized');
-    const { jwtPayload, expired } = this.authService.verifyJwtToken(token);
-    if (expired) throw new WsException('refresh');
-    client.user = jwtPayload;
-    return true;
+    return this.usersSocketService
+      .authenticate(client)
+      .then((_) => {
+        return true;
+      })
+      .catch((reason) => {
+        console.log(reason);
+        throw new WsException(reason);
+      });
   }
 }
 
