@@ -1,7 +1,7 @@
 import style from '../../styles/chat/ChatView.module.css'
 import messages from '../../messages.json'
 import ChatCard from './ChatCard';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { socket } from '../../pages/chat/[chat]'
 import { Button } from "@progress/kendo-react-buttons";
 import settingstyle from '../../styles/chat/Setting.module.css'
@@ -23,17 +23,17 @@ interface Props {
 
 var roomID = -1;
 var roomTitle = '..';
-var userID = '';
 var roomType:string = '';
 var userRole = 'member';
 var username = '';
 var data = messages;
 
-function Layout({ data }: Props) {
+function Layout() {
     const [text, setText] = useState('');
+    const [mdata, setmData] = useState(data);
     const [showSetting, setShowSetiig] = useState(false);
     
-
+    
     function Setting() {
         const [password, setPassword] = useState('');
         const [username, setUsername] = useState('');
@@ -52,7 +52,6 @@ function Layout({ data }: Props) {
 
         function handleSave() {
             setShowSetiig(false);
-            console.log('privacy=', privacy);
             socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
         }
 
@@ -98,24 +97,34 @@ function Layout({ data }: Props) {
 
     useEffect(() => {
         scrollToBottom()
-    }, [data]);
+    }, [mdata]);
 
     const [msg, setMsg] = useState('');
 
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
 
     function SendMessage() {
-        console.log('roomType=',roomType);
-        
         (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-            : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg }); setText('');
+        : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg }); setText('');
+        
     }
+
+    useEffect(() => {
+        socket.on('updateMessages', () => {
+            console.log('update');
+            
+            setmData(data);
+            scrollToBottom()
+        });
+
+        return () => {
+            socket.off('updateMessages');
+        }
+    }, [])
 
     useEffect(() => {
         setText(msg);
     }, [msg])
-
-    useEffect(() => {}, [data]);
 
     return (
         <div className={style.chat}>
@@ -132,7 +141,7 @@ function Layout({ data }: Props) {
             {(showSetting) ? <Setting /> : <></>}
             <div className={style.chatBoard}>
                 <div className={style.scroll}>
-                    {(data !== undefined) ? data.map(messages => {
+                    {(mdata !== undefined) ? mdata.map(messages => {
                         return (
                             <ChatCard id={messages.username} date={messages.date} 
                             name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
@@ -165,31 +174,32 @@ export default function ChatView() {
                 alert('user added successfuly');
             else
                 alert('Error: ' + error);
+            socket.emit('updateMessages', {});    
         })
     
         socket.on("updateRoom", (success, error) => {
-            console.log(success, error);
+            socket.emit('updateMessages', {});
         })
         
         socket.on('clientId', ({ user }) => {
-            console.log("username=", username);
             username = user;
+            socket.emit('updateMessages', {});
         })
     
         socket.on('Ban', ({isBaned, user}) => {
-            console.log("BAN - ", isBaned, user, username);
             
             if (isBaned && user === username)
             {
                 setVisibility(false);
                 data = messages
             }
+            socket.emit('updateMessages', {});
         });
     
         socket.on('createMsg', ({ created, room, tmp }) => {
-            console.log('msg created');
             
             if (created && room === roomID) {
+                
                 let newData = [...data];
                 let dd = {
                     username: tmp.username,
@@ -201,17 +211,12 @@ export default function ChatView() {
                 }
                 newData.push(dd);
                 data = newData;
-                console.log(data);
             }
+            socket.emit('updateMessages', {});
     
         })
     
         socket.on('receiveNewPrivateMsg', (newDmMsg) => {
-    
-            console.log("hhhhhhhhhjfsljlsjdjl");
-    
-            // if (created && room === roomID) // <<<<<
-    
             let newData = [...data];
             let dd = {
                 username: newDmMsg.username,
@@ -223,18 +228,16 @@ export default function ChatView() {
             }
             newData.push(dd);
             data = newData;
-    
-    
+            socket.emit('updateMessages', {});
         })
     
         
         socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
-            console.log('getPrivateMsg flag returned');
             roomID = username; // <<<<<<<<<<<<< 8
             roomTitle = username; // <<<<<<<<<<<<<< 8
             setVisibility(true);
             data = privateMessages;
-            userID = userId;
+            socket.emit('updateMessages', {});
             
         })
 
@@ -245,15 +248,13 @@ export default function ChatView() {
             }
             else {
                 userRole = role;
-                console.log(role);
                 roomType = 'room';
-                console.log('joinRoom flag returned');
                 roomID = room.id;
                 roomTitle = room.title;
                 setVisibility(true);
                 data = msgs;
             }
-            console.log('room joined and roomType: ', roomType);
+            socket.emit('updateMessages', {});
         })
 
         return () => {
@@ -271,7 +272,7 @@ export default function ChatView() {
 
     return (
         <>
-            {visible ? <Layout data={data} /> : null}
+            {visible ? <Layout /> : null}
         </>
     );
 }

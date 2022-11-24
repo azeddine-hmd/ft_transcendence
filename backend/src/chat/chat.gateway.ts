@@ -652,7 +652,11 @@ async clientUsername(@ConnectedSocket() client: Socket) {
 }
 
 
+@SubscribeMessage('updateMessages')
+async updateMsg(@ConnectedSocket() client: Socket) {
 
+    this.server.to(client.id).emit('updateMessages');
+}
 
 /*********************************HANDLE CONNECTION**********************************/
 
