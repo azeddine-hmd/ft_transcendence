@@ -22,6 +22,7 @@ import { BanDto } from './dto/ban.dto';
 import { WsExceptionFilter } from 'src/filter/ws-filter';
 import cookieParser from 'cookie-parser';
 import { disconnect } from 'process';
+import { KickDto } from './dto/kick.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 let roomClients:Map<string, string[] | undefined> = new Map();
@@ -265,6 +266,10 @@ export class ChatGateway {
       this.server.to(client.id).emit('createMsg', { created: false, error: "room not found!" });
     else if (test == 3)
       this.server.to(client.id).emit('createMsg', { created: false, error: "u didn't join this room!" });
+    else if (test > 9)
+      this.server.to(client.id).emit('createMsg', { created: false, error: "the administrator baned you " + (test / 10) + "H" });
+    else if (test > 109)
+      this.server.to(client.id).emit('createMsg', { created: false, error: "the administrator Muted you " + (test / 100) + "H" });
     else
     {
       client.join(createMsgDto.room.toString());
@@ -474,13 +479,65 @@ async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client
 /**********************************END BLOCK USER************************************/
 
 
+
+/************************************KICK USER**************************************/
+
+
+
+@SubscribeMessage('Kick')
+async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket) {
+
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    let test = await this.chatService.kickUser(kick, clientId);
+    if (!test)
+    {
+      let room = roomClients.get(kick.roomId.toString());
+      if (room)
+      {
+        
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          if (clientIds)
+            this.server.to(clientIds).emit('Kick', {isBaned: false, user: kick.user});
+        }
+      }
+      else
+      {
+        let room = roomClients.get(kick.roomId.toString());
+        if (room)
+        {
+          
+          for (let index = 0; index < room.length; index++) {
+            const element = room[index];
+            const clientIds: string[] | undefined = usersClient.get(element);
+  
+            if (clientIds)
+              this.server.to(clientIds).emit('Kick', {isBaned: true, user: kick.user});
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+/**********************************END KICK USER************************************/
+
+
+
+
 /************************************BAN USER**************************************/
 
 
 
 @SubscribeMessage('Ban')
 async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
-  console.log("here");
+
   let clientId:any =  getClientId(client, this.jwtService);
   try {
     let test = await this.chatService.banUser(ban, clientId);
@@ -497,7 +554,6 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
           const element = room[index];
           const clientIds: string[] | undefined = usersClient.get(element);
 
-          console.log("client", element, clientIds);
           if (clientIds)
             this.server.to(clientIds).emit('Ban', {isBaned: false, user: ban.user});
         }
@@ -534,17 +590,18 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
 
 
-@SubscribeMessage('Ban')
+@SubscribeMessage('Mute')
 async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
   let clientId:any =  getClientId(client, this.jwtService);
+  console.log("hello");
+  
   try {
-   //let test = await this.chatService.muteUser(ban, clientId);
+   let test = await this.chatService.muteUser(ban, clientId);
     if (!test)
     {
       let room = roomClients.get(ban.room.toString());
       // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
 
-      console.log("!test ",room);
       if (room)
       {
         
@@ -554,7 +611,7 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
           console.log("client", element, clientIds);
           if (clientIds)
-            this.server.to(clientIds).emit('Ban', {isBaned: false, user: ban.user});
+            this.server.to(clientIds).emit('Mute', {isBaned: false, user: ban.user});
         }
       }
     }
@@ -572,7 +629,7 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
           console.log("client", element, clientIds);
           
           if (clientIds)
-            this.server.to(clientIds).emit('Ban', {isBaned: true, user: ban.user}); 
+            this.server.to(clientIds).emit('Mute', {isMuted: true, user: ban.user}); 
         }
       }
     }

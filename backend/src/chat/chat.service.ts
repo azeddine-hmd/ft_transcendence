@@ -23,6 +23,8 @@ import { Block } from './entities/block.entity';
 import { BanDto } from './dto/ban.dto';
 import { Ban } from './entities/ban.entity';
 import { time } from 'console';
+import { Mute } from './entities/mute.entity';
+import { KickDto } from './dto/kick.dto';
 
 
 let roomsusers = new Map<number, number[]>();
@@ -46,6 +48,8 @@ export class ChatService {
     private readonly blockRepository: Repository<Block>,
     @InjectRepository(Ban)
     private readonly banRepository: Repository<Ban>,
+    @InjectRepository(Mute)
+    private readonly muteRepository: Repository<Mute>,
   )
   {}
 
@@ -131,12 +135,12 @@ export class ChatService {
     return checkroom;
   }
 
-  async checkRoomBan(auth:any, joinRoomDto: JoinRoomDto)
+  async checkRoomBan(auth:any, roomId: number)
   {
     let checkBanroom = await this.banRepository.createQueryBuilder('ban')
     .leftJoinAndSelect("ban.user1","user1")
     .leftJoinAndSelect("ban.user2","user2")
-    .where("user2.userId = :id AND ban.room = :rid", { id: auth, rid: joinRoomDto.roomId })
+    .where("user2.userId = :id AND ban.room = :rid", { id: auth, rid: roomId })
     .select()
     .getOne()
     
@@ -149,7 +153,7 @@ export class ChatService {
       if (unbanTime < currentDate.getTime())
       {
         await this.banRepository.createQueryBuilder('ban')
-        .where('"ban"."roomId" = :rid', { rid: joinRoomDto.roomId })
+        .where('"ban"."roomId" = :rid', { rid: roomId })
         .leftJoin('ban.user2','user2')
         .having('"user2"."userId" = :id', { id: auth})
         .delete()
@@ -158,6 +162,35 @@ export class ChatService {
       }
     }
     return checkBanroom;
+  }
+
+  async checkRoomMute(auth:any, roomId: number)
+  {
+    let checkMuteroom = await this.muteRepository.createQueryBuilder('mute')
+    .leftJoinAndSelect("mute.user1","user1")
+    .leftJoinAndSelect("mute.user2","user2")
+    .where("user2.userId = :id AND mute.room = :rid", { id: auth, rid: roomId })
+    .select()
+    .getOne()
+    
+    if (checkMuteroom)
+    {
+      var currentDate = new Date();
+      const banTime: number = checkMuteroom.time.getTime();
+
+      const unbanTime: number = banTime + 30000;//checkMuteroom.limit_time *  * 60 * 60 * 1000;
+      if (unbanTime < currentDate.getTime())
+      {
+        await this.muteRepository.createQueryBuilder('mute')
+        .where('"mute"."roomId" = :rid', { rid: roomId })
+        .leftJoin('mute.user2','user2')
+        .having('"user2"."userId" = :id', { id: auth})
+        .delete()
+        .execute();
+        return undefined;
+      }
+    }
+    return checkMuteroom;
   }
 
   async checkProtectedRoomPassword(joinRoomDto: JoinRoomDto)
@@ -331,7 +364,7 @@ export class ChatService {
       if (checkroomPass == null)
         return 3;
     }
-    let checkBan = await this.checkRoomBan(auth , joinRoomDto);
+    let checkBan = await this.checkRoomBan(auth , joinRoomDto.roomId);
     if (checkBan)
       return checkBan.limit_time * 10;
 
@@ -379,6 +412,12 @@ export class ChatService {
     let checkUserJoined = await this.checkJoined(checkuser.id, createMsgDto.room);
     if(checkUserJoined == null)
       return 3;
+    let checkBan = await this.checkRoomBan(auth ,createMsgDto.room);
+    if (checkBan)
+      return checkBan.limit_time * 10;
+    let checkMute = await this.checkRoomMute(auth ,createMsgDto.room);
+    if (checkMute)
+      return checkMute.limit_time * 100;
     createMsgDto.date = new Date();
     const msg = this.msgRepository.create({user: checkuser, room: checkroom, msg: createMsgDto.msg, date: createMsgDto.date, join: { rid:createMsgDto.room , uid: checkuser.id }});
     try{await this.msgRepository.save(msg);}catch(e){}
@@ -443,6 +482,36 @@ async blockU(block: ConversationDto, auth: any) {
 
 /***************************************END BLOCK USER SERVICE**************************************/
 
+/***************************************KICK USER SERVICE*******************************************/
+
+
+async kickUser(kick:  KickDto, auth: any)
+{
+
+  let user = await this.checkUserByUserName(kick.user);
+  if (!user)
+    return 0;
+
+  let tmp = await this.checkUser(auth);
+  let tmp2 = await this.checkUser(user.userId);
+  let rmid: JoinRoomDto = {
+    "roomId" : kick.roomId,
+    "privacy": true,
+    "password": ""
+  };
+  const roleKicker = await this.getMemberRole(rmid, auth)
+  const roleKicked = await this.getMemberRole(rmid, auth)
+  
+  if (((roleKicker?.role == "owner" || roleKicker?.role == "admin") && roleKicked?.role != "member")
+  || (roleKicker?.role == "owner"))
+  {
+    return (1);
+  }
+  return (0)
+}
+
+/***************************************END KICK USER SERVICE*******************************************/
+
 
 /***************************************BAN USER SERVICE*******************************************/
 
@@ -489,10 +558,56 @@ async banUser(ban:  BanDto, auth: any)
   return (0)
 }
 
-/***************************************END BAN USER SERVICE**************************************/
+/***************************************END BAN USER SERVICE*******************************************/
 
 
+/***************************************END MUTE USER SERVICE**************************************/
 
+
+async muteUser(ban:  BanDto, auth: any)
+{
+
+  let user = await this.checkUserByUserName(ban.user);
+  if (!user)
+    return 0;
+  let u1:User = new User(), u2:User = new User();
+  let ret = await this.muteRepository.createQueryBuilder('mute')
+  .innerJoinAndSelect("mute.user1", "user1")
+  .innerJoinAndSelect("user1.profile", "profile1")
+  .innerJoinAndSelect("mute.user2", "user2")
+  .innerJoinAndSelect("user2.profile", "profile2")
+  .where("(user1.userId = :id AND user2.userId = :id2) AND mute.room = :roomid", { id: auth, id2: user.userId, roomid: ban.room })
+  .getOne();
+  let tmp = await this.checkUser(auth);
+  let tmp2 = await this.checkUser(user.userId);
+  let rmid: JoinRoomDto = {
+    "roomId" : ban.room,
+    "privacy": true,
+    "password": ""
+  };
+  const roleBaner = await this.getMemberRole(rmid, auth)
+  const roleBaned = await this.getMemberRole(rmid, auth)
+  
+  if (((roleBaner?.role == "owner" || roleBaner?.role == "admin") && roleBaned?.role != "member")
+  || (roleBaner?.role == "owner"))
+  {
+    if (!tmp || !tmp2)
+    return (0);
+    u1.id = tmp.id;
+    u2.id = tmp2.id;
+    if (!ret)
+    {
+      console.log({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      
+      const cnv = this.muteRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, room: ban.room, time: new Date() });
+      await this.muteRepository.save(cnv);
+    }
+    return (1);
+  }
+  return (0)
+}
+
+/***************************************END MUTE USER SERVICE**************************************/
 
 /*********************************************DM SERVICE*********************************************/
 

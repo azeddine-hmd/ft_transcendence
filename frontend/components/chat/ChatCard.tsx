@@ -65,9 +65,9 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     }
 
     function TimePop() {
-        function T1() { socket.emit('Mute', {time :"T1", user: name, room: room} ); setMuteMenu(false); };
-        function T2() { socket.emit('Mute', {time :"T2", user: name, room: room} ); setMuteMenu(false); };
-        function T3() { socket.emit('Mute', {time :"T3", user: name, room: room} ); setMuteMenu(false); };
+        function T1() { socket.emit('Mute', {time :1, user: name, room: room} ); setMuteMenu(false); };
+        function T2() { socket.emit('Mute', {time :3, user: name, room: room} ); setMuteMenu(false); };
+        function T3() { socket.emit('Mute', {time :10, user: name, room: room} ); setMuteMenu(false); };
         function Cancel() { setMuteMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
