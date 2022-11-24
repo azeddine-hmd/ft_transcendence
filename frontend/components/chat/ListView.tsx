@@ -6,6 +6,7 @@ import direct from '../../dms.json'
 import style from '../../styles/chat/ListView.module.css'
 import stylee from '../../styles/chat/Card.module.css'
 import {socket} from '../../pages/chat/[chat]'
+import CreateRoom from '../../pages/chat/[chat]'
 
 
 function CreateNewRoom() {
@@ -23,6 +24,8 @@ function CreateNewRoom() {
         if (title === '' || description === '')
             return alert('all fields marked (*) must be filled');
         socket.emit('createRoom', { "title": title, "description": description, "privacy": (password !== ''), "password": password});
+        console.log('line 26');
+        
     }
 
     return (
@@ -65,7 +68,7 @@ export default function ListView() {
     }
 
     socket.on('createRoom', ({ created }) => {
-        console.log('oncreate=' + created);
+        console.log('oncreate2=' + created);
         if (created)
             socket.emit('findAllRooms');
         else

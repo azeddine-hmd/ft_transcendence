@@ -25,7 +25,7 @@ let backendHost = process.env.NEXT_PUBLIC_API_BASE_URL;
 const URL = "http://localhost:8080/chat";
 let socket = io(URL, {
   withCredentials: true,
-  forceNew: true,
+  // forceNew: true,
   timeout: 10000, //before connect_error and connect_timeout are emitted.
   transports: ['websocket'],
   auth: {
@@ -34,6 +34,7 @@ let socket = io(URL, {
 });
 
 
+socket.emit('clientId');
 
 export { socket };
 

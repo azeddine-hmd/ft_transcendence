@@ -27,6 +27,7 @@ var roomType = 'DM';
 var userID = '';
 var userRole = 'member';
 var userState = 'none'
+var username = '';
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
@@ -161,18 +162,13 @@ function Layout({ data }: Props) {
     );
 }
 
-
 export default function ChatView() {
     const [data, setData] = useState(messages);
-    const [username, setUsername] = useState('');
     const [visible, setVisibility] = useState(false)
 
-
-    socket.emit('clientId');
-
-    socket.on('clientId', ({username}) => {
+    socket.on('clientId', ({ user }) => {
         console.log("username=", username);
-        setUsername(username);
+        username = user;
     })
 
     socket.on('Ban', ({isBaned, user}) => {
