@@ -3,7 +3,7 @@ import {socket} from '../../pages/chat/[chat]'
 import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'
 import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiSpeakerXMark } from "react-icons/hi2";
 import { GiBootKick } from "react-icons/gi";
 import { ImBlocked } from "react-icons/im";
@@ -101,15 +101,20 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
             items.pop();
         }
 
-        socket.on('blockUser', (isBlocked) => {
-            if (isBlocked)
-                items[2] = 'Unblock';
-        })
-        
-        socket.on('unblockUser', (isBlocked) => {
-            if (isBlocked)
-                items[2] = 'Block';
-        })
+        useEffect(() => {
+            socket.on('blockUser', (isBlocked) => {
+                if (isBlocked)
+                    items[2] = 'Unblock';
+            })
+            
+            socket.on('unblockUser', (isBlocked) => {
+                if (isBlocked)
+                    items[2] = 'Block';
+            })
+
+            socket.off('blockUser');
+            socket.off('unblockUser');
+        }, []);
 
         function handleItemClick(event:DropDownButtonItemClickEvent) {
             if (event.item === "Profile"){

@@ -49,13 +49,7 @@ function Layout({ data }: Props) {
         const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
         const handleAdd = () => { 
             socket.emit('addRoleToSomeUser', { username: username, roomId: roomID });
-            setShowSetiig(false); 
-            socket.on('addRoleToSomeUser', ({success, error}) => {
-                if (success == true)
-                    alert('user added successfuly');
-                else
-                    alert('Error: ' + error);
-            })
+            setShowSetiig(false);
         };
 
        
@@ -70,9 +64,7 @@ function Layout({ data }: Props) {
             setShowSetiig(false);
         }
 
-        socket.on("updateRoom", (success, error) => {
-            console.log(success, error);
-        })
+        
 
 
         return (
@@ -166,86 +158,110 @@ export default function ChatView() {
     const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
 
-    socket.on('clientId', ({ user }) => {
-        console.log("username=", username);
-        username = user;
-    })
 
-    socket.on('Ban', ({isBaned, user}) => {
-        console.log("BAN - ", isBaned, user, username);
+    useEffect(() => {
+        socket.on('addRoleToSomeUser', ({success, error}) => {
+            if (success == true)
+                alert('user added successfuly');
+            else
+                alert('Error: ' + error);
+        })
+    
+        socket.on("updateRoom", (success, error) => {
+            console.log(success, error);
+        })
         
-        if (isBaned && user === username)
-        {
-            setVisibility(false);
-            setData(messages);
-        }
-    });
-
-    socket.on('createMsg', ({ created, room, tmp }) => {
-
-        if (created && room === roomID) {
+        socket.on('clientId', ({ user }) => {
+            console.log("username=", username);
+            username = user;
+        })
+    
+        socket.on('Ban', ({isBaned, user}) => {
+            console.log("BAN - ", isBaned, user, username);
+            
+            if (isBaned && user === username)
+            {
+                setVisibility(false);
+                setData(messages);
+            }
+        });
+    
+        socket.on('createMsg', ({ created, room, tmp }) => {
+    
+            if (created && room === roomID) {
+                let newData = [...data];
+                let dd = {
+                    username: tmp.username,
+                    avatar: tmp.avatar,
+                    date: tmp.date,
+                    msg: tmp.msg,
+                    currentUser: tmp.currentUser,
+                    userState: tmp.userState
+                }
+                newData.push(dd);
+                setData(newData);
+            }
+    
+        })
+    
+        socket.on('receiveNewPrivateMsg', (newDmMsg) => {
+    
+            console.log("hhhhhhhhhjfsljlsjdjl");
+    
+            // if (created && room === roomID) // <<<<<
+    
             let newData = [...data];
             let dd = {
-                username: tmp.username,
-                avatar: tmp.avatar,
-                date: tmp.date,
-                msg: tmp.msg,
-                currentUser: tmp.currentUser,
-                userState: tmp.userState
+                username: newDmMsg.username,
+                avatar: newDmMsg.avatar,
+                date: newDmMsg.date,
+                msg: newDmMsg.msg,
+                currentUser: newDmMsg.currentUser,
+                userState: "none"
             }
             newData.push(dd);
             setData(newData);
-        }
-
-    })
-
-    socket.on('receiveNewPrivateMsg', (newDmMsg) => {
-
-        console.log("hhhhhhhhhjfsljlsjdjl");
-
-        // if (created && room === roomID) // <<<<<
-
-        let newData = [...data];
-        let dd = {
-            username: newDmMsg.username,
-            avatar: newDmMsg.avatar,
-            date: newDmMsg.date,
-            msg: newDmMsg.msg,
-            currentUser: newDmMsg.currentUser,
-            userState: "none"
-        }
-        newData.push(dd);
-        setData(newData);
-
-
-    })
-
-    socket.on('joinRoom', ({ role, room, error, msgs }) => {
-        if (room === -1) {
-            alert(error);
-        }
-        else {
-            userRole = role;
-            console.log(role);
-            roomType = 'room';
-            console.log('joinRoom flag returned');
-            roomID = room.id;
-            roomTitle = room.title;
+    
+    
+        })
+    
+        socket.on('joinRoom', ({ role, room, error, msgs }) => {
+            if (room === -1) {
+                alert(error);
+            }
+            else {
+                userRole = role;
+                console.log(role);
+                roomType = 'room';
+                console.log('joinRoom flag returned');
+                roomID = room.id;
+                roomTitle = room.title;
+                setVisibility(true);
+                setData(msgs);
+            }
+        })
+    
+        socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
+            roomType = 'DM';
+            console.log('getPrivateMsg flag returned');
+            roomID = username; // <<<<<<<<<<<<< 8
+            roomTitle = username; // <<<<<<<<<<<<<< 8
             setVisibility(true);
-            setData(msgs);
-        }
-    })
+            setData(privateMessages);
+            userID = userId;
+    
+        })
 
-    socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
-        roomType = 'DM';
-        console.log('getPrivateMsg flag returned');
-        roomID = username; // <<<<<<<<<<<<< 8
-        roomTitle = username; // <<<<<<<<<<<<<< 8
-        setVisibility(true);
-        setData(privateMessages);
-        userID = userId;
-
-    })
+        socket.off('addRoleToSomeUser');
+        socket.off('updateRoom');
+        socket.off('clientId');
+        socket.off('Ban');
+        socket.off('createMsg');
+        socket.off('receiveNewPrivateMsg');
+        socket.off('joinRoom');
+        socket.off('getPrivateMsg');
+        
+    }, [])
 
     return (
         <>

@@ -67,25 +67,32 @@ export default function ListView() {
         pageLoaded = true;
     }
 
-    socket.on('createRoom', ({ created }) => {
-        console.log('oncreate2=' + created);
-        if (created)
-            socket.emit('findAllRooms');
-        else
-            alert('went wrong :(');
-    });
+    useEffect(() => {
+        socket.on('createRoom', ({ created }) => {
+            console.log('oncreate2=' + created);
+            if (created)
+                socket.emit('findAllRooms');
+            else
+                alert('went wrong :(');
+        });
+    
+        socket.on('conversation', (arr) => {
+            setChannel('friends'); 
+            setData(rooms); 
+            setDms(arr);
+            setTMP(arr);
+        });
+    
+        socket.once('findAllRooms', ({ rooms }) => {
+            setData(rooms);
+            setTMP(rooms);
+        });
 
-    socket.on('conversation', (arr) => {
-        setChannel('friends'); 
-        setData(rooms); 
-        setDms(arr);
-        setTMP(arr);
-    });
+        socket.off('createRoom');
+        socket.off('conversation');
+        socket.off('findAllRooms');
 
-    socket.on('findAllRooms', ({ rooms }) => {
-        setData(rooms);
-        setTMP(rooms);
-    });
+    }, []);
 
     const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.currentTarget.value.trim() != '') {
