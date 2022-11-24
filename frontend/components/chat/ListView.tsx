@@ -24,7 +24,7 @@ function CreateNewRoom() {
         if (title === '' || description === '')
             return alert('all fields marked (*) must be filled');
         socket.emit('createRoom', { "title": title, "description": description, "privacy": (password !== ''), "password": password});
-        console.log('line 26');
+        console.log('line 26', title, description, password);
         
     }
 
@@ -83,15 +83,16 @@ export default function ListView() {
             setTMP(arr);
         });
     
-        socket.once('findAllRooms', ({ rooms }) => {
+        socket.on('findAllRooms', ({ rooms }) => {
             setData(rooms);
             setTMP(rooms);
         });
 
-        socket.off('createRoom');
-        socket.off('conversation');
-        socket.off('findAllRooms');
-
+        return () => {
+            socket.off('createRoom');
+            socket.off('conversation');
+            socket.off('findAllRooms');
+        }
     }, []);
 
     const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {

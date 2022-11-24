@@ -14,7 +14,7 @@ interface props {
     date: string;
     msg: string;
     currentUser: boolean;
-    userState: string
+    userState: string;
 }
 
 interface Props {
@@ -23,17 +23,15 @@ interface Props {
 
 var roomID = -1;
 var roomTitle = '..';
-var roomType = 'DM';
 var userID = '';
+var roomType:string = '';
 var userRole = 'member';
-var userState = 'none'
 var username = '';
+var data = messages;
 
 function Layout({ data }: Props) {
     const [text, setText] = useState('');
     const [showSetting, setShowSetiig] = useState(false);
-
-    console.log("socket = ", socket.id);
     
 
     function Setting() {
@@ -52,8 +50,6 @@ function Layout({ data }: Props) {
             setShowSetiig(false);
         };
 
-       
-
         function handleSave() {
             setShowSetiig(false);
             console.log('privacy=', privacy);
@@ -63,8 +59,6 @@ function Layout({ data }: Props) {
         function handleCancel() {
             setShowSetiig(false);
         }
-
-        
 
 
         return (
@@ -101,12 +95,18 @@ function Layout({ data }: Props) {
         if (bottom.current)
             bottom.current.scrollIntoView({ behavior: "smooth" })
     }
+
     useEffect(() => {
         scrollToBottom()
     }, [data]);
+
     const [msg, setMsg] = useState('');
+
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
+
     function SendMessage() {
+        console.log('roomType=',roomType);
+        
         (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
             : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg }); setText('');
     }
@@ -114,6 +114,8 @@ function Layout({ data }: Props) {
     useEffect(() => {
         setText(msg);
     }, [msg])
+
+    useEffect(() => {}, [data]);
 
     return (
         <div className={style.chat}>
@@ -144,7 +146,6 @@ function Layout({ data }: Props) {
                 <input value={text} autoComplete='off' onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                         SendMessage();
-                        console.log('messgae sent');
                         setText('');
                     }
                 }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
@@ -155,9 +156,8 @@ function Layout({ data }: Props) {
 }
 
 export default function ChatView() {
-    const [data, setData] = useState(messages);
     const [visible, setVisibility] = useState(false)
-
+    
 
     useEffect(() => {
         socket.on('addRoleToSomeUser', ({success, error}) => {
@@ -182,12 +182,13 @@ export default function ChatView() {
             if (isBaned && user === username)
             {
                 setVisibility(false);
-                setData(messages);
+                data = messages
             }
         });
     
         socket.on('createMsg', ({ created, room, tmp }) => {
-    
+            console.log('msg created');
+            
             if (created && room === roomID) {
                 let newData = [...data];
                 let dd = {
@@ -196,10 +197,11 @@ export default function ChatView() {
                     date: tmp.date,
                     msg: tmp.msg,
                     currentUser: tmp.currentUser,
-                    userState: tmp.userState
+                    userState: tmp.userState,
                 }
                 newData.push(dd);
-                setData(newData);
+                data = newData;
+                console.log(data);
             }
     
         })
@@ -220,12 +222,24 @@ export default function ChatView() {
                 userState: "none"
             }
             newData.push(dd);
-            setData(newData);
+            data = newData;
     
     
         })
     
+        
+        socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
+            console.log('getPrivateMsg flag returned');
+            roomID = username; // <<<<<<<<<<<<< 8
+            roomTitle = username; // <<<<<<<<<<<<<< 8
+            setVisibility(true);
+            data = privateMessages;
+            userID = userId;
+            
+        })
+
         socket.on('joinRoom', ({ role, room, error, msgs }) => {
+            roomType = 'room';
             if (room === -1) {
                 alert(error);
             }
@@ -237,30 +251,22 @@ export default function ChatView() {
                 roomID = room.id;
                 roomTitle = room.title;
                 setVisibility(true);
-                setData(msgs);
+                data = msgs;
             }
-        })
-    
-        socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
-            roomType = 'DM';
-            console.log('getPrivateMsg flag returned');
-            roomID = username; // <<<<<<<<<<<<< 8
-            roomTitle = username; // <<<<<<<<<<<<<< 8
-            setVisibility(true);
-            setData(privateMessages);
-            userID = userId;
-    
+            console.log('room joined and roomType: ', roomType);
         })
 
-        socket.off('addRoleToSomeUser');
-        socket.off('updateRoom');
-        socket.off('clientId');
-        socket.off('Ban');
-        socket.off('createMsg');
-        socket.off('receiveNewPrivateMsg');
-        socket.off('joinRoom');
-        socket.off('getPrivateMsg');
-        
+        return () => {
+            socket.off('addRoleToSomeUser');
+            socket.off('updateRoom');
+            socket.off('clientId');
+            socket.off('Ban');
+            socket.off('createMsg');
+            socket.off('receiveNewPrivateMsg');
+            socket.off('joinRoom');
+            socket.off('getPrivateMsg');
+        }
+
     }, [])
 
     return (

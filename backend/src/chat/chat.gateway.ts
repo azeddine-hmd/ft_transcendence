@@ -30,7 +30,11 @@ function getClientId(client: Socket, jwt: JwtService): number
   try {
     let auth:any = "";
     let tmp;
-    auth =  client.handshake.headers.cookie;
+    if (client.handshake.headers.cookie)
+      auth =  client.handshake.headers.cookie.split('=')[1];
+    
+    console.log("clientid", auth);
+    
     const claims = atob(auth.split('.')[1]);
     tmp = JSON.parse(claims);
     return (tmp.userId);
@@ -101,9 +105,10 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
+    console.log("current user", await this.chatService.checkUser(clientId));
     
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
-    console.log('oncreate');
+    console.log(createRoomDto);
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else

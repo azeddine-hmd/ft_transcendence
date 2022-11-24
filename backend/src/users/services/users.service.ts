@@ -1,10 +1,10 @@
 import {
-    BadRequestException,
+  BadRequestException,
   forwardRef,
   Inject,
   Injectable,
   Logger,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EnvService } from 'src/conf/env.service';
@@ -46,6 +46,12 @@ export class UsersService {
     return user.id;
   }
 
+  async getTfa(userId: string): Promise<boolean> {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException();
+    return user.tfa;
+  }
+
   /* creation operations */
 
   private async createUser(
@@ -55,12 +61,17 @@ export class UsersService {
     const unsavedUser = this.userRepository.create(userLike);
     const unsavedProfile = this.profileRepository.create(profileLike);
     unsavedProfile.user = unsavedUser;
-    let profile: Profile | null;
-    try {
-      profile = await this.profileRepository.save(unsavedProfile);
-    } catch (err) {
-      throw new BadRequestException('display name already exist!');
-    }
+
+    // check display name uniquness
+    console.log(`display name to check against: ${unsavedProfile.avatar}`);
+    const profileFound = await this.profileRepository.findOne({
+      where: {
+        displayName: unsavedProfile.displayName,
+      },
+    });
+    if (profileFound)
+      throw new BadRequestException('display name already exist');
+    const profile = await this.profileRepository.save(unsavedProfile);
     this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
@@ -85,6 +96,7 @@ export class UsersService {
     });
     if (!foundUser) {
       const { userLike, profileLike } = ftProfileDtoToUserProfile(profile);
+      console.log(`profileLike: ${JSON.stringify(profileLike)}`);
       return await this.createUser(userLike, profileLike);
     }
     return foundUser;
