@@ -1,4 +1,3 @@
-import "@progress/kendo-theme-default/dist/all.css";
 import {socket} from '../../pages/chat/[chat]'
 import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'

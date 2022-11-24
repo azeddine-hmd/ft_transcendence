@@ -29,11 +29,11 @@ var username = '';
 var data = messages;
 
 function Layout() {
+
     const [text, setText] = useState('');
     const [mdata, setmData] = useState(data);
     const [showSetting, setShowSetiig] = useState(false);
-    
-    
+
     function Setting() {
         const [password, setPassword] = useState('');
         const [username, setUsername] = useState('');
@@ -104,22 +104,18 @@ function Layout() {
     const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
 
     function SendMessage() {
-        (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg })
-        : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg }); setText('');
-        
+        if (msg !== '')
+            (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg }) : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg });
+        setText('');
+        setMsg('');
     }
 
     useEffect(() => {
         socket.on('updateMessages', () => {
-            console.log('update');
-            
             setmData(data);
             scrollToBottom()
         });
-
-        return () => {
-            socket.off('updateMessages');
-        }
+        return () => { socket.off('updateMessages'); }
     }, [])
 
     useEffect(() => {
@@ -136,7 +132,8 @@ function Layout() {
                     <Button onClick={() => setShowSetiig(!showSetting)} themeColor={"light"} size="small">...</Button>
                 </div>
                 :
-                <></>}
+                <></>
+                }
             </div>
             {(showSetting) ? <Setting /> : <></>}
             <div className={style.chatBoard}>
@@ -155,7 +152,6 @@ function Layout() {
                 <input value={text} autoComplete='off' onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                         SendMessage();
-                        setText('');
                     }
                 }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
                 <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
