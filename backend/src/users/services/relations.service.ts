@@ -5,20 +5,18 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm/dist';
-import { Pair } from '../../utils/pair';
 import { Repository } from 'typeorm';
 import { Profile } from '../../profiles/entities/profile.entity';
+import { Pair } from '../../utils/pair';
 import { UserRelation } from '../entities/user-relation.entity';
 import { User } from '../entities/user.entity';
 import { normalizeTwoUsersRelation } from '../utils/user-relation-normalization';
-import { UsersService } from './users.service';
 
 @Injectable()
 export class RelationsService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly usersService: UsersService,
     @InjectRepository(UserRelation)
     private readonly userRelationRepository: Repository<UserRelation>,
     @InjectRepository(Profile)
@@ -29,8 +27,10 @@ export class RelationsService {
     userId: string,
     otherUsername: string,
   ): Promise<UserRelation | null> {
-    const current = await this.usersService.findOneFromUserId(userId);
-    const other = await this.usersService.findOneFromUsername(otherUsername);
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
     if (!current || !other) throw new InternalServerErrorException();
     if (current === other)
       throw new BadRequestException(
@@ -52,11 +52,11 @@ export class RelationsService {
   async getAllFriendsRelations(
     userId: string,
   ): Promise<Pair<UserRelation, Profile>[]> {
-    const current = await this.usersService.findOneFromUserId(userId);
+    const current = await this.userRepository.findOneBy({ userId: userId });
     if (!current) throw new InternalServerErrorException();
-    Logger.debug(
-      `RelationService#getFriends: fetching friends ${current.username}(id=${current.id})`,
-    );
+    /* Logger.debug( */
+    /*   `RelationService#getFriends: fetching friends ${current.username}(id=${current.id})`, */
+    /* ); */
     const relations = await this.userRelationRepository.find({
       relations: {
         user1: true,
@@ -120,8 +120,10 @@ export class RelationsService {
   }
 
   async addFriend(userId: string, otherUsername: string) {
-    const current = await this.usersService.findOneFromUserId(userId);
-    const other = await this.usersService.findOneFromUsername(otherUsername);
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
     if (!current || !other) throw new InternalServerErrorException();
     if (current.id === other.id)
       throw new BadRequestException(
@@ -145,8 +147,10 @@ export class RelationsService {
   }
 
   async removeFriend(userId: string, otherUsername: string) {
-    const current = await this.usersService.findOneFromUserId(userId);
-    const other = await this.usersService.findOneFromUsername(otherUsername);
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
     if (!current || !other) throw new InternalServerErrorException();
     if (current.id === other.id)
       throw new BadRequestException(
@@ -180,40 +184,38 @@ export class RelationsService {
   }
 
   async blockUser(userId: string, otherUsername: string) {
-    const current = await this.usersService.findOneFromUserId(userId);
-    const other = await this.usersService.findOneFromUsername(otherUsername);
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current.id === other.id)
+      throw new BadRequestException(
+        `you can't send friend request to yourself`,
+      );
+    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+    const relation = await this.findOrCreate(user1, user2);
 
-    // if (!current || !other) throw new InternalServerErrorException();
-    // if (current.id === other.id)
-    //   throw new BadRequestException(
-    //     `you can't send friend request to yourself`,
-    //   );
-    // const { user1, user2 } = normalizeTwoUsersRelation(current, other);
-    // const relation = await this.findOrCreate(user1, user2);
+    if (relation.isBlocked) throw new BadRequestException('Already blocked');
+    relation.isBlocked = true;
 
-    // if (relation.isBlocked) throw new BadRequestException('Already blocked');
-    // relation.isBlocked = true;
-
-    // await this.userRelationRepository.save(relation);
-
-    //block user
-
+    await this.userRelationRepository.save(relation);
   }
 
   async unblockUser(userId: string, otherUsername: string) {
-    // const current = await this.usersService.findOneFromUserId(userId);
-    // const other = await this.usersService.findOneFromUsername(otherUsername);
-    // if (!current || !other) throw new InternalServerErrorException();
-    // if (current.id === other.id)
-    //   throw new BadRequestException(
-    //     `you can't send friend request to yourself`,
-    //   );
-    // const { user1, user2 } = normalizeTwoUsersRelation(current, other);
-    // const relation = await this.findOrCreate(user1, user2);
-
-    // if (!relation.isBlocked) throw new BadRequestException('Already unblocked');
-    // relation.isBlocked = false;
-
-    // await this.userRelationRepository.save(relation);
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current.id === other.id)
+      throw new BadRequestException(
+        `you can't send friend request to yourself`,
+      );
+    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+    const relation = await this.findOrCreate(user1, user2);
+    if (!relation.isBlocked) throw new BadRequestException('Already unblocked');
+    relation.isBlocked = false;
+    await this.userRelationRepository.save(relation);
   }
 }

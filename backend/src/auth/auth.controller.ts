@@ -21,18 +21,18 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger/dist';
 import { Request, Response } from 'express';
 import { EnvService } from 'src/conf/env.service';
-import { AuthService } from '../auth.service';
-import { SigninUserDto } from '../dto/payload/signin-user.dto';
-import { SignupUserDto } from '../dto/payload/signup-user.dto';
-import { TfaDto } from '../dto/payload/tfa.dto';
-import { LoginResponseDto } from '../dto/response/login-response.dto';
-import { FTAuthGuard } from '../guards/ft.guard';
-import { JwtAuth } from '../guards/jwt-auth.guard';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { AuthService } from './auth.service';
+import { SigninUserDto } from './dto/payload/signin-user.dto';
+import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { TfaDto } from './dto/payload/tfa.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
+import { FTAuthGuard } from './guards/ft.guard';
+import { JwtAuth } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import {
   accessCookieOptions,
   refreshCookieOptions,
-} from '../utils/cookie-options';
+} from './utils/cookie-options';
 
 @ApiTags('authentication')
 @Injectable()
@@ -83,6 +83,15 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
     let url = `${frontendHost}/home`;
     if (login.tfa && login.tfa === 'pending') {
       url = `${frontendHost}/auth/tfa`;
@@ -101,7 +110,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() signupUserDto: SignupUserDto,
   ) {
-    const user = await this.authService.registerUser(signupUserDto);
+    const user = await this.authService.register(signupUserDto);
     const login = await this.authService.login({
       username: user.username,
       userId: user.userId,
@@ -112,6 +121,15 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
   }
 
   @ApiResponse({
@@ -123,6 +141,7 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
+  //TODO: redirect if tfa enabled
   async signin(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = await this.authService.login(req.user);
@@ -132,6 +151,16 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      console.log(`newCookie="${newCookie}"`);
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
   }
 
   @ApiOperation({ summary: 'Logout out current user' })

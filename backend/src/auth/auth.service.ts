@@ -37,21 +37,31 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(signupUserDto: SignupUserDto): Promise<User> {
+  async register(signupUserDto: SignupUserDto): Promise<User> {
     // hashing password
     signupUserDto.password = await bcrypt.hash(
       signupUserDto.password,
       await bcrypt.genSalt(),
     );
+
     // creating user
     const user = await this.usersService.create(signupUserDto);
     if (!user) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException('User already exist');
     }
-    const optSecret = this.envService.get('OTP_SECRET');
-    if (!optSecret) throw new InternalServerErrorException();
-    this.tfaSecrets.set(user.username, authenticator.generateSecret());
+
+    // otp
+    /* const secret = this.envService.get('OTP_SECRET'); */
+    const secret = authenticator.generateSecret();
+    this.tfaSecrets.set(user.username, secret);
+    const result = await authenticator.keyuri(
+      user.username,
+      'PING_PONG_GAME',
+      secret,
+    );
+    console.log(`qrcode uri: ${result}`);
+
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
@@ -102,8 +112,6 @@ export class AuthService {
     const expirationTime = this.envService.get(
       'JWT_REFRESH_EXPIRATION_DURATION',
     );
-    if (!expirationTime)
-      throw new InternalServerErrorException('refresh env var not defined');
     const newToken = this.jwtService.sign(userJwtPayload, {
       expiresIn: expirationTime,
     });
