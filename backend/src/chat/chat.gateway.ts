@@ -487,11 +487,14 @@ async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client
 @SubscribeMessage('Kick')
 async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket) {
 
+  console.log('kick received', kick);
+  
   let clientId:any =  getClientId(client, this.jwtService);
   try {
     let test = await this.chatService.kickUser(kick, clientId);
     if (!test)
     {
+
       let room = roomClients.get(kick.roomId.toString());
       if (room)
       {
@@ -501,25 +504,24 @@ async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket)
           const clientIds: string[] | undefined = usersClient.get(element);
 
           if (clientIds)
-            this.server.to(clientIds).emit('Kick', {isBaned: false, user: kick.user});
-        }
-      }
-      else
-      {
-        let room = roomClients.get(kick.roomId.toString());
-        if (room)
-        {
-          
-          for (let index = 0; index < room.length; index++) {
-            const element = room[index];
-            const clientIds: string[] | undefined = usersClient.get(element);
-  
-            if (clientIds)
-              this.server.to(clientIds).emit('Kick', {isBaned: true, user: kick.user});
-          }
+            this.server.to(clientIds).emit('Kick', {isKicked: false, user: kick.user});
         }
       }
     }
+    else
+    {
+      let room = roomClients.get(kick.roomId.toString());
+      if (room) {
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          if (clientIds)
+            this.server.to(clientIds).emit('Kick', {isKicked: true, user: kick.user});
+        }
+      }
+    }
+    
   } catch (error) {
     console.error(error);
   }

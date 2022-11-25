@@ -191,6 +191,17 @@ export default function ChatView() {
             }
             socket.emit('updateMessages', {});
         });
+
+        socket.on('Kick', ({isKicked, user}) => {
+            console.log('kicked', isKicked, user, username);
+            
+            if (isKicked && user === username)
+            {
+                setVisibility(false);
+                data = messages
+            }
+            socket.emit('updateMessages', {});
+        })
     
         socket.on('createMsg', ({ created, room, tmp }) => {
             

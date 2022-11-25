@@ -29,6 +29,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     const [isMuteMenu, setMuteMenu] = useState(false);
     const [isBanMenu, setBanMenu] = useState(false);
     const [isKickMenu, setKickMenu] = useState(false);
+    const [isInviteMenu, setInviteMenu] = useState(false);
 
     
     function Ban() {
@@ -50,13 +51,27 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     }
     
     function Kick() {
-        function Confirm() { socket.emit('Kick', {user: name}); setKickMenu(false); };
+        function Confirm() { socket.emit('Kick', {user: name, roomId: room}); setKickMenu(false); };
         function Cancel() { setKickMenu(false); };
         return (
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
                 <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to kick this user? </p>
                 <div style={{"display": "flex" }}>
                     <button id={style.messageBarSendBtn} onClick={Confirm}>Kick</button>
+                    <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
+                </div>
+            </div>
+        );
+    }
+    
+    function Invite() {
+        function Confirm() { socket.emit('InviteToGame', {user: name, roomId: room}); setInviteMenu(false); };
+        function Cancel() { setInviteMenu(false); };
+        return (
+            <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
+                <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Do you want to ivite this user to a game? </p>
+                <div style={{"display": "flex" }}>
+                    <button id={style.messageBarSendBtn} onClick={Confirm}>Invite</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
                 </div>
             </div>
@@ -130,7 +145,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                     socket.emit('unblockUser', {user: name});
             }
             else if (event.item === "Invite to game"){
-
+                setInviteMenu(true);
             }
             else if (event.item === "Mute"){
                 setMuteMenu(true);
@@ -169,6 +184,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                 { (isMuteMenu) ? <TimePop /> : <></> }
                 { (isBanMenu) ? <Ban /> : <></> }
                 { (isKickMenu) ? <Kick /> : <></> }
+                { (isInviteMenu) ? <Invite /> : <></> }
                 <div style={{"display": "flex", "justifyContent": "spaceBetween", "alignItems":"center"}}>
                     <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px" }} />
                     <span id={style.username}>{name}</span>

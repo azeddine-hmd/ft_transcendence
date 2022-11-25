@@ -7,6 +7,7 @@ import ChatView from '../../components/chat/ChatView';
 import ListView from '../../components/chat/ListView';
 import Sidebar from '../../components/profile/Sidebar';
 import styles from '../../styles/chat/Layout.module.css';
+import Popup from '../../components/chat/Popup'
 
 // import localStorage from 'localStorage';
 
@@ -78,7 +79,8 @@ function Chat() {
       <Head>
         <title>Chat</title>
       </Head>
-      <Layout />
+      <Popup/>
+      <Layout/>
     </div>
   );
 }
