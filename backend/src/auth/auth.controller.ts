@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -24,6 +25,7 @@ import { EnvService } from 'src/conf/env.service';
 import { AuthService } from './auth.service';
 import { SigninUserDto } from './dto/payload/signin-user.dto';
 import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { TfaCodeDto } from './dto/payload/tfa-secret.dto';
 import { TfaDto } from './dto/payload/tfa.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { FTAuthGuard } from './guards/ft.guard';
@@ -75,7 +77,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = await this.authService.login(req.user);
+    const login = await this.authService.login(req.user, false);
     const frontendHost = this.envService.get('FRONTEND_HOST');
     res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
@@ -111,10 +113,14 @@ export class AuthController {
     @Body() signupUserDto: SignupUserDto,
   ) {
     const user = await this.authService.register(signupUserDto);
-    const login = await this.authService.login({
-      username: user.username,
-      userId: user.userId,
-    });
+    const login = await this.authService.login(
+      {
+        username: user.username,
+        userId: user.userId,
+        tfa: undefined,
+      },
+      false,
+    );
     res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
@@ -144,7 +150,7 @@ export class AuthController {
   //TODO: redirect if tfa enabled
   async signin(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
-    const login = await this.authService.login(req.user);
+    const login = await this.authService.login(req.user, false);
     res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
@@ -220,14 +226,55 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'get otp uri for current user' })
-  @ApiBearerAuth()
-  @JwtAuth
   @Get('/tfa/otpauth')
   async getOtpAuthUri(@Req() req: Request) {
-    if (req.user === undefined) throw new UnauthorizedException();
+    const { jwtPayload, expired } = this.authService.verifyJwtToken(
+      req.cookies.access_token,
+    );
+    if (expired) throw new UnauthorizedException('token expired');
+    req.user = jwtPayload;
     const otpAuthUri = await this.authService.getOtpAuthUri(req.user);
     return {
       otpauth_uri: otpAuthUri,
     };
+  }
+
+  @ApiOperation({ summary: 'verify scanned secret' })
+  @Post('/tfa/verify')
+  async verifyTfaCode(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body() tfaCodeDto: TfaCodeDto,
+  ) {
+    const { jwtPayload, expired } = this.authService.verifyJwtToken(
+      req.cookies.access_token,
+    );
+    if (expired) throw new UnauthorizedException('token expired');
+    req.user = jwtPayload;
+    console.log(`verifyTfaCode method called with code=${tfaCodeDto.code}`);
+    const verified = await this.authService.verifyTfa(
+      req.user,
+      tfaCodeDto.code,
+    );
+    if (verified) {
+      const login = await this.authService.login(req.user, verified);
+      res.cookie('refresh_token', login.tokens.refreshToken, {
+        ...refreshCookieOptions,
+      });
+      res.cookie('access_token', login.tokens.accessToken, {
+        ...accessCookieOptions,
+      });
+      const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+      const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+        const newCookie = cookie.replace(
+          new RegExp('SameSite=None', 'g'),
+          'SameSite=',
+        );
+        return newCookie;
+      });
+      res.setHeader('Set-Cookie', setCookieHedaerNew);
+    } else {
+      throw new BadRequestException('invalid  code');
+    }
   }
 }

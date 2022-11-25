@@ -465,4 +465,29 @@ export namespace Apis {
       error: "bad request",
     });
   }
+
+  export async function VerifyTfa(options: {
+    code: string,
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.post(`/api/auth/tfa/verify`, { 
+        code: options.code,
+      });
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
 }

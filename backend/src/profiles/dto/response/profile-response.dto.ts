@@ -12,4 +12,7 @@ export class ProfileResponse {
 
   @ApiPropertyOptional()
   avatar: string;
+
+  @ApiPropertyOptional()
+  tfa?: boolean | undefined;
 }

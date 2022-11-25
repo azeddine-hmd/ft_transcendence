@@ -3,4 +3,5 @@ export interface ProfileResponse {
     username: string;
     displayName: string;
     avatar: string;
+    tfa?: boolean | undefined;
 }
