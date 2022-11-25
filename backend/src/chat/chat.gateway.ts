@@ -436,15 +436,14 @@ export class ChatGateway {
     newDmMsg.currentUser = false;
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
-        this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
-        console.log("here");
-      });
+      const clientIds: string[] | undefined = usersClient.get(newDmMsg.userId);
+      if (clientIds)
+        this.server.to( usr!.userId ).emit("receiveNewPrivateMsg", newDmMsg);
     }
     newDmMsg.currentUser = true;
-    usersClient.get((clientId).toString())?.forEach(element => {
-      this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
-    });
+    const clientIds: string[] | undefined = usersClient.get(clientId);
+      if (clientIds)
+        this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
   }
 
 

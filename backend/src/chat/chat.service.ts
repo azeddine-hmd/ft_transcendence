@@ -404,6 +404,8 @@ export class ChatService {
 
   async createMsg(createMsgDto: CreateMsgDto, auth: any) {
     let checkuser = await this.checkUser(auth);
+    console.log(createMsgDto);
+    
     if(checkuser == null)
       return 1;
     let checkroom = await this.checkRoom(createMsgDto.room);
