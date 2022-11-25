@@ -147,7 +147,6 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
-  //TODO: redirect if tfa enabled
   async signin(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = await this.authService.login(req.user, false);
