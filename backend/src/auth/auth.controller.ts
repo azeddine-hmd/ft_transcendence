@@ -83,6 +83,15 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
     let url = `${frontendHost}/home`;
     if (login.tfa && login.tfa === 'pending') {
       url = `${frontendHost}/auth/tfa`;
@@ -101,7 +110,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() signupUserDto: SignupUserDto,
   ) {
-    const user = await this.authService.registerUser(signupUserDto);
+    const user = await this.authService.register(signupUserDto);
     const login = await this.authService.login({
       username: user.username,
       userId: user.userId,
@@ -112,6 +121,15 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
   }
 
   @ApiResponse({
@@ -133,6 +151,16 @@ export class AuthController {
     res.cookie('access_token', login.tokens.accessToken, {
       ...accessCookieOptions,
     });
+    const setCookieHeader = res.getHeader('Set-Cookie') as string[];
+    const setCookieHedaerNew = setCookieHeader.map((cookie) => {
+      const newCookie = cookie.replace(
+        new RegExp('SameSite=None', 'g'),
+        'SameSite=',
+      );
+      console.log(`newCookie="${newCookie}"`);
+      return newCookie;
+    });
+    res.setHeader('Set-Cookie', setCookieHedaerNew);
   }
 
   @ApiOperation({ summary: 'Logout out current user' })

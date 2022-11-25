@@ -63,7 +63,6 @@ export class UsersService {
     unsavedProfile.user = unsavedUser;
 
     // check display name uniquness
-    console.log(`display name to check against: ${unsavedProfile.avatar}`);
     const profileFound = await this.profileRepository.findOne({
       where: {
         displayName: unsavedProfile.displayName,
@@ -96,7 +95,6 @@ export class UsersService {
     });
     if (!foundUser) {
       const { userLike, profileLike } = ftProfileDtoToUserProfile(profile);
-      console.log(`profileLike: ${JSON.stringify(profileLike)}`);
       return await this.createUser(userLike, profileLike);
     }
     return foundUser;

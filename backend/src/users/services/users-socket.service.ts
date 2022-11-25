@@ -56,9 +56,7 @@ export class UsersSocketService {
     }
 
     if (!userStates) throw new WsException('user not found!');
-    console.log(clientId);
     userStates.clients.add(clientId);
-    console.log(clientId);
     userStates.online = true;
   }
 
@@ -67,7 +65,6 @@ export class UsersSocketService {
     if (!userStates)
       throw new InternalServerErrorException(`user state doesn't exist`);
     userStates.clients.delete(clientId);
-    console.log(userStates.clients.size);
     if (userStates.clients.size === 0) {
       userStates.online = false;
     }

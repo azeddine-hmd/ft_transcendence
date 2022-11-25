@@ -1,16 +1,22 @@
 import { CookieOptions } from 'express-serve-static-core';
 
-export const expiresMaxTime = new Date(new Date().getTime() + 9999999999);
+const day = 86400000;
+
+export const expiresMaxTime = new Date(new Date().getTime() * 1000 * day * 100);
 
 export const refreshCookieOptions: CookieOptions = {
   httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
   expires: expiresMaxTime,
+  maxAge: day * 365,
   path: '/api/auth/refresh',
-  maxAge: expiresMaxTime.getTime(),
 };
 
 export const accessCookieOptions: CookieOptions = {
   httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
   expires: expiresMaxTime,
-  maxAge: expiresMaxTime.getTime(),
+  maxAge: day * 365,
 };
