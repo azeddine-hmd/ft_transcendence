@@ -51,7 +51,7 @@ export class ProfilesController {
     if (req.user === undefined) throw new UnauthorizedException();
     const profile = await this.profilesService.getProfile(req.user.username);
     if (!profile) throw new NotFoundException();
-    return profileToProfileResponse(profile);
+    return { ...profileToProfileResponse(profile), tfa: profile.user.tfa };
   }
 
   @ApiResponse({

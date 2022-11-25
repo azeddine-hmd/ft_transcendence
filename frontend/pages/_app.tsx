@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import "../styles/globals.css";
 import { io } from "socket.io-client";
+import { Apis } from "../network/apis";
 
 const blacklistPages = [
   "/",

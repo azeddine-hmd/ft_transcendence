@@ -82,15 +82,17 @@ export class RelationsController {
   @Get('/friends')
   async getFriends(@Req() req: Request): Promise<FriendsResponse[]> {
     if (req.user === undefined) throw new UnauthorizedException();
-    const pairs: Pair<UserRelation, Profile>[] =
-      await this.relationsService.getAllFriendsRelations(req.user.userId);
-
-    return pairs.map((pair: Pair<UserRelation, Profile>) => {
+    const pairs = await this.relationsService.getAllFriendsRelations(
+      req.user.userId,
+    );
+    return pairs.map((pair) => {
       if (req.user === undefined) throw new UnauthorizedException();
-
       return {
         profile: profileToProfileResponse(pair.second),
-        friends_status: relationToFriendsStatus(pair.first, req.user.userId),
+        friends_status: relationToFriendsStatus(
+          pair.first.relation,
+          req.user.userId,
+        ),
         is_blocked: pair.first.isBlocked,
       };
     });
@@ -109,19 +111,19 @@ export class RelationsController {
     @Param('username') otherUsername: string,
   ): Promise<RelationResponse> {
     if (req.user === undefined) throw new UnauthorizedException();
-    const relation = await this.relationsService.getRelation(
+    const { relation, isBlocked } = await this.relationsService.getRelation(
       req.user.userId,
       otherUsername,
     );
     if (!relation) {
       return {
         friends: FriendsStatus.Neutral,
-        blocked: false,
+        blocked: isBlocked,
       };
     } else {
       return {
         friends: relationToFriendsStatus(relation, req.user.userId),
-        blocked: relation.isBlocked,
+        blocked: isBlocked,
       };
     }
   }

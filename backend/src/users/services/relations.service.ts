@@ -3,8 +3,10 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm/dist';
+import { Block } from 'src/chat/entities/block.entity';
 import { Repository } from 'typeorm';
 import { Profile } from '../../profiles/entities/profile.entity';
 import { Pair } from '../../utils/pair';
@@ -21,12 +23,14 @@ export class RelationsService {
     private readonly userRelationRepository: Repository<UserRelation>,
     @InjectRepository(Profile)
     private readonly profileRepostiroy: Repository<Profile>,
+    @InjectRepository(Block)
+    private readonly blockRepository: Repository<Block>,
   ) {}
 
   async getRelation(
     userId: string,
     otherUsername: string,
-  ): Promise<UserRelation | null> {
+  ): Promise<{ relation?: UserRelation | null; isBlocked: boolean }> {
     const current = await this.userRepository.findOneBy({ userId: userId });
     const other = await this.userRepository.findOneBy({
       username: otherUsername,
@@ -37,7 +41,7 @@ export class RelationsService {
         'cannot procced with relation between same user',
       );
     const { user1, user2 } = normalizeTwoUsersRelation(current, other);
-    return await this.userRelationRepository.findOne({
+    const relation = await this.userRelationRepository.findOne({
       relations: {
         user1: true,
         user2: true,
@@ -47,11 +51,42 @@ export class RelationsService {
         user2: { id: user2.id },
       },
     });
+    const isBlocked = await this.getBlockRelation(userId, otherUsername);
+    return {
+      relation: relation,
+      isBlocked: isBlocked,
+    };
+  }
+
+  async getBlockRelation(
+    userId: string,
+    otherUsername: string,
+  ): Promise<boolean> {
+    const current = await this.userRepository.findOneBy({ userId: userId });
+    const other = await this.userRepository.findOneBy({
+      username: otherUsername,
+    });
+    if (!current || !other) throw new InternalServerErrorException();
+    if (current === other)
+      throw new BadRequestException(
+        'cannot procced with relation between same user',
+      );
+    const blockRelation = await this.blockRepository.findOne({
+      relations: {
+        user1: true,
+        user2: true,
+      },
+      where: {
+        user1: { id: current.id },
+        user2: { id: other.id },
+      },
+    });
+    return !blockRelation ? false : true;
   }
 
   async getAllFriendsRelations(
     userId: string,
-  ): Promise<Pair<UserRelation, Profile>[]> {
+  ): Promise<Pair<{ relation: UserRelation; isBlocked: boolean }, Profile>[]> {
     const current = await this.userRepository.findOneBy({ userId: userId });
     if (!current) throw new InternalServerErrorException();
     /* Logger.debug( */
@@ -68,7 +103,10 @@ export class RelationsService {
       ],
     });
 
-    const pairs: Pair<UserRelation, Profile>[] = await Promise.all(
+    const pairs: Pair<
+      { relation: UserRelation; isBlocked: boolean },
+      Profile
+    >[] = await Promise.all(
       relations.map(async (relation: UserRelation) => {
         let friendUserId: string | undefined;
         if (current.userId === relation.user1.userId) {
@@ -89,8 +127,16 @@ export class RelationsService {
         });
         if (!profile) throw new InternalServerErrorException();
 
-        const pair: Pair<UserRelation, Profile> = {
-          first: relation,
+        const isBlocked = await this.getBlockRelation(userId, friendUserId);
+
+        const pair: Pair<
+          { relation: UserRelation; isBlocked: boolean },
+          Profile
+        > = {
+          first: {
+            relation: relation,
+            isBlocked: isBlocked,
+          },
           second: profile,
         };
 
@@ -130,7 +176,19 @@ export class RelationsService {
         `you can't send friend request to yourself`,
       );
 
+    const blockRelation_1 = await this.getBlockRelation(userId, otherUsername);
+    const blockRelation_2 = await this.getBlockRelation(
+      other.userId,
+      current.username,
+    );
+    console.log(`blockrel1=${blockRelation_1} | blockrel2=${blockRelation_2}`);
+    if (blockRelation_1 || blockRelation_2)
+      throw new BadRequestException(
+        `you can't add him as friend if block relation exist`,
+      );
+
     const { user1, user2 } = normalizeTwoUsersRelation(current, other);
+
     const relation = await this.findOrCreate(user1, user2);
 
     if (current.userId === user1.userId) {
@@ -172,15 +230,7 @@ export class RelationsService {
       throw new BadRequestException(
         `Not a friend to remove it from friend list`,
       );
-
-    //TODO: should I remove relation completely if all attributes falsey?
-    if (relation.isBlocked) {
-      relation.friend1_2 = false;
-      relation.friend2_1 = false;
-      await this.userRelationRepository.save(relation);
-    } else {
-      await this.userRelationRepository.remove(relation);
-    }
+    await this.userRelationRepository.delete({ id: relation.id });
   }
 
   async blockUser(userId: string, otherUsername: string) {
@@ -189,17 +239,26 @@ export class RelationsService {
       username: otherUsername,
     });
     if (!current || !other) throw new InternalServerErrorException();
-    if (current.id === other.id)
-      throw new BadRequestException(
-        `you can't send friend request to yourself`,
-      );
+    const blockRelation = await this.blockRepository.findOneBy({
+      user1: { id: current.id },
+      user2: { id: other.id },
+    });
+
+    // create block relation
+    if (blockRelation) {
+      throw new BadRequestException('user already blocked');
+    }
+    const newBlockRelation = this.blockRepository.create({
+      user1: current,
+      user2: other,
+    });
+    await this.blockRepository.save(newBlockRelation);
+
+    // remove friend relationship
     const { user1, user2 } = normalizeTwoUsersRelation(current, other);
     const relation = await this.findOrCreate(user1, user2);
-
-    if (relation.isBlocked) throw new BadRequestException('Already blocked');
-    relation.isBlocked = true;
-
-    await this.userRelationRepository.save(relation);
+    relation.friend1_2 = false;
+    relation.friend2_1 = false;
   }
 
   async unblockUser(userId: string, otherUsername: string) {
@@ -208,14 +267,15 @@ export class RelationsService {
       username: otherUsername,
     });
     if (!current || !other) throw new InternalServerErrorException();
-    if (current.id === other.id)
-      throw new BadRequestException(
-        `you can't send friend request to yourself`,
-      );
-    const { user1, user2 } = normalizeTwoUsersRelation(current, other);
-    const relation = await this.findOrCreate(user1, user2);
-    if (!relation.isBlocked) throw new BadRequestException('Already unblocked');
-    relation.isBlocked = false;
-    await this.userRelationRepository.save(relation);
+    const blockRelation = await this.blockRepository.findOneBy({
+      user1: { id: current.id },
+      user2: { id: other.id },
+    });
+
+    // unblock from rleation
+    if (!blockRelation) {
+      throw new NotFoundException('user already unblocked');
+    }
+    this.blockRepository.delete({ id: blockRelation.id });
   }
 }
