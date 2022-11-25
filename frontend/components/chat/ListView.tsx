@@ -41,14 +41,12 @@ function CreateNewRoom() {
                     </div>
 
                 </div>
+                
             </div>
         </div>
     );
 
 }
-
-
-var pageLoaded = false; 
 
 export default function ListView() {
     
@@ -60,12 +58,7 @@ export default function ListView() {
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
     function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
-    
-
-    if (!pageLoaded) {
-        socket.emit('findAllRooms');
-        pageLoaded = true;
-    }
+    socket.emit('findAllRooms')
 
     useEffect(() => {
         socket.on('createRoom', ({ created }) => {

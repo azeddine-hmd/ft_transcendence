@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { userAgent } from 'next/server';
 import { useEffect } from 'react';
 import { io } from "socket.io-client";
+import { Socket } from "socket.io-client"
 import ChatView from '../../components/chat/ChatView';
 import ListView from '../../components/chat/ListView';
 import Sidebar from '../../components/profile/Sidebar';
@@ -14,17 +15,17 @@ import Popup from '../../components/chat/Popup'
 let token = null;
 if (typeof window !== 'undefined') {
   token = localStorage.getItem('access_token');
-
 }
 
 let backendHost = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
 // let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
-//   token: token
-// }});
+  //   token: token
+  // }});
 const URL = "http://localhost:8080/chat";
-let socket = io(URL, {
+
+let socket:Socket = io(URL, {
   withCredentials: true,
   // forceNew: true,
   timeout: 10000, //before connect_error and connect_timeout are emitted.

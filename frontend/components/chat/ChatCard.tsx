@@ -1,11 +1,11 @@
 import {socket} from '../../pages/chat/[chat]'
 import Router from "next/router";
 import style from '../../styles/chat/ChatCard.module.css'
-import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
 import { useEffect, useState } from "react";
 import { HiSpeakerXMark } from "react-icons/hi2";
 import { GiBootKick } from "react-icons/gi";
 import { ImBlocked } from "react-icons/im";
+import DropMenu from './DropDown'
 
 
 
@@ -31,6 +31,19 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
     const [isKickMenu, setKickMenu] = useState(false);
     const [isInviteMenu, setInviteMenu] = useState(false);
 
+    useEffect(() => {
+        socket.on('showMenuAlert', ({flag}) => {
+            if (flag === 'Mute')
+                setMuteMenu(true);
+            if (flag === 'Ban')
+                setBanMenu(true);
+            if (flag === 'Kick')
+                setKickMenu(true);
+            if (flag === 'Invite')
+                setInviteMenu(true);
+        })
+        return () => { socket.off('showMenuAlert'); }
+    }, [])
     
     function Ban() {
         function T1() { socket.emit('Ban', {time: 1, user: name, room: room} ); setBanMenu(false); };
@@ -96,87 +109,6 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
         );
     }
 
-    const Menu = () => {
-        
-        var items = [
-            "Profile",
-            "Message",
-            "Block",
-            "Invite to game",
-            "Mute",
-            "Ban",
-            "Kick"
-        ];
-
-        if (role === 'member')
-        {
-            items.pop();
-            items.pop();
-            items.pop();
-        }
-
-        useEffect(() => {
-            socket.on('blockUser', (isBlocked) => {
-                if (isBlocked)
-                    items[2] = 'Unblock';
-            })
-            
-            socket.on('unblockUser', (isBlocked) => {
-                if (isBlocked)
-                    items[2] = 'Block';
-            })
-
-            socket.off('blockUser');
-            socket.off('unblockUser');
-        }, []);
-
-        function handleItemClick(event:DropDownButtonItemClickEvent) {
-            if (event.item === "Profile"){
-                Router.push("/user/"+name);
-            }
-            else if (event.item === "Message"){
-                Router.push("/chat/" + name);
-                socket.emit('conversation');
-            }
-            else if (event.item === "Block"){
-                if (items[2] == 'Block')
-                    socket.emit('blockUser', {user: name});
-                else
-                    socket.emit('unblockUser', {user: name});
-            }
-            else if (event.item === "Invite to game"){
-                setInviteMenu(true);
-            }
-            else if (event.item === "Mute"){
-                setMuteMenu(true);
-            }
-            else if (event.item === "Ban"){
-                setBanMenu(true);
-            }
-            else if (event.item === "Kick"){
-                setKickMenu(true);
-            }
-            else {
-                console.log(event.item);
-            }
-        }
-
-        return (
-            <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
-                <DropDownButton
-                    popupSettings={{
-                        animate: false,
-                        popupClass: "my-popup",
-                    }}
-                    items={items}
-                    text="..."
-                    size="small"
-                    onItemClick={handleItemClick}
-                />
-            </div>
-        );
-    };
-
     return (
         <div className={style.row}>
             <div className={style.column} style={currentUser ? { "float": "right" } : { "float": "left" }}>
@@ -185,13 +117,15 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                 { (isBanMenu) ? <Ban /> : <></> }
                 { (isKickMenu) ? <Kick /> : <></> }
                 { (isInviteMenu) ? <Invite /> : <></> }
-                <div style={{"display": "flex", "justifyContent": "spaceBetween", "alignItems":"center"}}>
-                    <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px" }} />
-                    <span id={style.username}>{name}</span>
+                <div className='justify-between' style={{"display": "flex", "justifyContent": "spaceBetween", "alignItems":"center"}}>
+                    <div className='flex'>
+                        <img src={avatar} style={{ "marginTop": "4px", "width": "40px", "height": "40px", "borderRadius": "50px" }} />
+                        <span id={style.username}>{name}</span>
+                    </div>
                     { (state == 'blocked') ? <ImBlocked style={{"marginLeft":"5px", "filter":"invert(12%) sepia(97%) saturate(5624%) hue-rotate(358deg) brightness(104%) contrast(114%)"}}/> : <></>}
                     { (state == 'muted') ? <HiSpeakerXMark style={{"marginLeft":"5px"}}/> : <></>}
                     { (state == 'kicked') ? <GiBootKick style={{"marginLeft":"5px"}}/> : <></>}
-                    {(!currentUser) ? <Menu /> : <></>}
+                    {(!currentUser) ? <DropMenu role={role} name={name}/> : <></>}
                 </div>
 
                 <div className={style.chatcard} style={currentUser ? { "backgroundColor": "#04AA6D" } : { "backgroundColor": "#f6f7fb" }}>

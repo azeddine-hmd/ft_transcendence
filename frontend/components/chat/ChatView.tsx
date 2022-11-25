@@ -3,7 +3,6 @@ import messages from '../../messages.json'
 import ChatCard from './ChatCard';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { socket } from '../../pages/chat/[chat]'
-import { Button } from "@progress/kendo-react-buttons";
 import settingstyle from '../../styles/chat/Setting.module.css'
 import stylee from '../../styles/chat/Card.module.css'
 
@@ -23,7 +22,7 @@ interface Props {
 
 var roomID = -1;
 var roomTitle = '..';
-var roomType:string = '';
+var roomType:string = 'DM';
 var userRole = 'member';
 var username = '';
 var data = messages;
@@ -76,7 +75,7 @@ function Layout() {
                         <div style={{ "marginTop": "5px", "display": "flex", "justifyContent": "spaceBetween", "height": "30px" }}>
                             <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
                             <div>
-                                <Button onClick={handleAdd} themeColor={"light"} size="small">ADD</Button>
+                                <button onClick={handleAdd}>ADD</button>
                             </div>
                         </div>
                         <div className={settingstyle.buttonsHolder}>
@@ -129,7 +128,7 @@ function Layout() {
                 {
                 (userRole === 'owner') ?
                 <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
-                    <Button onClick={() => setShowSetiig(!showSetting)} themeColor={"light"} size="small">...</Button>
+                    <button onClick={() => setShowSetiig(!showSetting)}>...</button>
                 </div>
                 :
                 <></>

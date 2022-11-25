@@ -6,7 +6,7 @@ export default function Popup() {
 
     const [username, setUsername] = useState('');
     const [username2, setUsername2] = useState('');
-    const [visibility, setVisibility] = useState(true);
+    const [visibility, setVisibility] = useState(false);
 
     useEffect(() => {
         socket.on('showPopup', (user1, user2) => {
