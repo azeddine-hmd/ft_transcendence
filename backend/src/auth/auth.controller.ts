@@ -157,10 +157,16 @@ export class AuthController {
         new RegExp('SameSite=None', 'g'),
         'SameSite=',
       );
-      console.log(`newCookie="${newCookie}"`);
       return newCookie;
     });
     res.setHeader('Set-Cookie', setCookieHedaerNew);
+    let url = `/home`;
+    if (login.tfa && login.tfa === 'pending') {
+      url = `/auth/tfa`;
+    }
+    return {
+      path: url,
+    };
   }
 
   @ApiOperation({ summary: 'Logout out current user' })
@@ -211,5 +217,17 @@ export class AuthController {
   async tfa(@Req() req: Request, @Body() tfaDto: TfaDto) {
     if (req.user === undefined) throw new UnauthorizedException();
     await this.authService.tfa(req.user.username, tfaDto.value);
+  }
+
+  @ApiOperation({ summary: 'get otp uri for current user' })
+  @ApiBearerAuth()
+  @JwtAuth
+  @Get('/tfa/otpauth')
+  async getOtpAuthUri(@Req() req: Request) {
+    if (req.user === undefined) throw new UnauthorizedException();
+    const otpAuthUri = await this.authService.getOtpAuthUri(req.user);
+    return {
+      otpauth_uri: otpAuthUri,
+    };
   }
 }

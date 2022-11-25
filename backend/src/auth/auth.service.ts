@@ -19,7 +19,7 @@ import { UserJwtPayload } from './types/user-jwt-payload';
 @Injectable()
 export class AuthService {
   private refreshTokens = new Map<string, string | null>();
-  private tfaSecrets = new Map<string, string>();
+  private tfaSecrets = new Map<string, { secret: string; uri: string }>();
 
   constructor(
     private readonly envService: EnvService,
@@ -50,17 +50,6 @@ export class AuthService {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException('User already exist');
     }
-
-    // otp
-    /* const secret = this.envService.get('OTP_SECRET'); */
-    const secret = authenticator.generateSecret();
-    this.tfaSecrets.set(user.username, secret);
-    const result = await authenticator.keyuri(
-      user.username,
-      'PING_PONG_GAME',
-      secret,
-    );
-    console.log(`qrcode uri: ${result}`);
 
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
@@ -150,6 +139,28 @@ export class AuthService {
   }
 
   async tfa(username: string, value: boolean) {
+    if (value) {
+      // tfa configuration
+      const secret = authenticator.generateSecret();
+      const otpUri = authenticator.keyuri(username, 'PING_PONG_GAME', secret);
+      this.tfaSecrets.set(username, { secret: secret, uri: otpUri });
+      Logger.log(
+        `user ${username} tfa generated: ${JSON.stringify({
+          secret: secret,
+          uri: otpUri,
+        })}`,
+      );
+    }
     this.usersService.setTfa(username, value);
+  }
+
+  async getOtpAuthUri(userJwtPayload: UserJwtPayload) {
+    const tfaEnabled = await this.usersService.getTfa(userJwtPayload.userId);
+    if (!tfaEnabled || userJwtPayload.tfa !== 'pending')
+      throw new BadRequestException('illegal state for two way factor');
+    const uri = this.tfaSecrets.get(userJwtPayload.username)?.uri;
+    if (!uri)
+      throw new InternalServerErrorException('tfa secret not generated');
+    return uri;
   }
 }
