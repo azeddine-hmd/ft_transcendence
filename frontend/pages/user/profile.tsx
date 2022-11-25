@@ -1,19 +1,12 @@
-import ProfileM from "../../components/profile/Profilem";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import Sidebar from "../../components/profile/Sidebar";
-import { Apis } from "../../network/apis";
-import { ProfileResponse } from "../../network/dto/response/profile-response.dto";
-import { ErrorResponse } from "../../network/dto/response/error-response.dto";
-import Useravatar from "../../components/profile/Useravatar";
+import Router, { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import Infouser from "../../components/profile/Infouser";
-import Link from "next/link";
+import Sidebar from "../../components/profile/Sidebar";
+import Useravatar from "../../components/profile/Useravatar";
+import { Apis } from "../../network/apis";
+import { ErrorResponse } from "../../network/dto/response/error-response.dto";
+import { ProfileResponse } from "../../network/dto/response/profile-response.dto";
 import styles from "../../styles/Profile/user.module.css";
-import Overview from "../../components/profile/overview";
-import axios from "axios";
-import { style } from "@mui/system/Stack/createStack";
-import { IoConstructOutline } from "react-icons/io5";
-import { ProfilesUser } from "../../network/dto/payload/profileuser";
 
 export default function Profile() {
   const router = useRouter();
@@ -23,6 +16,7 @@ export default function Profile() {
   const [opensettings, setopensettings] = useState(false);
   const [openfriends, setopenfriends] = useState(false);
   const [currnetdispayname, setcurrnetdispayname] = useState("");
+
   useEffect(() => {
     Apis.CurrentProfile({
       onSuccess: (profile: ProfileResponse) => {
@@ -36,6 +30,27 @@ export default function Profile() {
       },
     });
   }, []);
+
+  if (typeof window !== "undefined") {
+      if (window.statesSocket && window.statesSocket.connected) {
+        window.statesSocket.on("FriendsStates", (data) => {
+          console.log(`data received: ${JSON.stringify(data)}`);
+        });
+
+        const task = setInterval(() => {
+          window.statesSocket!.emit("FriendsStates");
+          console.log(`target is: `);
+          console.log(task);
+        }, 5000);
+        console.log(`task is: `);
+        console.log(task);
+
+        Router.events.on("beforeHistoryChange", (path) => {
+          console.log(`stop task ? task=${task}`);
+          clearInterval(task);
+        });
+      }
+  }
 
   const listFreinds = [
     {

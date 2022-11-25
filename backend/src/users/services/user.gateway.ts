@@ -1,8 +1,12 @@
-import { forwardRef, Inject, UseFilters } from '@nestjs/common';
+import { forwardRef, Inject, Logger, UseFilters } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  SubscribeMessage,
   WebSocketGateway,
+  WsResponse,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { WSAuthGuard } from '../../auth/guards/ws-auth.guard';
@@ -26,14 +30,32 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   async handleConnection(client: Socket, ..._args: any[]) {
     try {
-      const payload = await this.usersSocketService.authenticate(client);
-      this.usersSocketService.addClient(client.id, payload.userId);
+      await this.usersSocketService.authenticate(client);
     } catch (exception) {
       handleWsException(client, exception);
     }
+    this.usersSocketService.addClient(client.id, client.user.userId);
+    Logger.log(`client socket connected on user gateway: id=${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    this.usersSocketService.removeClient(client.id);
+    if (client.user) {
+      Logger.log(`client socket disconnected on user gateway: id=${client.id}`);
+      this.usersSocketService.removeClient(client.user.userId, client.id);
+    }
+  }
+
+  @SubscribeMessage('FriendsStates')
+  async friendsStates(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: string,
+  ): Promise<WsResponse<unknown>> {
+    const states = await this.usersSocketService.getFriendsStates(
+      client.user.userId,
+    );
+    return {
+      event: 'FriendsStates',
+      data: states,
+    };
   }
 }

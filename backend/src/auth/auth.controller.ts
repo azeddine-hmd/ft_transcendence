@@ -21,18 +21,18 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger/dist';
 import { Request, Response } from 'express';
 import { EnvService } from 'src/conf/env.service';
-import { AuthService } from '../auth.service';
-import { SigninUserDto } from '../dto/payload/signin-user.dto';
-import { SignupUserDto } from '../dto/payload/signup-user.dto';
-import { TfaDto } from '../dto/payload/tfa.dto';
-import { LoginResponseDto } from '../dto/response/login-response.dto';
-import { FTAuthGuard } from '../guards/ft.guard';
-import { JwtAuth } from '../guards/jwt-auth.guard';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { AuthService } from './auth.service';
+import { SigninUserDto } from './dto/payload/signin-user.dto';
+import { SignupUserDto } from './dto/payload/signup-user.dto';
+import { TfaDto } from './dto/payload/tfa.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
+import { FTAuthGuard } from './guards/ft.guard';
+import { JwtAuth } from './guards/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 import {
   accessCookieOptions,
   refreshCookieOptions,
-} from '../utils/cookie-options';
+} from './utils/cookie-options';
 
 @ApiTags('authentication')
 @Injectable()
@@ -123,6 +123,7 @@ export class AuthController {
   @ApiBody({ type: SigninUserDto })
   @LocalAuthGuard
   @Post('/signin')
+  //TODO: redirect if tfa enabled
   async signin(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = await this.authService.login(req.user);
