@@ -7,7 +7,7 @@ import { UserJwtPayload } from '../types/user-jwt-payload';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly envService: EnvService) {
+  constructor(envService: EnvService) {
     super({
       ignoreExpiration: false,
       secretOrKey: envService.get('JWT_SECRET'),
@@ -24,6 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       username: payload.username,
       userId: payload.userId,
+      tfa: payload.tfa,
     };
   }
 }
