@@ -30,9 +30,9 @@ var data = messages;
 
 
 export default function ChatView() {
+    
     const [visible, setVisibility] = useState(false)
     
-
     // -------------------- Layout --------------------------
 
     function Layout() {
@@ -59,7 +59,10 @@ export default function ChatView() {
     
             function handleSave() {
                 setShowSetiig(false);
-                socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
+                if ((password !== '' && privacy) || username !== '')
+                    socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
+                else
+                    alert('all field (*) must not be empty')
             }
     
             function handleCancel() {
@@ -77,13 +80,13 @@ export default function ChatView() {
                                 <input type="checkbox" onChange={handleChange}></input>
                                 <span className={settingstyle.slider}></span>
                             </label>
-                            {(privacy) ? <><input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
+                            {(privacy) ? <><input placeholder="password *" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
                                 : <></>}
                             <p>add a user as administrator:</p>
                             <div style={{ "marginTop": "5px", "display": "flex", "justifyContent": "spaceBetween", "height": "30px" }}>
-                                <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
-                                <div>
-                                    <button onClick={handleAdd}>ADD</button>
+                                <div className='flex h-[40px] mb-[5px]'>
+                                    <input placeholder="username *" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
+                                    <button id={style.messageBarSendBtn} onClick={handleAdd}>ADD</button>
                                 </div>
                             </div>
                             <div className={settingstyle.buttonsHolder}>
