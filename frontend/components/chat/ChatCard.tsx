@@ -22,11 +22,12 @@ interface props {
     role: string;
     state: string;
     room: number;
+    showPop: boolean;
 }
 
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room }: props) {
+export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room, showPop }: props) {
 
     const [isMuteMenu, setMuteMenu] = useState(false);
     const [isBanMenu, setBanMenu] = useState(false);
@@ -245,7 +246,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                     { (state == 'blocked') ? <ImBlocked style={{"marginLeft":"5px", "filter":"invert(12%) sepia(97%) saturate(5624%) hue-rotate(358deg) brightness(104%) contrast(114%)"}}/> : <></>}
                     { (state == 'muted') ? <HiSpeakerXMark style={{"marginLeft":"5px"}}/> : <></>}
                     { (state == 'kicked') ? <GiBootKick style={{"marginLeft":"5px"}}/> : <></>}
-                    {(!currentUser) ? <DropMenu role={role} name={name}/> : <></>}
+                    {(!currentUser && showPop) ? <DropMenu role={role} name={name}/> : <></>}
                 </div>
 
                 <div className={style.chatcard} style={currentUser ? { "backgroundColor": "#04AA6D" } : { "backgroundColor": "#f6f7fb" }}>

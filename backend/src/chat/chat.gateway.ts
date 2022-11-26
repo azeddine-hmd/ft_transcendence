@@ -411,7 +411,7 @@ export class ChatGateway {
   */
   @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
-    console.log("create new msg " + privateMsgDto);
+    console.log("create new msg " + privateMsgDto.user);
     
     let clientId:any =  getClientId(client, this.jwtService);
     const blockedUsers = await this.chatService.getBlockedUsers(clientId);
@@ -435,19 +435,23 @@ export class ChatGateway {
     let date = new Date().toString().split(':');
     newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
     newDmMsg.currentUser = false;
-    if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
+    
+    console.log('check1', (privateMsgDto.user).toString());
+    console.log('check2', usersClient);
+    
+    
+    if (usr)
     {
-      if (usr)
-      {
-        console.log(usr);
-        
-        const clientIds: string[] | undefined = usersClient.get(usr.userId);
-        if (clientIds)
-          this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
-      }
+      console.log("DM03333", usr.userId);
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      
+      if (clientIds)
+        this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
     }
+    
     newDmMsg.currentUser = true;
     const clientIds: string[] | undefined = usersClient.get(clientId);
+    console.log("DM1", clientId);
       if (clientIds)
         this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
     

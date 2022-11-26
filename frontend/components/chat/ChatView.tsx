@@ -27,141 +27,150 @@ var userRole = 'member';
 var username = '';
 var data = messages;
 
-function Layout() {
-
-    const [text, setText] = useState('');
-    const [mdata, setmData] = useState(data);
-    const [showSetting, setShowSetiig] = useState(false);
-
-    function Setting() {
-        const [password, setPassword] = useState('');
-        const [username, setUsername] = useState('');
-        const [privacy, setprivacy] = useState(false);
-
-        const handleChange = () => {
-            setprivacy(!privacy);
-        };
-
-        const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
-        const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
-        const handleAdd = () => { 
-            socket.emit('addRoleToSomeUser', { username: username, roomId: roomID });
-            setShowSetiig(false);
-        };
-
-        function handleSave() {
-            setShowSetiig(false);
-            socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
-        }
-
-        function handleCancel() {
-            setShowSetiig(false);
-        }
 
 
-        return (
-            <div className={stylee.row}>
-                <div className={stylee.column}>
-                    <div className={stylee.noHoverCard}>
-                        <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px", "width": "100%", "textAlign": "center" }}>Setting</h3>
-                        <p>make room protected:</p>
-                        <label className={settingstyle.toggle}>
-                            <input type="checkbox" onChange={handleChange}></input>
-                            <span className={settingstyle.slider}></span>
-                        </label>
-                        {(privacy) ? <><input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
-                            : <></>}
-                        <p>add a user as administrator:</p>
-                        <div style={{ "marginTop": "5px", "display": "flex", "justifyContent": "spaceBetween", "height": "30px" }}>
-                            <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
-                            <div>
-                                <button onClick={handleAdd}>ADD</button>
+export default function ChatView() {
+    const [visible, setVisibility] = useState(false)
+    
+
+    // -------------------- Layout --------------------------
+
+    function Layout() {
+
+        const [text, setText] = useState('');
+        const [mdata, setmData] = useState(data);
+        const [showSetting, setShowSetiig] = useState(false);
+    
+        function Setting() {
+            const [password, setPassword] = useState('');
+            const [username, setUsername] = useState('');
+            const [privacy, setprivacy] = useState(false);
+    
+            const handleChange = () => {
+                setprivacy(!privacy);
+            };
+    
+            const handlePasswordChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setPassword(event.currentTarget.value); };
+            const handleUsernameChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setUsername(event.currentTarget.value); };
+            const handleAdd = () => { 
+                socket.emit('addRoleToSomeUser', { username: username, roomId: roomID });
+                setShowSetiig(false);
+            };
+    
+            function handleSave() {
+                setShowSetiig(false);
+                socket.emit('updateRoom', { privacy: privacy, password: password, roomID: roomID });
+            }
+    
+            function handleCancel() {
+                setShowSetiig(false);
+            }
+    
+    
+            return (
+                <div className={stylee.row}>
+                    <div className={stylee.column}>
+                        <div className={stylee.noHoverCard}>
+                            <h3 style={{ "color": "rgba(243, 207, 124, 1)", "marginBottom": "5px", "width": "100%", "textAlign": "center" }}>Setting</h3>
+                            <p>make room protected:</p>
+                            <label className={settingstyle.toggle}>
+                                <input type="checkbox" onChange={handleChange}></input>
+                                <span className={settingstyle.slider}></span>
+                            </label>
+                            {(privacy) ? <><input placeholder="password" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br /></>
+                                : <></>}
+                            <p>add a user as administrator:</p>
+                            <div style={{ "marginTop": "5px", "display": "flex", "justifyContent": "spaceBetween", "height": "30px" }}>
+                                <input placeholder="username" className={stylee.input} type="username" onInput={handleUsernameChange}></input><br />
+                                <div>
+                                    <button onClick={handleAdd}>ADD</button>
+                                </div>
+                            </div>
+                            <div className={settingstyle.buttonsHolder}>
+                                <button onClick={handleSave} className={settingstyle.button}>Save</button>
+                                <button onClick={handleCancel} className={settingstyle.button}>Cancel</button>
                             </div>
                         </div>
-                        <div className={settingstyle.buttonsHolder}>
-                            <button onClick={handleSave} className={settingstyle.button}>Save</button>
-                            <button onClick={handleCancel} className={settingstyle.button}>Cancel</button>
-                        </div>
                     </div>
+                </div>
+            );
+        }
+    
+        const bottom = useRef<null | HTMLDivElement>(null);
+        const scrollToBottom = () => {
+            if (bottom.current)
+                bottom.current.scrollIntoView({ behavior: "smooth" })
+        }
+    
+        useEffect(() => {
+            scrollToBottom()
+        }, [mdata]);
+    
+        const [msg, setMsg] = useState('');
+    
+        const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
+    
+        function SendMessage() {
+            if (msg !== '')
+                (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg }) : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg });
+            setText('');
+            setMsg('');
+        }
+    
+        useEffect(() => {
+            socket.on('updateMessages', () => {
+                setmData(data);
+                scrollToBottom()
+            });
+            return () => { socket.off('updateMessages'); }
+        }, [])
+    
+        useEffect(() => {
+            setText(msg);
+        }, [msg])
+    
+        return (
+            <div className={style.chat}>
+                <div className={style.roomTitle}>
+                    <h2>{roomTitle}</h2>
+                    <div className='flex'>
+                    {
+                        (userRole === 'owner') ?
+                            <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
+                                <button id={style.messageBarSendBtn} onClick={() => setShowSetiig(!showSetting)}>...</button>
+                            </div>
+                            :
+                            <></>
+                    }
+                    <button onClick={()=>{ setVisibility(false); }} className='text-[#f00] border border-red-600 rounded m-[5px] hover:bg-red-500 hover:text-white p-[5px] text-[12px]' > Exit </button>
+                    </div>
+                </div>
+                {(showSetting) ? <Setting /> : <></>}
+                <div className={style.chatBoard}>
+                    <div className={style.scroll}>
+                        {(mdata !== undefined) ? mdata.map(messages => {
+                            return (
+                                <ChatCard id={messages.username} date={messages.date} 
+                                name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
+                                role={userRole} state={messages.userState} room={roomID} showPop={roomType === 'room'} />
+                            );
+                        }) : null}
+                        <div ref={bottom}></div>
+                    </div>
+                </div>
+                <div className={style.messageBarHolder}>
+                    <input value={text} autoComplete='off' onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            SendMessage();
+                        }
+                    }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
+                    <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
                 </div>
             </div>
         );
     }
 
-    const bottom = useRef<null | HTMLDivElement>(null);
-    const scrollToBottom = () => {
-        if (bottom.current)
-            bottom.current.scrollIntoView({ behavior: "smooth" })
-    }
-
-    useEffect(() => {
-        scrollToBottom()
-    }, [mdata]);
-
-    const [msg, setMsg] = useState('');
-
-    const handleMessageChange = (event: React.KeyboardEvent<HTMLInputElement>) => { setMsg(event.currentTarget.value); };
-
-    function SendMessage() {
-        if (msg !== '')
-            (roomType == 'room') ? socket.emit('createMsg', { room: roomID, msg: msg }) : socket.emit('createnNewPrivateMsg', { user: roomTitle, msg: msg });
-        setText('');
-        setMsg('');
-    }
-
-    useEffect(() => {
-        socket.on('updateMessages', () => {
-            setmData(data);
-            scrollToBottom()
-        });
-        return () => { socket.off('updateMessages'); }
-    }, [])
-
-    useEffect(() => {
-        setText(msg);
-    }, [msg])
-
-    return (
-        <div className={style.chat}>
-            <div className={style.roomTitle}>
-                <h2>{roomTitle}</h2>
-                {
-                (userRole === 'owner') ?
-                <div style={{ "alignSelf": "center", "marginLeft": "10px" }}>
-                    <button onClick={() => setShowSetiig(!showSetting)}>...</button>
-                </div>
-                :
-                <></>
-                }
-            </div>
-            {(showSetting) ? <Setting /> : <></>}
-            <div className={style.chatBoard}>
-                <div className={style.scroll}>
-                    {(mdata !== undefined) ? mdata.map(messages => {
-                        return (
-                            <ChatCard id={messages.username} date={messages.date} 
-                            name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
-                            role={userRole} state={messages.userState} room={roomID} />
-                        );
-                    }) : null}
-                    <div ref={bottom}></div>
-                </div>
-            </div>
-            <div className={style.messageBarHolder}>
-                <input value={text} autoComplete='off' onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        SendMessage();
-                    }
-                }} type="text" id={style.messageBar} placeholder="Aa" onInput={handleMessageChange}></input>
-                <button id={style.messageBarSendBtn} onClick={SendMessage}>Send</button>
-            </div>
-        </div>
-    );
-}
-
-export default function ChatView() {
-    const [visible, setVisibility] = useState(false)
-    
+    // -------------------- Layout --------------------------
 
     useEffect(() => {
         socket.on('addRoleToSomeUser', ({success, error}) => {
@@ -221,21 +230,24 @@ export default function ChatView() {
             socket.emit('updateMessages', {});
     
         })
-    
+
         socket.on('receiveNewPrivateMsg', (newDmMsg) => {
-            console.log('newDm', newDmMsg);
-            let newData = [...data];
-            let dd = {
-                username: newDmMsg.username,
-                avatar: newDmMsg.avatar,
-                date: newDmMsg.date,
-                msg: newDmMsg.msg,
-                currentUser: newDmMsg.currentUser,
-                userState: "none"
+            if (roomType === 'DM') {
+                console.log('newDm', newDmMsg);
+                let newData = [...data];
+                let dd = {
+                    username: newDmMsg.username,
+                    avatar: newDmMsg.avatar,
+                    date: newDmMsg.date,
+                    msg: newDmMsg.msg,
+                    currentUser: newDmMsg.currentUser,
+                    userState: "none"
+                }
+                newData.push(dd);
+                data = newData;
             }
-            newData.push(dd);
-            data = newData;
             socket.emit('updateMessages', {});
+
         })
     
         
