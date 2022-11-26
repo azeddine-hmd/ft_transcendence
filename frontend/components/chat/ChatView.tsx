@@ -5,6 +5,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { socket } from '../../pages/chat/[chat]'
 import settingstyle from '../../styles/chat/Setting.module.css'
 import stylee from '../../styles/chat/Card.module.css'
+import { useRouter } from 'next/router';
 
 
 interface props {
@@ -26,7 +27,6 @@ var roomType:string = 'DM';
 var userRole = 'member';
 var username = '';
 var data = messages;
-
 
 
 export default function ChatView() {
@@ -146,6 +146,13 @@ export default function ChatView() {
                             <></>
                     }
                     <button onClick={()=>{ setVisibility(false); }} className='text-[#f00] border border-red-600 rounded m-[5px] hover:bg-red-500 hover:text-white p-[5px] text-[12px]' > Exit </button>
+                    { (roomType === 'DM' ) ?
+                    <button onClick={()=>{ 
+                        socket.emit('InviteToGame', {user: roomTitle, roomId: roomID});
+                     }} className='text-[#ff8c00] border border-[#ff8c00] rounded m-[5px] hover:bg-[#ff8c00] hover:text-white p-[5px] text-[12px]' > Invite To a Game
+                     </button>
+                     : <></>
+                     }
                     </div>
                 </div>
                 {(showSetting) ? <Setting /> : <></>}
@@ -174,7 +181,7 @@ export default function ChatView() {
     }
 
     // -------------------- Layout --------------------------
-
+    const router = useRouter();
     useEffect(() => {
         socket.on('addRoleToSomeUser', ({success, error}) => {
             if (success == true)
@@ -182,6 +189,11 @@ export default function ChatView() {
             else
                 alert('Error: ' + error);
             socket.emit('updateMessages', {});    
+        })
+
+        socket.on('inviteAccepted', (isAccepted) => {
+            if (isAccepted)
+                router.push('/game');
         })
     
         socket.on("updateRoom", (success, error) => {
