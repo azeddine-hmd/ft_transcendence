@@ -60,7 +60,6 @@ export class ChatService {
 
   async checkUser(auth: any)
   {
-    console.log(auth);
     
     let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
@@ -405,7 +404,7 @@ export class ChatService {
 
   async createMsg(createMsgDto: CreateMsgDto, auth: any) {
     let checkuser = await this.checkUser(auth);
-    console.log(createMsgDto);
+    
     
     if(checkuser == null)
       return 1;
@@ -449,9 +448,7 @@ async isblock(userId: string, auth: string)
   .innerJoinAndSelect("block.user2", "user2")
   .where("user1.userId = :id AND user2.userId = :id2", { id: userId, id2: auth })
   .getOne();
-  console.log(ret);
-  console.log(userId);
-  console.log(auth);
+
   
   return (ret);
 }
@@ -551,7 +548,7 @@ async banUser(ban:  BanDto, auth: any)
     u2.id = tmp2.id;
     if (!ret)
     {
-      console.log({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      
       
       const cnv = this.banRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, room: ban.room, time: new Date() });
       await this.banRepository.save(cnv);
@@ -600,7 +597,7 @@ async muteUser(ban:  BanDto, auth: any)
     u2.id = tmp2.id;
     if (!ret)
     {
-      console.log({ user1: u1 , user2: u2, limit_time: ban.time, time: new Date() });
+      
       
       const cnv = this.muteRepository.create({ user1: u1 , user2: u2, limit_time: ban.time, room: ban.room, time: new Date() });
       await this.muteRepository.save(cnv);

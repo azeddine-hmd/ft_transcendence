@@ -36,8 +36,6 @@ function getClientId(client: Socket, jwt: JwtService): number
     if (client.handshake.headers.cookie)
       auth =  client.handshake.headers.cookie.split('=')[1];
     
-    console.log("clientid", auth);
-    
     const claims = atob(auth.split('.')[1]);
     tmp = JSON.parse(claims);
     return (tmp.userId);
@@ -87,7 +85,6 @@ class msgModel{
   msg:string;
   currentUser:boolean;
 };
-
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({
   namespace: 'chat',
@@ -108,10 +105,10 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    console.log("current user", await this.chatService.checkUser(clientId));
+    
     
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
-    console.log(createRoomDto);
+    
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else
@@ -120,7 +117,7 @@ export class ChatGateway {
 
   @SubscribeMessage('updateRoom')
   async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
-    console.log(updateRoomDto);
+    
     
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
@@ -136,17 +133,17 @@ export class ChatGateway {
 
   @SubscribeMessage('addRoleToSomeUser')
   async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
-    console.log(addRoleToSomeUserDto);
+    
     
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
-    console.log(test);
+    
     
     if(test == 1)
       this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
     else if (test == 2)
     {
-      console.log('here');
+      
       
       this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
     }
@@ -189,7 +186,7 @@ export class ChatGateway {
         {
 
           let bl = 0;
-          console.log(roomClients);
+         
           arr.forEach(element => {
             if (element == clientId)
               bl = 1;
@@ -414,10 +411,12 @@ export class ChatGateway {
   */
   @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
+    console.log("create new msg " + privateMsgDto);
     
     let clientId:any =  getClientId(client, this.jwtService);
     const blockedUsers = await this.chatService.getBlockedUsers(clientId);
     const usr:User | null = await this.chatService.checkUserByUserName(privateMsgDto.user);
+    console.log(usr);
     if (usr && inBlockedList(blockedUsers, usr.id))
       return;
     if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
@@ -438,15 +437,20 @@ export class ChatGateway {
     newDmMsg.currentUser = false;
     if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
     {
-      const clientIds: string[] | undefined = usersClient.get(newDmMsg.userId);
-      if (clientIds)
-        this.server.to( usr!.userId ).emit("receiveNewPrivateMsg", newDmMsg);
+      if (usr)
+      {
+        console.log(usr);
+        
+        const clientIds: string[] | undefined = usersClient.get(usr.userId);
+        if (clientIds)
+          this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
+      }
     }
     newDmMsg.currentUser = true;
     const clientIds: string[] | undefined = usersClient.get(clientId);
       if (clientIds)
         this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
-    console.log('newDm');
+    
   }
 
 
@@ -489,7 +493,7 @@ async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client
 @SubscribeMessage('Kick')
 async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket) {
 
-  console.log('kick received', kick);
+  
   
   let clientId:any =  getClientId(client, this.jwtService);
   try {
@@ -550,7 +554,7 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
       let room = roomClients.get(ban.room.toString());
       // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
 
-      console.log("!test ",room);
+      
       if (room)
       {
         
@@ -569,12 +573,12 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
       if (room)
       {
-        console.log("test ", room);
+        
 
         for (let index = 0; index < room.length; index++) {
           const element = room[index];
           const clientIds: string[] | undefined = usersClient.get(element);
-          console.log("client", element, clientIds);
+          
           
           if (clientIds)
             this.server.to(clientIds).emit('Ban', {isBaned: true, user: ban.user}); 
@@ -612,7 +616,7 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
           const element = room[index];
           const clientIds: string[] | undefined = usersClient.get(element);
 
-          console.log("client", element, clientIds);
+          
           if (clientIds)
             this.server.to(clientIds).emit('Mute', {isBaned: false, user: ban.user});
         }
@@ -624,7 +628,7 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
       if (room)
       {
-        console.log("test ", room);
+        
 
         for (let index = 0; index < room.length; index++) {
           const element = room[index];
@@ -659,7 +663,7 @@ async inviteUser(@MessageBody() inviteDto:  InviteDto, @ConnectedSocket() client
   try {
     const usr: User | null = await this.chatService.checkUserByUserName(inviteDto.user);
     const currentUser: User | null = await this.chatService.checkUser(clientId);
-    console.log("InviteToGame", usr, currentUser);
+    
     if (usr && currentUser)
     {
       const clientIds: string[] | undefined = usersClient.get(usr.userId);
@@ -681,7 +685,7 @@ async inviteUser(@MessageBody() inviteDto:  InviteDto, @ConnectedSocket() client
 
 @SubscribeMessage('inviteAccepted')
 async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() client: Socket) {
-  console.log('inviteAccepted', acceptDto);
+  
   
   let clientId:any =  getClientId(client, this.jwtService);
   try {
@@ -755,14 +759,6 @@ async updateMsg(@ConnectedSocket() client: Socket) {
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
-    // usersClient.forEach(element => {
-    //   console.log(`user connecct ${element}`);
-      
-    // });
-
-
-    // console.log(`client connecct ${client.id}`);
-    // const result = cookieParser.;
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
@@ -787,7 +783,7 @@ async updateMsg(@ConnectedSocket() client: Socket) {
   }
 
   async handleDisconnet(@ConnectedSocket() client: Socket){
-    console.log(`client disconnected ${client.id}`);
+   
 
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
@@ -799,7 +795,7 @@ async updateMsg(@ConnectedSocket() client: Socket) {
         if (element == client.id)
         {
           soct.splice(i, 1);
-          console.log("socket", soct);
+          
           
           usersClient.set((clientId).toString(), soct);
           break;
