@@ -53,12 +53,14 @@ export default function ListView() {
     const [data, setData] = useState(rooms);
     const [dms, setDms] = useState(direct);
     const [tmp, setTMP] = useState(rooms);
-    const [channel, setChannel] = useState('rooms');
-    
+    const [channel, setChannel] = useState('rooms');   
+ 
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
     function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
-    socket.emit('findAllRooms')
+    useEffect(() => {
+        socket.emit('findAllRooms');
+    }, [])
 
     useEffect(() => {
         socket.on('createRoom', ({ created }) => {

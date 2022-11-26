@@ -9,16 +9,20 @@ export default function Popup() {
     const [visibility, setVisibility] = useState(false);
 
     useEffect(() => {
-        socket.on('showPopup', (user1, user2) => {
+        socket.on('showPopup', ({isInvited , user1, user2}) => {
+            
+            
             setUsername(user1);
             setUsername2(user2);
-            setVisibility(true);
+            setVisibility(isInvited);
         })
         return () => { socket.off('showPopup'); };
     }, [])
 
     function Accept() {
-        socket.emit('inviteAccepted', {username, username2})
+        console.log('inviteAccepted', username);
+        
+        socket.emit('inviteAccepted', {username:username})
         setVisibility(false);
     }
     

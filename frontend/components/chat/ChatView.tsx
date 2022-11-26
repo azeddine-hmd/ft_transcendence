@@ -223,6 +223,7 @@ export default function ChatView() {
         })
     
         socket.on('receiveNewPrivateMsg', (newDmMsg) => {
+            console.log('newDm', newDmMsg);
             let newData = [...data];
             let dd = {
                 username: newDmMsg.username,
@@ -241,9 +242,11 @@ export default function ChatView() {
         socket.on('getPrivateMsg', ({ success, error, privateMessages, username, userId }) => {
             roomID = username; // <<<<<<<<<<<<< 8
             roomTitle = username; // <<<<<<<<<<<<<< 8
+            roomType = 'DM';
             setVisibility(true);
             data = privateMessages;
             socket.emit('updateMessages', {});
+            socket.emit('conversation');
             
         })
 

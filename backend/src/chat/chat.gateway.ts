@@ -23,6 +23,8 @@ import { WsExceptionFilter } from 'src/filter/ws-filter';
 import cookieParser from 'cookie-parser';
 import { disconnect } from 'process';
 import { KickDto } from './dto/kick.dto';
+import { InviteDto } from './dto/invite.dto';
+import { AcceptDto } from './dto/accept.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 let roomClients:Map<string, string[] | undefined> = new Map();
@@ -444,6 +446,7 @@ export class ChatGateway {
     const clientIds: string[] | undefined = usersClient.get(clientId);
       if (clientIds)
         this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
+    console.log('newDm');
   }
 
 
@@ -594,7 +597,6 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 @SubscribeMessage('Mute')
 async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
   let clientId:any =  getClientId(client, this.jwtService);
-  console.log("hello");
   
   try {
    let test = await this.chatService.muteUser(ban, clientId);
@@ -627,7 +629,7 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
         for (let index = 0; index < room.length; index++) {
           const element = room[index];
           const clientIds: string[] | undefined = usersClient.get(element);
-          console.log("client", element, clientIds);
+          
           
           if (clientIds)
             this.server.to(clientIds).emit('Mute', {isMuted: true, user: ban.user}); 
@@ -643,9 +645,72 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
 /**********************************END MUTE USER************************************/
 
+
+
+/************************************INVITE USER**************************************/
+
+
+
+@SubscribeMessage('InviteToGame')
+async inviteUser(@MessageBody() inviteDto:  InviteDto, @ConnectedSocket() client: Socket) {
+  
+  
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    const usr: User | null = await this.chatService.checkUserByUserName(inviteDto.user);
+    const currentUser: User | null = await this.chatService.checkUser(clientId);
+    console.log("InviteToGame", usr, currentUser);
+    if (usr && currentUser)
+    {
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      if (clientIds)
+      {
+        let test = await this.chatService.inviteUser(inviteDto, clientId);
+        
+        if (test)
+          this.server.to(clientIds).emit('showPopup', {isInvited: false, user1:currentUser.username, user2: usr.username}); 
+        else
+          this.server.to(clientIds).emit('showPopup', {isInvited: true, user1:currentUser.username, user2: usr.username}); 
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+@SubscribeMessage('inviteAccepted')
+async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() client: Socket) {
+  console.log('inviteAccepted', acceptDto);
+  
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    const usr: User | null = await this.chatService.checkUserByUserName(acceptDto.username);
+    const currentUser: User | null = await this.chatService.checkUser(clientId);
+    if (usr && currentUser)
+    {
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      if (clientIds)
+      {
+        this.server.to(clientIds).emit('inviteAccepted', {isAccepted: true}); 
+      }
+      const clientIds2: string[] | undefined = usersClient.get(currentUser.userId);
+      if (clientIds2)
+      {
+        this.server.to(clientIds2).emit('inviteAccepted', {isAccepted: true}); 
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+/**********************************END INVITE USER************************************/
+
+
 @SubscribeMessage('clientId')
 async clientUsername(@ConnectedSocket() client: Socket) {
-  console.log(`event received: event='clientId' id=${client.id}`);
   let clientId:any =  getClientId(client, this.jwtService);
   const usr: User | null = await this.chatService.checkUser(clientId);
   if (usr)
@@ -658,6 +723,33 @@ async updateMsg(@ConnectedSocket() client: Socket) {
 
     this.server.to(client.id).emit('updateMessages');
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*********************************HANDLE CONNECTION**********************************/
 

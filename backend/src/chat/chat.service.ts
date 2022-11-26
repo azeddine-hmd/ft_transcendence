@@ -25,6 +25,7 @@ import { Ban } from './entities/ban.entity';
 import { time } from 'console';
 import { Mute } from './entities/mute.entity';
 import { KickDto } from './dto/kick.dto';
+import { InviteDto } from './dto/invite.dto';
 
 
 let roomsusers = new Map<number, number[]>();
@@ -610,6 +611,27 @@ async muteUser(ban:  BanDto, auth: any)
 }
 
 /***************************************END MUTE USER SERVICE**************************************/
+
+
+
+/***************************************END INVITE USER SERVICE**************************************/
+
+
+async inviteUser(invite:  InviteDto, auth: any)
+{
+
+  let user = await this.checkUserByUserName(invite.user);
+  if (!user)
+    return 1;
+  let u1:User | null = new User();
+  u1 = await this.checkUser(auth);
+  if (!u1)
+    return (2);
+  return (0);
+}
+
+
+/***************************************END INVITE USER SERVICE**************************************/
 
 /*********************************************DM SERVICE*********************************************/
 
