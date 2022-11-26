@@ -1,7 +1,7 @@
 import style from '../../styles/chat/Card.module.css'
 import style2 from '../../styles/chat/ListView.module.css'
 import {socket} from '../../pages/chat/[chat]'
-import Router from "next/router";
+import Router, { useRouter } from "next/router";
 import React, { useEffect, useState } from 'react';
 
 interface props {
@@ -31,8 +31,10 @@ export default function Card({title, description, members, id, privacy}:props) {
             setPass(!showPass);
     }
 
+    const router = useRouter()
     function passClick() {
         socket.emit('joinRoom', { roomId: id, privacy: true, password: password });
+        router.push('/chat/0');
         setPass(false);
     }
 

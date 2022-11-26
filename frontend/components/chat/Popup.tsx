@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {socket} from '../../pages/chat/[chat]'
 
@@ -19,11 +20,13 @@ export default function Popup() {
         return () => { socket.off('showPopup'); };
     }, [])
 
+    const r = useRouter();
+
     function Accept() {
         console.log('inviteAccepted', username);
-        
         socket.emit('inviteAccepted', {username:username})
         setVisibility(false);
+        r.push('/game');
     }
     
     function Cancel() {
