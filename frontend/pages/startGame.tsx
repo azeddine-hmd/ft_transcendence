@@ -2,20 +2,20 @@ import style from '../styles/game/gameStyle.module.css';
 import Sidebar from '../components/profile/Sidebar';
 import Useravatar from '../components/profile/Useravatar';
 import React from "react";
+import { Router, useRouter } from 'next/router';
 
 let url = "http://localhost:3000";
 
 function Game()
 {
+	const router = useRouter()
 	const changeStyle = (e: any) => {    
         e.preventDefault();
-		if(window.top)
-        	window.top.location = url.concat("/game")
+		router.push('/game')
     }
 	const live = (e: any) => {    
         e.preventDefault();
-		if(window.top)
-        	window.top.location = url.concat("/live")
+		router.push('/live')
     }
 	return (
 	    <>

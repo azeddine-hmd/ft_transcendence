@@ -1,6 +1,6 @@
 import { CookieOptions } from 'express-serve-static-core';
 
-export const expiresMaxTime = new Date(new Date().getTime() + 9999999999);
+export const expiresMaxTime = new Date(new Date().getTime() + 9999999);
 
 export const refreshCookieOptions: CookieOptions = {
   httpOnly: true,

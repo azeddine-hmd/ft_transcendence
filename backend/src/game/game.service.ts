@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile } from 'src/profiles/entities/profile.entity';
 import { UsersService } from 'src/users/services/users.service';
@@ -26,38 +26,51 @@ export default class GameService {
       }
     });
 	}
-  // async updateAllRanks() {
-	// 	const all = await this.gameRepository.createQueryBuilder("user").orderBy("user.points", "DESC").getMany();
-	// 	all.forEach((user: GameMatch, index: 1) => 
-  //   {
-	// 		user.rank = index + 1;
-	// 		this.gameRepository.save(user);
-	// 	});
-	// }
 
-	async updateResault(user: GameMatch, isWin: boolean) 
-  {
+	private async Resault(username: string, isWin: boolean) 
+  {    
+    const profile = await this.profileRepository.findOne({
+      relations: {
+        user: true,
+      },
+      where: {
+        user: { username: username },
+      }
+    });
+    if (!profile) throw new InternalServerErrorException('while saving result could\'t save profile not found');
+
 		if(isWin)
-      user.points += 100
-    else
-      user.points -= 50;
+      profile.points += 100
+    else {
+      if (profile.points - 50 < 0)
+        profile.points = 0;
+      else
+        profile.points -= 50;
+    }
 		if(isWin) 
-      user.xp += 100 
-    else
-      user.xp -= 50;
+      profile.xp += 100 
+    else {
+      if (profile.xp - 50 < 0)
+        profile.xp = 0;
+      else
+        profile.xp -= 50;
+    }
 		if(isWin)
-      user.totalWins += 1;
+      profile.totalWins += 1;
     else
-       user.totalLoss += 1;
-		user.totalGames += 1;
-		if (user.xp >= ((2 ^ (user.level - 1)) * 100)) 
+      profile.totalLoss += 1; 
+		  profile.totalGames += 1;
+		if (profile.xp >= ((2 ** (profile.level - 1)) * 100)) 
     {
-			user.level += 1;
-			user.xp = 0;
+			profile.level += 1;
+			profile.xp = 0;
 		}
-		user.percentLevel = ((user.xp / ((2 ** (user.level - 1)) * 100)) * 100)
-		user.percentPation = (user.totalWins) / (user.totalGames) * 100;
-		await this.gameRepository.save(user);
+		profile.percentLevel = ((profile.xp / ((2 ** (profile.level - 1)) * 100)) * 100)
+		profile.percentPation = (profile.totalWins) / (profile.totalGames) * 100;
+    if (isWin) {
+      profile.rank += 1;
+    }
+		await this.profileRepository.save(profile);
 	}
 
   async createGameMatch(opts: {
@@ -68,9 +81,8 @@ export default class GameService {
       mode: string;
     }) 
     {
-      // await this.updateResault(opts.winner, true);
-		  // await this.updateResault(opts.loser, false);
-      // await this.updateAllRanks();
+      await this.Resault(opts.winner, true);
+      await this.Resault(opts.loser, false);
       const winnderUser = await this.usersService.findOneFromUsername(opts.winner);
       const loserUser = await this.usersService.findOneFromUsername(opts.loser);
       if (!winnderUser || !loserUser) 
@@ -85,8 +97,11 @@ export default class GameService {
       await this.gameRepository.save(gameMatch);
   }
 
-  getMatch(login: string) {
-		return "_users.games";
+  async getProfileGame(username: string): Promise<Profile> {
+    const profile = await this.profileRepository.findOneBy({ user: { username: username } });
+    if (!profile) throw new NotFoundException('profile game not found');
+    return profile;
   }
+
 }
 

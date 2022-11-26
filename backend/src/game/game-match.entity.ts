@@ -22,31 +22,4 @@ export class GameMatch {
 
     @Column()
     mode: string;
-
-    @Column({default: 0 })
-    totalGames: number;
-
-    @Column({default: 0 })
-    totalWins: number;
-
-    @Column({default: 0 })
-    totalLoss: number;
-
-    @Column({ default: 0 })
-    percentPation: number;
-
-    @Column({ nullable: true })
-    rank: number;
-
-    @Column({default: 1000 })
-    points: number;
-
-    @Column({  default: 0 })
-    xp: number;
-
-    @Column({ default: 0 })
-    percentLevel: number;
-
-    @Column({default: 1 })
-    level: number;
 }

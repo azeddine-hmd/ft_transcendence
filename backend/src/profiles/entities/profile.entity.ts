@@ -28,8 +28,38 @@ export class Profile {
   @Column()
   avatar: string;
 
+  @Column({default: 0 })
+  totalGames: number;
+
+  @Column({default: 0 })
+  totalWins: number;
+
+  @Column({default: 0 })
+  totalLoss: number;
+
   @Column({
-    default: 0,
+    type: 'float',
+    scale: 2, 
+    default: 0.0,
   })
+  percentPation: number;
+
+  @Column( {default: 0})
+  rank: number;
+
+  @Column({default: 1000 })
+  points: number;
+
+  @Column({  default: 0 })
+  xp: number;
+
+  @Column({
+    type: 'float',
+    scale: 2,
+    default: 0.0,
+  })
+  percentLevel: number;
+
+  @Column({default: 1 })
   level: number;
 }

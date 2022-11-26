@@ -13,7 +13,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background-color: #F75780;
+  background-color: #22545e;
   position: realtive;
   border: 1px dashed rgb(0, 255, 0);
   border-radius: 10px;
@@ -49,19 +49,19 @@ margin: 3vw 0;
 .p1 {
   transform: rotate(8deg);
   animation: shake 0.5s ease infinite;
-  color: #25f730
+  color: #4824a2
 
   }
   .p2 {
   transform: rotate(5deg);
   animation: shake 0.5s ease-out infinite reverse;
-  color: #F7EA25
+  color: #4824a2
 
   }
  .p3 {
   transform: rotate(-2deg);
   animation: shake 0.5s 0.1s ease infinite;
-  color: #19e023
+  color: #4824a2
  
 
   }
@@ -69,13 +69,13 @@ margin: 3vw 0;
  .p4 {
     transform: rotate(-5deg);
     animation: shake 0.5s ease-in infinite reverse;
-	color: #F7EA25
+	color: #4824a2
 
   }
   .p5 {
     transform: rotate(5deg);
     animation: shake 0.5s ease-in infinite reverse;
-	color: #25f730
+	color: #4824a2
   
 }
 
@@ -288,6 +288,7 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
 }
 
 .difficulty, .character{
@@ -305,14 +306,13 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 }
 
 .restart button:active{
-	background: #FF5775;
+	background: #46ed4b;
 	
 } 
 
 
-.start button{ 
-
-	background: #34D468;
+.start button{
+	background: #46ed4b;
 	color: white;
 	padding: 7px 20px;
 	border: none;
@@ -327,11 +327,11 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
  
 	padding: 7px 20px;
 	border-radius: 5px;
-	background: #4AE47C;
+	background: #FD0A35;
 }
 
 .start button:active{
-	background: #66FD97;
+	background: #46ed4b;
 	box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.15);
   
 }
@@ -366,7 +366,7 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 }
 
 .difficulty  input[type="radio"]:checked+label{ 
-	background: #FD0A35;
+	background: #46ed4b;
 	color: white;
 	padding: 7px 20px;
 	border-radius: 5px;
@@ -376,20 +376,20 @@ to { transform: rotate(180deg); border-bottom-color: #bbb;}
 	margin:   auto;
   background: black !important;
   padding: 50px !important;
-   border: .4rem solid white; 
+  border: .4rem solid white; 
   position: sticky; 
   margin-bottom: 50px;
-  transition-duration: 1s;
-  width: 50% !important;
-  height:50% !important;
+  width: 40vw !important;
+  height:40vw !important;
 }
 @media only screen and (max-width: 1179px) {
   .canvas{
-    width: 100vw !important;
-    height: 100vw !important;
+    width: 40vw !important;
+    height:40vw !important;
   }
   .prompt{
-    width: 50vw;
-    height: 50vw;
-  } 
+    width: 30vw !important;
+    height:35vw !important;
+  }
+
 }

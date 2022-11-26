@@ -56,12 +56,6 @@ export default function Sidebar() {
           icon: "/profile/level.png",
           active: true,
         },
-        {
-            label: 'live',
-            url: "/live",
-            icon: "/profile/level.png",
-            active: true,
-          },
       ];
 
     return (
