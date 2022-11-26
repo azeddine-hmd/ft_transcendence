@@ -53,6 +53,7 @@ export default function ListView() {
     const [data, setData] = useState(rooms);
     const [dms, setDms] = useState(direct);
     const [tmp, setTMP] = useState(rooms);
+    const [tmp2, setTMP2] = useState(direct);
     const [channel, setChannel] = useState('rooms');   
  
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
@@ -75,7 +76,7 @@ export default function ListView() {
             setChannel('friends'); 
             setData(rooms); 
             setDms(arr);
-            setTMP(arr);
+            setTMP2(arr);
         });
     
         socket.on('findAllRooms', ({ rooms }) => {
@@ -91,15 +92,28 @@ export default function ListView() {
     }, []);
 
     const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.currentTarget.value.trim() != '') {
-            const result = tmp.filter(function (data) {
-                return data.title.includes(event.currentTarget.value);
-            });
-            setData(result);
+        if (channel === 'rooms') {
+            if (event.currentTarget.value.trim() != '') {
+                const result = tmp.filter(function (raw) {
+                    return raw.title.includes(event.currentTarget.value);
+                });
+                setData(result);
+            }
+            else {
+                socket.emit('findAllRooms');
+            }
+        } else {
+            if (event.currentTarget.value.trim() != '') {
+                const result = tmp2.filter(function (raw) {
+                    return raw.username.includes(event.currentTarget.value);
+                });
+                setDms(result);
+            }
+            else {
+                socket.emit('conversation');
+            }
         }
-        else {
-            socket.emit('findAllRooms');
-        }
+        
     };
 
     return (

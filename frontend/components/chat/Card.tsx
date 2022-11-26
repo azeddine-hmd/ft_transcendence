@@ -48,8 +48,8 @@ export default function Card({title, description, members, id, privacy}:props) {
                 {
                 (showPass) ?
                 <div className={style.card}>
-                    <input type="password" onChange={handleChange} placeholder='Entre Password' style={{"width":"100%", "margin":"5px"}}></input>
-                    <button onClick={passClick} className={style2.button} style={{"width":"100%", "margin":"5px"}}>Entre</button>
+                    <input type="password" onChange={handleChange} placeholder='Entre Password' style={{"width":"100%", "margin":"5px", "color":"black"}}></input>
+                    <button onClick={passClick} className={style2.button} style={{"width":"100%", "margin":"5px", "color":"black"}}>Entre</button>
                 </div>
                 : <></>}
             </div>
