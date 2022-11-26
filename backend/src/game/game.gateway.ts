@@ -79,7 +79,7 @@ export class GameGateway {
 		}
 	}
 	
-	handleDisconnect(client: Socket, ...args: any[]) 
+	async handleDisconnect(client: Socket, ...args: any[]) 
 	{ 
 
 		if (client.user) {
@@ -102,7 +102,7 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('match')
-	messageMessage(@ConnectedSocket()  client: Socket,  @MessageBody() data: string)
+	async messageMessage(@ConnectedSocket()  client: Socket,  @MessageBody() data: string)
 	{
 		var i:number = 0;
 		if (data.includes("Easy"))
@@ -147,7 +147,7 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('getResult')
-	gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
+	async gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
 		const arr = _data.split(' ');
 		this.gameService.createGameMatch({
@@ -162,7 +162,7 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('ballPos')
-	ball(@ConnectedSocket() client: Socket, @MessageBody() _data: string) 
+	async ball(@ConnectedSocket() client: Socket, @MessageBody() _data: string) 
 	{
 		let arr:any = _data.split(" ");
 		let i = Number();
@@ -177,7 +177,7 @@ export class GameGateway {
 			
 	}
 	@SubscribeMessage('live')
-	live(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	async live(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
 	{
 		let not_finished_easy = _game[0].map((element:any) => { if (element.finished === false) return element })
 		let not_finished_hard = _game[1].map((element:any) => { if (element.finished === false) return element })
@@ -192,13 +192,13 @@ export class GameGateway {
 	// }
 
 	@SubscribeMessage('clear')
-	clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	async clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
 	{
 		_game[0] = []
 		_game[1] = []
 	}
 	@SubscribeMessage('joingame')
-	joingame(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	async joingame(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
 	{
 		const arr = _data.split(' ');
 		let mode = arr[0] === 'Easy' ? 0 : 1
