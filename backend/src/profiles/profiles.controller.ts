@@ -87,7 +87,10 @@ export class ProfilesController {
     avatar: Express.Multer.File,
   ) {
     if (req.user === undefined) throw new UnauthorizedException();
-    this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
+    const url = await this.profilesService.changeAvatarFromUpload(req.user.userId, avatar);
+    return {
+      url: url,
+    }
   }
 
   @ApiBody({ type: DisplayNameDto })

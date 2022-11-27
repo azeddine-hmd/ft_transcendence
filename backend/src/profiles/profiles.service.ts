@@ -43,6 +43,7 @@ export class ProfilesService {
     profile.avatar =
       this.envService.get('BACKEND_HOST') + '/api/images/' + filename;
     await this.profilesRepository.save(profile);
+    return profile.avatar;
   }
 
   async updateDisplayName(userId: string, displayName: string) {
