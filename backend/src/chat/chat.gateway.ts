@@ -763,6 +763,7 @@ async updateMsg(@ConnectedSocket() client: Socket) {
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
+		console.log("CONNECTED AT CHAAAT SERVER");
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
