@@ -28,14 +28,15 @@
 }
 
 #messageBarSendBtn {
-color: rgba(243, 207, 124, 1);
-  background-color: #ffffff;
-  font-size: 15px;
-  border-radius: 8px;
-  margin-left: 5px;
-  border: none;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
-    
+    color: rgba(243, 207, 124, 1);
+    background-color: #ffffff;
+    font-size: 15px;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 5px;
+    font-weight: bolder;
+    border: none;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.2);
 }
 
 #messageBarSendBtn:hover {
@@ -56,13 +57,14 @@ color: rgba(243, 207, 124, 1);
     background-color: #fff;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
     border-radius: 10px;
-    display: flex;
+    display: flex;    
     justify-content: space-between;
 }
 
-.roomTitle > h2 {
+.roomTitle>h2 {
     padding-left: 20px;
     padding-right: 20px;
+    padding-top: 10px;
     font-size: 17px;
-    
+    justify-self: center;
 }

@@ -1,7 +1,7 @@
 import style from '../../styles/chat/Card.module.css'
 import style2 from '../../styles/chat/ListView.module.css'
 import {socket} from '../../pages/chat/[chat]'
-import Router from "next/router";
+import Router, { useRouter } from "next/router";
 import React, { useEffect, useState } from 'react';
 
 interface props {
@@ -31,8 +31,10 @@ export default function Card({title, description, members, id, privacy}:props) {
             setPass(!showPass);
     }
 
+    const router = useRouter()
     function passClick() {
         socket.emit('joinRoom', { roomId: id, privacy: true, password: password });
+        router.push('/chat/0');
         setPass(false);
     }
 
@@ -48,8 +50,8 @@ export default function Card({title, description, members, id, privacy}:props) {
                 {
                 (showPass) ?
                 <div className={style.card}>
-                    <input type="password" onChange={handleChange} placeholder='Entre Password' style={{"width":"100%", "margin":"5px"}}></input>
-                    <button onClick={passClick} className={style2.button} style={{"width":"100%", "margin":"5px"}}>Entre</button>
+                    <input type="password" onChange={handleChange} placeholder='Entre Password' style={{"width":"100%", "margin":"5px", "color":"black"}}></input>
+                    <button onClick={passClick} className={style2.button} style={{"width":"100%", "margin":"5px", "color":"black"}}>Entre</button>
                 </div>
                 : <></>}
             </div>

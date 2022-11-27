@@ -10,12 +10,13 @@ import { Conversation } from './entities/conversation.entity';
 import { DM } from './entities/DM.entity';
 import { Join } from './entities/join.entity';
 import { Msg } from './entities/msg.entity';
+import { Mute } from './entities/mute.entity';
 import { Rooms } from './entities/rooms.entity';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([Ban, User, Rooms, Msg, Join, Conversation, DM, Block]),
+    TypeOrmModule.forFeature([Mute,Ban, User, Rooms, Msg, Join, Conversation, DM, Block]),
   ],
   providers: [ChatGateway, ChatService],
 })

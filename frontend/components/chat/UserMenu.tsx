@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";  
-import { DropDownButton } from "@progress/kendo-react-buttons";  
 
   
 export const Menu = () => {  
@@ -14,7 +13,7 @@ export const Menu = () => {
 
   return (
     <div style={{"alignSelf":"center", "marginLeft":"10px"}}>
-        <DropDownButton
+        {/* <DropDownButton
         popupSettings={{
           animate: false,
           popupClass: "my-popup",
@@ -22,7 +21,7 @@ export const Menu = () => {
         items={items}
         text="..."
         size="small"
-      />
+      /> */}
     </div>
   );
 };
