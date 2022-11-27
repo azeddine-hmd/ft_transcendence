@@ -7,6 +7,13 @@ import { UsersSocketService } from 'src/users/services/users-socket.service';
 import { PlayerInfo } from './game-queue';
 import GameService from './game.service';
 
+const canvas_height = 600
+const canvas_width = 600
+var sBall = 2
+const playerHeight = 75
+const playerWith = 10
+const ballHeight = 10
+const final_score = 5
 let _game:any = 
 [
 	[
@@ -16,42 +23,110 @@ let _game:any =
 			left: {
 				username: '',
 				sockets: id,
+				score: 0,
 			},
 			right: {
 				username: '',
 				sockets: id,
-				// score
+				score: 0,
 			},
 			finished: false,
 			spectators: [
 				10, 12, 13, 14, 
 			]
-		},
-		to(_game[mode][]).emit('', {data})
-
-
-		GAME 1 x: 10, y: 10
-		{
-			left: {
-				username: '',
-				sockets: id,
+			ball: {
+				speed: {
+					x: ,
+					y: ,
+				},
+				x: ,
+				y: ,
 			},
-			right: {
-				username: '',
-				sockets: id,
-			},
-			spectators: [
-				10, 12, 13, 14, 
-			]
+			counter
 		},
 		*/
 	],
 
 	[
+		/*
+		GAME 1 x: 10, y: 10
+		{
+			left: {
+				username: '',
+				sockets: id,
+				score: 0,
+			},
+			right: {
+				username: '',
+				sockets: id,
+				score: 0,
+			},
+			spectators: [
+				10, 12, 13, 14, 
+			],
+			ball: {
+				speed: {
+					x: ,
+					y: ,
+				},
+				x: ,
+				y: ,
+			}
+		},
+		*/
 	]
 ];
-
+var sp:number;
 let waiting:boolean = true;
+
+function ballMove(m:any, i:any) {
+	var d: number;
+	var e: number;
+	d = Number(_game[m][i].right.y) + Number(playerHeight);
+	e = Number(_game[m][i].left.y) + Number(playerHeight);
+	if (_game[m][i].ball.y > canvas_height || _game[m][i].ball.y < 0)
+		_game[m][i].ball.speed.y *= -1;
+	if (_game[m][i].ball.x > canvas_width - playerWith) {
+		if (_game[m][i].ball.y < _game[m][i].right.y || (_game[m][i].ball.y > d)) {
+			_game[m][i].ball.x = canvas_width / 2;
+			_game[m][i].ball.y = canvas_height / 2;
+			_game[m][i].ball.speed.y = sBall ;
+			_game[m][i].ball.speed.x = sBall;
+			_game[m][i].right.score++;
+		}
+		else {
+			var a: number = Number(playerHeight / 2);
+			var b: number = Number(_game[m][i].right.y) + a;
+			var c: number = Number(_game[m][i].ball.y) - b;
+			var collidePoint: number = c;
+			collidePoint = collidePoint / a;
+			let angleRad: number = (Math.PI / 4) * collidePoint;
+			let direction: number = ((_game[m][i].ball.x + _game[m][i].ball.r) < canvas_width / 2) ? 1 : -1;
+			_game[m][i].ball.speed.x = direction * sBall * Math.cos(angleRad);
+			_game[m][i].ball.speed.y = sBall * Math.sin(angleRad);
+			sBall += 0.1;
+		}
+	}
+	else if (_game[m][i].ball.x < playerWith) {
+		if (_game[m][i].ball.y < _game[m][i].left.y || _game[m][i].ball.y > e) {
+			_game[m][i].ball.x = canvas_width / 2 - ballHeight / 2;
+			_game[m][i].ball.y = canvas_height / 2 - ballHeight / 2;
+			_game[m][i].ball.speed.x = sBall * -1;
+			_game[m][i].ball.speed.y = sBall;
+			_game[m][i].left.score++;
+		}
+		else {
+			let collidePoint: number = (_game[m][i].ball.y - (_game[m][i].left.y + playerHeight / 2));
+			collidePoint = collidePoint / (playerHeight / 2);
+			let angleRad: number = (Math.PI / 4) * collidePoint;
+			let direction: number = ((_game[m][i].ball.x + _game[m][i].ballHeight/2) < canvas_width / 2) ? -1 : 1;
+			_game[m][i].ball.speed.x = direction * sBall * Math.cos(angleRad);
+			_game[m][i].ball.speed.y = sBall * Math.sin(angleRad);
+			sBall += 0.1;
+		}
+	}
+}
+
 
 @UseFilters(WsExceptionFilter)
 @WSAuthGuard
@@ -68,7 +143,49 @@ export class GameGateway {
         private readonly gameService: GameService,
 		private readonly usersSocketService: UsersSocketService,
     ){}
-   
+
+	ft = (m:any, i:any) => {
+		ballMove(m, i);
+		this.server.to([
+			..._game[m][i].left.sockets,
+			..._game[m][i].right.sockets,
+			..._game[m][i].spectators,])
+		.emit('ballPos',
+			_game[m][i].left.username + " " +
+			_game[m][i].right.username + " " +
+
+			_game[m][i].ball.x + " " +
+			_game[m][i].ball.y + " " +
+
+			_game[m][i].left.score + " " +
+			_game[m][i].right.score + " " +
+
+			_game[m][i].left.y + " " +
+			_game[m][i].right.y);
+		
+		if(m === 0)
+			sp = 1.5;
+		else 
+			sp = 2;
+		_game[m][i].ball.x += _game[m][i].ball.speed.x * sp;
+		_game[m][i].ball.y += _game[m][i].ball.speed.y * sp;
+
+		if (Number(_game[m][i].right.score) === final_score ||
+			Number(_game[m][i].left.score) === final_score) {
+
+			this.server.to([
+				..._game[m][i].left.sockets,
+				..._game[m][i].right.sockets,
+				..._game[m][i].spectators,])
+			.emit('endGame')
+			clearInterval(_game[m][i].counter);
+			return;
+		}
+	}
+	startGame(m:any, i:any) {
+		_game[m][i].counter = setInterval(this.ft, 1000 * 0.02, m, i);
+	}
+
 	async handleConnection(client: Socket, ...args: any[]) 
 	{
 		try {
@@ -80,9 +197,9 @@ export class GameGateway {
 	}
 	
 	async handleDisconnect(client: Socket, ...args: any[]) 
-	{ 
-
+	{
 		if (client.user) {
+			client.emit("ok" ,client.user.username);
 			console.log(`client disconnected on game gateway id=${client.id}`);
 			if (!client.user.username || !client.handshake.query.mode)
 				return
@@ -115,14 +232,14 @@ export class GameGateway {
 			waiting = false;
 		if (client.user.username)
 		{
-			if(waiting) 
+			if(waiting)
 			{
 				let ind = queue.findIndex(function (obj:any) { return (obj.username === client.user.username) } ) // -1, >= 0
 				// not found
 				if ( ind === -1 )
-					queue.push({ sockets: [client.id], username: client.user.username as string});
+					queue.push({ sockets: [client.id], username: client.user.username});
 				// found
-				else 
+				else
 					queue[ind].sockets.push(client.id)
 			}
 			else
@@ -134,14 +251,34 @@ export class GameGateway {
 				}
 			}
 			if (queue.length >= 2)
-			{				
+			{
 				let contender = queue[0].username;
-				let ind = _game[i].push( { left: queue.splice(0, 1)[0], finished: false, spectators: [] } ) - 1;
+				let ind = _game[i].push( {
+					left: {
+						...queue.splice(0, 1)[0], // sockets: [], username: '',
+						score: 0,
+						y: canvas_height / 2 - playerHeight / 2,
+					},
+					finished: false,
+					spectators: [],
+					ball: {
+						speed: {
+							x: sBall,
+							y: sBall,
+						},
+						x: canvas_width / 2,
+						y: canvas_height / 2,
+					},
+					counter: 0,
+				} ) - 1;
 				var index = queue.findIndex(function (obj:any) { return (obj.username === client.user.username) } );
-				
 				if (index != -1)
-					_game[i][ind].right = queue.splice(index, 1)[0];
-				this.server.to([..._game[i][ind].left.sockets, ..._game[i][ind].right.sockets]).emit('abcd',client.user.username , contender, i,  ind);
+					_game[i][ind].right = {...queue.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2,};
+				this.server.to([
+					..._game[i][ind].left.sockets,
+					..._game[i][ind].right.sockets
+				]).emit('abcd',client.user.username , contender, i,  ind);
+				this.startGame(i, ind);
 			}
 		}
 	}
@@ -161,24 +298,27 @@ export class GameGateway {
 		_game[mode][Number(arr[5])].finished = true;
 	}
 
-	@SubscribeMessage('ballPos')
-	async ball(@ConnectedSocket() client: Socket, @MessageBody() _data: string) 
+	@SubscribeMessage('getPlayer')
+	async getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) 
 	{
-		let arr:any = _data.split(" ");
-		let i = Number();
-		if(arr[6] === 'Easy') 
-			i = 0;
-		else
-			i = 1;
-		this.server.to([
-			..._game[i][Number(arr[7])].left.sockets,
-			..._game[i][Number(arr[7])].right.sockets,
-			..._game[i][Number(arr[7])].spectators]).emit('ballPos', _data);
-			
+		const arr = _data.split(' ');
+		// let mode = (arr[0] === 'Easy') ? 0 : 1;
+		var mode:number = Number(arr[0]);
+		let indx = Number(arr[1])
+		// console.log(mode);
+		
+		if (_game[mode][indx].left.username === arr[2])
+			_game[mode][indx].left.y = Number(arr[3])
+		else if (arr[2] === _game[mode][indx].right.username)
+			_game[mode][indx].right.y = Number(arr[3])
 	}
+
+
+
 	@SubscribeMessage('live')
 	async live(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
 	{
+		console.log("live ...........");
 		let not_finished_easy = _game[0].map((element:any) => { if (element.finished === false) return element })
 		let not_finished_hard = _game[1].map((element:any) => { if (element.finished === false) return element })
 		this.server.to(client.id).emit('live', { easy: not_finished_easy, hard: not_finished_hard });
@@ -188,7 +328,7 @@ export class GameGateway {
 	// test(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
 	// {
 	// 	// console.log('GAMES EASY', _game[0]);
-	// 	// console.lo≈g('GAMES HARD', _game[1]);
+	// 	// console.log('GAMES HARD', _game[1]);
 	// }
 
 	@SubscribeMessage('clear')
@@ -205,5 +345,13 @@ export class GameGateway {
 		let indx = Number(arr[1]);
 		_game[mode][indx].spectators.push(client.id);
 		this.server.to(client.id).emit('abcd', _game[mode][indx].left.username, _game[mode][indx].right.username, mode, indx)
+	}
+	@SubscribeMessage('quit')
+	async quit(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
+	{
+		const arr = _data.split(' ');
+		let mode = arr[0] === 'Easy' ? 0 : 1
+		let indx = Number(arr[1]);
+		clearInterval(_game[mode][indx].counter);
 	}
 }

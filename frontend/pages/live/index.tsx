@@ -137,7 +137,7 @@ function live() {
 		}
 	}
 	function ft() {
-		// console.log("ft", socket, url);
+		console.log("ft", socket, url);
 		socket.emit("live", {});
 	}
 	function ft1() {
@@ -156,8 +156,8 @@ function live() {
 	}
 
 	socket.on("live", (...args: any) => {
-		// console.log("hello from live");
-		// console.log(args[0]);
+		console.log("hello from live...................................................");
+		console.log(args[0]);
 		if (args[0]) {
 			let allgames = args[0];
 			setEasyGames(allgames.easy);

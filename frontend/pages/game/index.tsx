@@ -9,7 +9,6 @@ import io from 'socket.io-client';
 import style from '../../styles/game/gameStyle.module.css'
 import { Router, useRouter } from 'next/router';
 import Popup from "../../components/popup"
-import { urlToHttpOptions } from 'url';
 
 interface GameOption {
 	player1: {
@@ -33,16 +32,20 @@ interface GameOption {
 let url = "http://localhost:8080";
 
 
-let socket = io(url + '/game', {
-	withCredentials: true,
-	transports: ['websocket'],
-});
+	let socket = io(url + '/game', {
+		withCredentials: true,
+		transports: ['websocket'],
+	});
 
-export { socket };
-
+	export { socket };
+	// let url = "";
+	// if (process.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
+	// 	url = "http://localhost";
+	// else
+	// 	url = "http://".concat(process.env.REACT_APP_IP);
 function Game() {
+	var _mode:number;
 	var a: any;
-	var acl: number;
 	let counter: any;
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
@@ -51,7 +54,6 @@ function Game() {
 	var p1: string;
 	var p2: string;
 	var array1: any;
-	var array0: any;
 	var playerName: string;
 	var canvas: any;
 	var colorG: string = "white";
@@ -59,8 +61,7 @@ function Game() {
 	var playerHeight: number = 75.0;
 	var playerWith: number = 10;
 	var ballHeight: number = 10;
-	var sBall: number = 1;
-	var sPlayer: number = 15;
+	var sBall: number = 2;
 	const [user, setUser] = useState("");
 	const [username, setUsername] = React.useState("");
 	const [mode, chanScopeSet] = React.useState("Easy");
@@ -72,30 +73,53 @@ function Game() {
 	const [scr1, setscr1] = React.useState(0);
 	const [scr2, setscr2] = React.useState(0);
 	const router = useRouter()
-	// var socket: any;
-	// socket = io(url + "/game", { query: { mode: "Easy" }, transports: ['websocket']});
-	
-	useEffect(() => {
-		return () => {
-			clearInterval(counter);
-			getResult();
-		}
-	}, [])
-
 	const Refreche = (e: any) => {
 		getResult();
 		setscr1(Number(game.player1.score));
 		setscr2(Number(game.player2.score));
 		clearInterval(counter);
 		e.preventDefault();
+		socket.emit('quit', mode + " " + a)
 		router.push('/startGame')
 	}
+	useEffect(() => {
+		canvas = document.getElementById('canvas');
+		initilizeGame();
+		drawGame();
+		socket.on("abcd", (...args: any) => 
+		{
+			set(false);
+			p1 = args[0];
+			p2 = args[1];	
+			_mode = args[2];
+			
+			
+			addEventListener('mousemove', playerMove);
+			setName(p1);
+			setName1(p2);
+			a = args[3];
+			if (p1 != contender && p1 == playerName) 
+				contender = p2;
+			else if (p2 != contender && p2 == playerName) 
+				contender = p1;
+		});
+		socket.on("ballPos", (_data: string) => {
+			array1 = _data.split(' ');
+			game.ball.x = Number(array1[2]);
+			game.ball.y = Number(array1[3]);
+			game.player1.score = Number(array1[4]);
+			game.player2.score = Number(array1[5]);
+			game.player1.y = Number(array1[6]);
+			game.player2.y = Number(array1[7]);
+			drawGame();
+		});
+		socket.on("endGame", (_data: string) => {
+			getResult() 
+		})
+	}, [])
 
-	function _mode(m: number) {
-		if (m == 0)
-			acl = 2;
-		else
-			acl = 3;
+	function quit () {
+		socket.emit('quit', mode + " " + a)
 	}
 
 	function _search() {
@@ -116,58 +140,6 @@ function Game() {
 			v.textContent = buttomSearch[0];
 	}
 
-	function ballMove() {
-		var d: number;
-		var e: number;
-		d = Number(game.player2.y) + Number(playerHeight);
-		e = Number(game.player1.y) + Number(playerHeight);
-		if (game.ball.y > canvas.height || game.ball.y < 0)
-			game.ball.speed.y *= -1;
-		if (game.ball.x > canvas.width - playerWith) {
-			if (game.ball.y < game.player2.y || (game.ball.y > d)) {
-				game.ball.x = canvas.width / 2;
-				game.ball.y = canvas.height / 2;
-				game.ball.speed.y = sBall;
-				game.ball.speed.x = sBall;
-				// userScore.play();
-				game.player2.score++;
-
-			}
-			else {
-				var a: number = Number(playerHeight / 2);
-				var b: number = Number(game.player2.y) + a;
-				var c: number = Number(game.ball.y) - b;
-				var collidePoint: number = c;
-				collidePoint = collidePoint / a;
-				let angleRad: number = (Math.PI / 4) * collidePoint;
-				let direction: number = ((game.ball.x + game.ball.r) < canvas.width / 2) ? 1 : -1;
-				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
-				game.ball.speed.y = sBall * Math.sin(angleRad);
-				sBall += 0.1;
-
-			}
-		}
-		else if (game.ball.x < playerWith) {
-			if (game.ball.y < game.player1.y || game.ball.y > e) {
-				game.ball.x = canvas.width / 2 - ballHeight / 2;
-				game.ball.y = canvas.height / 2 - ballHeight / 2;
-				game.ball.speed.x = sBall * -1;
-				game.ball.speed.y = sBall;
-				// userScore.play();
-				game.player1.score++;
-			}
-			else {
-				let collidePoint: number = (game.ball.y - (game.player1.y + playerHeight / 2));
-				collidePoint = collidePoint / (playerHeight / 2);
-				let angleRad: number = (Math.PI / 4) * collidePoint;
-				let direction: number = ((game.ball.x + game.ball.r) < canvas.width / 2) ? 1 : -1;
-				game.ball.speed.x = direction * sBall * Math.cos(angleRad);
-				game.ball.speed.y = sBall * Math.sin(angleRad);
-				sBall += 0.1;
-			}
-		}
-	}
-
 	function colorRect(leftX: number, topY: number, width: number, height: number, drawColor: string) {
 		var context = canvas.getContext('2d');
 		context.fillStyle = drawColor;
@@ -183,15 +155,17 @@ function Game() {
 		c.fillText(game.player1.score, 400, 100);
 	}
 
-	function drawNet() {
+	function drawNet() 
+	{
 		for (var i: number = 0; i < canvas.height; i += 40)
 			colorRect(canvas.width / 2 - 1, i, 2, 20, colorG);
 	}
 
-	function drawBall() {
+	function drawBall()
+	{
 		var ctx = canvas.getContext("2d");
 		ctx.beginPath();
-		ctx.fillStyle = colorG;
+		ctx.fillStyle = "Chartreuse";
 		ctx.arc(game.ball.x, game.ball.y, ballHeight, 0, Math.PI * 2, false);
 		ctx.fill();
 	}
@@ -200,9 +174,8 @@ function Game() {
 		var context = canvas.getContext('2d');
 		context.fillStyle = 'black';
 		context.fillRect(0, 0, canvas.width, canvas.height);
-		context.strokeStyle = colorG;
-		// context.beginPath();
-		context.fillStyle = colorG;
+		context.strokeStyle = "Chartreuse";
+		context.fillStyle = "Chartreuse";
 		context.fillRect(0, game.player1.y, playerWith, playerHeight);
 		context.fillRect(canvas.width - playerWith, game.player2.y, playerWith, playerHeight);
 	}
@@ -214,7 +187,7 @@ function Game() {
 		drawBall();
 	}
 
-	function initilizeGame() {
+	function initilizeGame() {		
 		p1 = "";
 		p2 = "";
 		game = {
@@ -239,81 +212,66 @@ function Game() {
 		buttomSearch[0] = "search";
 		clearInterval(counter);
 	}
-	socket.on("abcd", (...args: any) => {
-		
-			p1 = args[0];
-			p2 = args[1];
-			setName(p1);
-			setName1(p2);
-			_mode(args[2])
-			a = args[3];
-			if (p1 != contender && p1 == playerName) {
-				clearInterval(counter);
-				contender = p2;
-				startGame();
-			}
-			else if (p2 != contender && p2 == playerName) {
-				clearInterval(counter);
-				contender = p1;
-				startGame();
-			}
-		});
-		// socket.on("getPlayer", (_data: string) => {
-		// 	console.log("getPlayer");
 
-		// 	array0 = _data.split(' ');
-		// 	if (array0[0] == p2 && playerName != p2)
-		// 		game.player2.y = array0[1];
-		// 	else if (array0[0] == p1 && playerName != p1)
-		// 		game.player1.y = array0[1];
-		// });
-		socket.on("ballPos", (_data: string) => {
-
-			array1 = _data.split(' ');
-			if (playerName == p2 && p2 == array1[1] && p1 == array1[0]) {
-				game.ball.x = array1[2];
-				game.ball.y = array1[3];
-				game.player1.score = array1[4];
-				game.player2.score = array1[5];
-			}
-			if (array1[8] == p2 && playerName != p2)
-				game.player2.y = array1[9];
-			else if (array1[8] == p1 && playerName != p1)
-				game.player1.y = array1[9];
-				
-			
-		});
-
-	function playerMove(event: any) {
+	function playerMove(event:any) 
+	{
+		console.log(_mode);
 		var gamePos = canvas.getBoundingClientRect();
-
-		var code = event.keyCode;
-
-		// up : 38
-		// down : 40
-		if (code !== 38 && code !== 40)
-			return
+		var mousePos = event.clientY - gamePos.y - playerHeight/2;
 		
-
-		if (playerName === p1) {
-			game.player1.y = code === 38 ? game.player1.y - sPlayer : game.player1.y + sPlayer
-
-			if (game.player1.y < 0)
+		if (playerName === p1) 
+		{
+			game.player1.y = mousePos - playerHeight / 2;
+			if (mousePos < playerHeight / 2) 
 				game.player1.y = 0;
-			else if (game.player1.y > canvas.height - playerHeight)
+			else if (mousePos > canvas.height - playerHeight / 2) 
 				game.player1.y = canvas.height - playerHeight;
-			// socket.emit('getPlayer', playerName + " " + game.player1.y + " " + mode + " " + a);
+			else 
+				game.player1.y = mousePos - playerHeight / 2;
+			if (playerName && contender && game.player1.y)
+				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player1.y);
 		}
-		else if (playerName === p2) {
-			game.player2.y = code === 38 ? game.player2.y - sPlayer : game.player2.y + sPlayer
-
-			if (game.player2.y < 0)
+		else if (playerName === p2) 
+		{
+			game.player2.y = mousePos - playerHeight / 2;
+			if (mousePos < playerHeight / 2) 
 				game.player2.y = 0;
-			else if (game.player2.y > canvas.height - playerHeight)
+			else if (mousePos > canvas.height - playerHeight / 2) 
 				game.player2.y = canvas.height - playerHeight;
-
-			// socket.emit('getPlayer', playerName + " " + game.player2.y + " " + mode + " " + a);
+			else 
+				game.player2.y = mousePos - playerHeight / 2;
+			if (playerName && contender && game.player1.y)
+				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player2.y);
 		}
+
+
+
+
+
+
+
+
+
+		// var gamePos = canvas.getBoundingClientRect();
+		// var mousePos = event.clientY - gamePos.y - playerHeight/2;
+		// let y = 0
+
+		// if (playerName === p1)
+		// 	y = game.player1.y
+		// else if (playerName === p2)
+		// 	y = game.player2.y
+
+		// y = mousePos - playerHeight / 2;
+		// if (mousePos < playerHeight / 2) 
+		// 	y = 0;
+		// else if (mousePos > canvas.height - playerHeight / 2) 
+		// 	y = canvas.height - playerHeight;
+		// else 
+		// 	y = mousePos - playerHeight / 2;
+
+		// console.log('NEW POSITION', y);
+		
+		// socket.emit('getPlayer', mode + " " + a + " " + playerName + " " + y);
 	}
 
 	function getResult() {
@@ -322,14 +280,14 @@ function Game() {
 				setLoserWiner("loser");
 			else
 				setLoserWiner("winer");
-			socket.emit('getResult', p1 + " " + p2 + " " + game.player1.score + " " + game.player2.score + " " + mode + " " + a + " " + isWinerLoser);
 		}
 		if (Number(game.player1.score) < Number(game.player2.score)) {
 			if (playerName === p1)
 				setLoserWiner("winer");
 			else
 				setLoserWiner("loser");
-			socket.emit('getResult', p2 + " " + p1 + " " + game.player2.score + " " + game.player1.score + " " + mode + " " + a + isWinerLoser);
+			setscr1(game.player1.score)
+			setscr1(game.player2.score)
 		}
 		game.ball.speed.x = 0;
 		game.ball.speed.y = 0;
@@ -337,33 +295,6 @@ function Game() {
 		game.ball.y = canvas.height / 2 - ballHeight / 2;
 		game.player1.y = canvas.height / 2 - playerHeight / 2;
 		game.player2.y = canvas.height / 2 - playerHeight / 2;
-	}
-
-	function startGame() {
-		function ft() {
-			if (playerName == p1 || playerName === p2) {
-				set(false);
-				drawGame();
-				addEventListener('keydown', playerMove);
-			}
-			if (playerName == p1) {
-				ballMove();
-				game.ball.x += game.ball.speed.x * acl;
-				game.ball.y += game.ball.speed.y * acl;
-				if(playerName === p1)
-					socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score + " " + mode + " " + a + " "+ playerName + " " + game.player1.y );
-			}
-			if(playerName !== p1 && playerName === p2)
-					socket.emit('ballPos', p1 + " " + p2 + " " + game.ball.x + " " + game.ball.y + " " + game.player1.score + " " + game.player2.score + " " + mode + " " + a + " "+ playerName + " " + game.player2.y );
-			if (Number(game.player2.score) === 50 || Number(game.player1.score) === 50 || isstop === true) {
-				getResult();
-				setscr1(Number(game.player1.score));
-				setscr2(Number(game.player2.score));
-				clearInterval(counter);
-				return;
-			}
-		}
-		counter = setInterval(ft, 1000 * 0.02);
 	}
 
 	Apis.CurrentProfile({
@@ -374,7 +305,6 @@ function Game() {
 			canvas = document.getElementById('canvas');
 			initilizeGame();
 			drawGame();
-			// socket.user.use÷rname = userResponse.username;
 		},
 		onFailure: (err: ErrorResponse) => {
 			// callAlert();
@@ -403,13 +333,13 @@ function Game() {
 										</div>
 										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{pone}</div>
 									</div>
-									<div className="resultnum text-[#bdb6d0] ">
+									<div className="resultnum text-[19px] text-[#bdb6d0] ">
 										{scr2}
 									</div>
 								</div>
-								<div className="vs ç text-[19px] font-bold  px-4 text-[#e84a4a]">VS</div>
+								<div className="vs  text-[19px] font-bold  px-4 text-[#6ae84a]">VS</div>
 								<div className="player2 flex items-center justify-between w-[50%]">
-									<div className="resultnum text-[#bdb6d0] ">
+									<div className="resultnum text-[19px] text-[#bdb6d0] ">
 										{scr1}
 									</div>
 									<div className="avatarwithuser flex items-center">
