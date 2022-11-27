@@ -43,24 +43,18 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
         return classes.filter(Boolean).join(' ')
       }
 
+      var items = [
+        "Profile",
+        "Message",
+        "Block",
+        "Invite to game",
+        "Mute",
+        "Ban",
+        "Kick"
+      ];
 
       function DropMenu({role, name}:props) {
 
-        var items = [
-          "Profile",
-          "Message",
-          "Block",
-          "Invite to game",
-          "Mute",
-          "Ban",
-          "Kick"
-        ];
-      
-        if (role === 'member') {
-          items.pop();
-          items.pop();
-          items.pop();
-        }
 
           useEffect(() => {
               socket.on('blockUser', (isBlocked) => {
@@ -144,19 +138,19 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                     {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Message'); }} > Message </a> )}
                   </Menu.Item>
                   <Menu.Item>
-                    {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Block'); }} > Block </a> )}
+                    {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Block'); }} > {items[2]} </a> )}
                   </Menu.Item>
                   <Menu.Item>
                     {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Invite to game'); }} > Invite to game </a> )}
                   </Menu.Item>
                   <Menu.Item>
-                    {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Mute'); }} > Mute </a> )}
+                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Mute'); }} > Mute </a> ) : <></>}
                   </Menu.Item>
                   <Menu.Item>
-                    {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Ban'); }} > Ban </a> )}
+                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Ban'); }} > Ban </a> ) : <></>}
                   </Menu.Item>
                   <Menu.Item>
-                    {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Kick'); }} > Kick </a> )}
+                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Kick'); }} > Kick </a> ) : <></>}
                   </Menu.Item>
                   
                 </div>

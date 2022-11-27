@@ -135,7 +135,13 @@ export default function ChatView() {
         return (
             <div className={style.chat}>
                 <div className={style.roomTitle}>
-                    <h2>{roomTitle}</h2>
+                    {(roomType === 'room') ? 
+                        <h2>{roomTitle}</h2>
+                        :
+                        <h2 className='text-[#3d326a] cursor-pointer' onClick={() => {
+                            router.push('/user/'+roomTitle);
+                        }}>{"@"+roomTitle}</h2>
+                    }
                     <div className='flex'>
                     {
                         (userRole === 'owner') ?
