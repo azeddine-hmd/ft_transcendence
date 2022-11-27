@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -19,7 +18,6 @@ import { UserJwtPayload } from './types/user-jwt-payload';
 @Injectable()
 export class AuthService {
   private refreshTokens = new Map<string, string | null>();
-  private tfaSecrets = new Map<string, string>();
 
   constructor(
     private readonly envService: EnvService,
@@ -37,21 +35,20 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(signupUserDto: SignupUserDto): Promise<User> {
+  async register(signupUserDto: SignupUserDto): Promise<User> {
     // hashing password
     signupUserDto.password = await bcrypt.hash(
       signupUserDto.password,
       await bcrypt.genSalt(),
     );
+
     // creating user
     const user = await this.usersService.create(signupUserDto);
     if (!user) {
       Logger.error(`AuthService#registerUser: failed! user exist!`);
       throw new ForbiddenException('User already exist');
     }
-    const optSecret = this.envService.get('OTP_SECRET');
-    if (!optSecret) throw new InternalServerErrorException();
-    this.tfaSecrets.set(user.username, authenticator.generateSecret());
+
     Logger.log(
       `AuthService#registerUser: user '${user.username}' register is successful!`,
     );
@@ -60,17 +57,26 @@ export class AuthService {
 
   async login(
     userJwtPayload: Express.User,
+    tfaVerified: boolean,
   ): Promise<{ tokens: Tokens; tfa?: string }> {
     Logger.log(
       `AuthService#login: user '${userJwtPayload.username}' logged-in!`,
     );
     const isTfaEnabled = await this.usersService.getTfa(userJwtPayload.userId);
     if (isTfaEnabled) {
-      if (userJwtPayload.tfa === undefined) userJwtPayload.tfa = 'pending';
+      if (tfaVerified && userJwtPayload.tfa === 'pending') {
+        userJwtPayload.tfa = 'accepted';
+      } else if (userJwtPayload.tfa === undefined) {
+        userJwtPayload.tfa = 'pending';
+      }
     } else {
       userJwtPayload.tfa = undefined;
     }
-    const accessToken = this.jwtService.sign(userJwtPayload);
+    const accessToken = this.jwtService.sign({
+      username: userJwtPayload.username,
+      userId: userJwtPayload.userId,
+      tfa: userJwtPayload.tfa,
+    });
     const refreshToken = this.getRefreshToken(userJwtPayload);
     return {
       tokens: {
@@ -102,11 +108,16 @@ export class AuthService {
     const expirationTime = this.envService.get(
       'JWT_REFRESH_EXPIRATION_DURATION',
     );
-    if (!expirationTime)
-      throw new InternalServerErrorException('refresh env var not defined');
-    const newToken = this.jwtService.sign(userJwtPayload, {
-      expiresIn: expirationTime,
-    });
+    const newToken = this.jwtService.sign(
+      {
+        username: userJwtPayload.username,
+        userId: userJwtPayload.userId,
+        tfa: userJwtPayload.tfa,
+      },
+      {
+        expiresIn: expirationTime,
+      },
+    );
     this.refreshTokens.set(userJwtPayload.username, newToken);
     return newToken;
   }
@@ -132,7 +143,7 @@ export class AuthService {
       const { jwtPayload, expired } = this.verifyJwtToken(expiredToken);
       if (expired) {
         if (refreshToken === this.refreshTokens.get(jwtPayload.username)) {
-          return (await this.login(jwtPayload)).tokens.accessToken;
+          return (await this.login(jwtPayload, false)).tokens.accessToken;
         }
       }
       throw new BadRequestException('access token is still valid');
@@ -143,5 +154,31 @@ export class AuthService {
 
   async tfa(username: string, value: boolean) {
     this.usersService.setTfa(username, value);
+  }
+
+  async getOtpAuthUri(userJwtPayload: UserJwtPayload) {
+    const tfaEnabled = await this.usersService.getTfa(userJwtPayload.userId);
+    if (!tfaEnabled || userJwtPayload.tfa !== 'pending')
+      throw new BadRequestException('illegal state for two way factor');
+    const secret = await this.usersService.getTfaSecret(
+      userJwtPayload.username,
+    );
+    return authenticator.keyuri(
+      userJwtPayload.username,
+      'ft_transcendence',
+      secret,
+    );
+  }
+
+  async verifyTfa(userJwtPayload: UserJwtPayload, code: string) {
+    const secret = await this.usersService.getTfaSecret(
+      userJwtPayload.username,
+    );
+    if (!secret || userJwtPayload.tfa !== 'pending')
+      throw new BadRequestException('illegal secret or tfa token state');
+    return authenticator.verify({
+      token: code,
+      secret: secret,
+    });
   }
 }

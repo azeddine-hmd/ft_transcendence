@@ -25,9 +25,4 @@ export class UserRelation {
     default: false,
   })
   friend2_1: boolean;
-
-  @Column({
-    default: false,
-  })
-  isBlocked: boolean;
 }

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-npm install -g npm@latest
 npm install .
 npm install --save @headlessui/react @heroicons/react
 

@@ -49,6 +49,9 @@ export class User {
   })
   tfa: boolean;
 
+  @Column()
+  tfaSecret: string;
+
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 
