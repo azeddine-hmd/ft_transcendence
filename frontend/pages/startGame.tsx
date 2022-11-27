@@ -13,7 +13,8 @@ function Game()
         e.preventDefault();
 		router.push('/game')
     }
-	const live = (e: any) => {    
+	const live = (e: any) => 
+	{ 
         e.preventDefault();
 		router.push('/live')
     }
@@ -29,7 +30,7 @@ function Game()
               			<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div className={style.start}>							
 						 <button onClick={live}>live</button>
-
+						<hr></hr>
 						<div className={style.wrapper}>
 						<div className={style.left_wall}></div>
 						<div className={style.ball}></div>

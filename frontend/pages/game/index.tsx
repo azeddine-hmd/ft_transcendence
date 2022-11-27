@@ -29,22 +29,22 @@ interface GameOption {
 		},
 	}
 }
+// let url = "";
+// if (process.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
+// 	url = "http://localhost";
+// else
+// 	url = "http://".concat(process.env.REACT_APP_IP);
 let url = "http://localhost:8080";
 
+let socket = io(url + '/game', {
+	withCredentials: true,
+	transports: ['websocket'],
+});
+export { socket };
 
-	let socket = io(url + '/game', {
-		withCredentials: true,
-		transports: ['websocket'],
-	});
-
-	export { socket };
-	// let url = "";
-	// if (process.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
-	// 	url = "http://localhost";
-	// else
-	// 	url = "http://".concat(process.env.REACT_APP_IP);
 function Game() {
-	var _mode:number;
+	/*--------------------------------------------------*/
+	var _mode: number;
 	var a: any;
 	let counter: any;
 	let buttomSearch: any = [];
@@ -73,6 +73,8 @@ function Game() {
 	const [scr1, setscr1] = React.useState(0);
 	const [scr2, setscr2] = React.useState(0);
 	const router = useRouter()
+	/*-------------------------------------------------------*/
+
 	const Refreche = (e: any) => {
 		getResult();
 		setscr1(Number(game.player1.score));
@@ -86,21 +88,18 @@ function Game() {
 		canvas = document.getElementById('canvas');
 		initilizeGame();
 		drawGame();
-		socket.on("abcd", (...args: any) => 
-		{
+		socket.on("abcd", (...args: any) => {
 			set(false);
 			p1 = args[0];
-			p2 = args[1];	
+			p2 = args[1];
 			_mode = args[2];
-			
-			
 			addEventListener('mousemove', playerMove);
 			setName(p1);
 			setName1(p2);
 			a = args[3];
-			if (p1 != contender && p1 == playerName) 
+			if (p1 != contender && p1 == playerName)
 				contender = p2;
-			else if (p2 != contender && p2 == playerName) 
+			else if (p2 != contender && p2 == playerName)
 				contender = p1;
 		});
 		socket.on("ballPos", (_data: string) => {
@@ -114,13 +113,9 @@ function Game() {
 			drawGame();
 		});
 		socket.on("endGame", (_data: string) => {
-			getResult() 
+			getResult()
 		})
 	}, [])
-
-	function quit () {
-		socket.emit('quit', mode + " " + a)
-	}
 
 	function _search() {
 		buttomSearch[0] = "search";
@@ -155,14 +150,12 @@ function Game() {
 		c.fillText(game.player1.score, 400, 100);
 	}
 
-	function drawNet() 
-	{
+	function drawNet() {
 		for (var i: number = 0; i < canvas.height; i += 40)
 			colorRect(canvas.width / 2 - 1, i, 2, 20, colorG);
 	}
 
-	function drawBall()
-	{
+	function drawBall() {
 		var ctx = canvas.getContext("2d");
 		ctx.beginPath();
 		ctx.fillStyle = "Chartreuse";
@@ -187,7 +180,7 @@ function Game() {
 		drawBall();
 	}
 
-	function initilizeGame() {		
+	function initilizeGame() {
 		p1 = "";
 		p2 = "";
 		game = {
@@ -213,65 +206,33 @@ function Game() {
 		clearInterval(counter);
 	}
 
-	function playerMove(event:any) 
-	{
+	function playerMove(event: any) {
 		console.log(_mode);
 		var gamePos = canvas.getBoundingClientRect();
-		var mousePos = event.clientY - gamePos.y - playerHeight/2;
-		
-		if (playerName === p1) 
-		{
+		var mousePos = event.clientY - gamePos.y - playerHeight / 2;
+
+		if (playerName === p1) {
 			game.player1.y = mousePos - playerHeight / 2;
-			if (mousePos < playerHeight / 2) 
+			if (mousePos < playerHeight / 2)
 				game.player1.y = 0;
-			else if (mousePos > canvas.height - playerHeight / 2) 
+			else if (mousePos > canvas.height - playerHeight / 2)
 				game.player1.y = canvas.height - playerHeight;
-			else 
+			else
 				game.player1.y = mousePos - playerHeight / 2;
 			if (playerName && contender && game.player1.y)
 				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player1.y);
 		}
-		else if (playerName === p2) 
-		{
+		else if (playerName === p2) {
 			game.player2.y = mousePos - playerHeight / 2;
-			if (mousePos < playerHeight / 2) 
+			if (mousePos < playerHeight / 2)
 				game.player2.y = 0;
-			else if (mousePos > canvas.height - playerHeight / 2) 
+			else if (mousePos > canvas.height - playerHeight / 2)
 				game.player2.y = canvas.height - playerHeight;
-			else 
+			else
 				game.player2.y = mousePos - playerHeight / 2;
 			if (playerName && contender && game.player1.y)
 				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player2.y);
 		}
-
-
-
-
-
-
-
-
-
-		// var gamePos = canvas.getBoundingClientRect();
-		// var mousePos = event.clientY - gamePos.y - playerHeight/2;
-		// let y = 0
-
-		// if (playerName === p1)
-		// 	y = game.player1.y
-		// else if (playerName === p2)
-		// 	y = game.player2.y
-
-		// y = mousePos - playerHeight / 2;
-		// if (mousePos < playerHeight / 2) 
-		// 	y = 0;
-		// else if (mousePos > canvas.height - playerHeight / 2) 
-		// 	y = canvas.height - playerHeight;
-		// else 
-		// 	y = mousePos - playerHeight / 2;
-
-		// console.log('NEW POSITION', y);
-		
-		// socket.emit('getPlayer', mode + " " + a + " " + playerName + " " + y);
 	}
 
 	function getResult() {

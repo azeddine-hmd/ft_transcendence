@@ -27,8 +27,8 @@ var socket: any;
 let url = "http://" + "localhost" + ":8080";
 socket = io(url + "/game", { transports: ['websocket'] });
 export { socket };
-function live() {
 
+function live() {
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
 	var p1: string;
@@ -79,7 +79,6 @@ function live() {
 		context.fillStyle = 'black';
 		context.fillRect(0, 0, canvas.width, canvas.height);
 		context.strokeStyle = colorG;
-		// context.beginPath();
 		context.fillStyle = colorG;
 		context.fillRect(0, game.player1.y, playerWith, playerHeight);
 		context.fillRect(canvas.width - playerWith, game.player2.y, playerWith, playerHeight);
@@ -168,9 +167,7 @@ function live() {
 	socket.on("ballPos", (_data: string) => {
 		// console.log('TRIGGERED', { _data });
 		canvas = document.getElementById('canvas');
-
 		let array1 = _data.split(' ');
-
 		p1 = array1[0];
 		p2 = array1[1];
 		game.ball.x = Number(array1[2]);
