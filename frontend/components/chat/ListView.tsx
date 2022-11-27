@@ -6,6 +6,7 @@ import direct from '../../dms.json'
 import style from '../../styles/chat/ListView.module.css'
 import stylee from '../../styles/chat/Card.module.css'
 import {socket} from '../../pages/chat/[chat]'
+import CreateRoom from '../../pages/chat/[chat]'
 
 
 function CreateNewRoom() {
@@ -23,6 +24,9 @@ function CreateNewRoom() {
         if (title === '' || description === '')
             return alert('all fields marked (*) must be filled');
         socket.emit('createRoom', { "title": title, "description": description, "privacy": (password !== ''), "password": password});
+        setTitle('');
+        setDescription('');
+        setPassword('');
     }
 
     return (
@@ -38,62 +42,79 @@ function CreateNewRoom() {
                     </div>
 
                 </div>
+                
             </div>
         </div>
     );
 
 }
 
-
-var pageLoaded = false; 
-
 export default function ListView() {
     
     const [data, setData] = useState(rooms);
     const [dms, setDms] = useState(direct);
     const [tmp, setTMP] = useState(rooms);
-    const [channel, setChannel] = useState('rooms');
-    
+    const [tmp2, setTMP2] = useState(direct);
+    const [channel, setChannel] = useState('rooms');   
+ 
     function OnRoomsClick() { socket.emit('findAllRooms'); setChannel('rooms'); setData(rooms); }
     function OnDMsClick() { socket.emit('conversation'); setChannel('friends'); setData(rooms); }
 
-    
-
-    if (!pageLoaded) {
+    useEffect(() => {
         socket.emit('findAllRooms');
-        pageLoaded = true;
-    }
+    }, [])
 
-    socket.on('createRoom', ({ created }) => {
-        console.log('oncreate=' + created);
-        if (created)
-            socket.emit('findAllRooms');
-        else
-            alert('went wrong :(');
-    });
+    useEffect(() => {
+        socket.on('createRoom', ({ created }) => {
+            console.log('oncreate2=' + created);
+            if (created)
+                socket.emit('findAllRooms');
+            else
+                alert('went wrong :(');
+        });
+    
+        socket.on('conversation', (arr) => {
+            setChannel('friends'); 
+            setData(rooms); 
+            setDms(arr);
+            setTMP2(arr);
+        });
+    
+        socket.on('findAllRooms', ({ rooms }) => {
+            setData(rooms);
+            setTMP(rooms);
+        });
 
-    socket.on('conversation', (arr) => {
-        setChannel('friends'); 
-        setData(rooms); 
-        setDms(arr);
-        setTMP(arr);
-    });
-
-    socket.on('findAllRooms', ({ rooms }) => {
-        setData(rooms);
-        setTMP(rooms);
-    });
+        return () => {
+            socket.off('createRoom');
+            socket.off('conversation');
+            socket.off('findAllRooms');
+        }
+    }, []);
 
     const onSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.currentTarget.value.trim() != '') {
-            const result = tmp.filter(function (data) {
-                return data.title.includes(event.currentTarget.value);
-            });
-            setData(result);
+        if (channel === 'rooms') {
+            if (event.currentTarget.value.trim() != '') {
+                const result = tmp.filter(function (raw) {
+                    return raw.title.includes(event.currentTarget.value);
+                });
+                setData(result);
+            }
+            else {
+                socket.emit('findAllRooms');
+            }
+        } else {
+            if (event.currentTarget.value.trim() != '') {
+                const result = tmp2.filter(function (raw) {
+                    return raw.username.includes(event.currentTarget.value);
+                });
+                setDms(result);
+            }
+            else {
+                socket.emit('conversation');
+            }
         }
-        else {
-            socket.emit('findAllRooms');
-        }
+        
     };
 
     return (

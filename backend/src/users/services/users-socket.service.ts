@@ -1,10 +1,19 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { parse } from 'cookie';
 import { Socket } from 'socket.io';
 import { AuthService } from '../../auth/auth.service';
 import { UserJwtPayload } from '../../auth/types/user-jwt-payload';
 import { UserStates } from '../../auth/types/user-states';
+import { FriendsStates } from '../dto/types/friends-states';
+import { RelationsService } from './relations.service';
+import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
 
 @Injectable()
 export class UsersSocketService {
@@ -13,6 +22,7 @@ export class UsersSocketService {
   constructor(
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly relationsService: RelationsService,
   ) {}
 
   async authenticate(client: Socket): Promise<UserJwtPayload> {
@@ -46,22 +56,17 @@ export class UsersSocketService {
     }
 
     if (!userStates) throw new WsException('user not found!');
-    userStates.clients = userStates.clients.add(clientId);
+    userStates.clients.add(clientId);
     userStates.online = true;
   }
 
-  removeClient(clientId: string) {
-    Logger.log(`Client Socket Disconnected: id=${clientId}`);
-    const userId = this.getUserId(clientId);
-    if (!userId) return;
+  removeClient(userId: string, clientId: string) {
     const userStates = this.usersState.get(userId);
-    if (!userStates) return;
+    if (!userStates)
+      throw new InternalServerErrorException(`user state doesn't exist`);
     userStates.clients.delete(clientId);
     if (userStates.clients.size === 0) {
-      const userState = this.usersState.get(userId);
-      if (userState) {
-        userState.online = false;
-      }
+      userStates.online = false;
     }
   }
 
@@ -79,5 +84,21 @@ export class UsersSocketService {
     const userStates = this.usersState.get(userId);
     if (!userStates) return;
     userStates.status = status;
+  }
+
+  async getFriendsStates(userId: string): Promise<FriendsStates[]> {
+    const friends = await this.relationsService.getAllFriendsRelations(userId);
+    return friends.map((pair) => {
+      const { second: profile } = pair;
+      const userState = this.usersState.get(userId);
+      if (!userState) throw new WsException('user states not found');
+      return {
+        profile: profileToProfileResponse(profile),
+        states: {
+          online: userState.online,
+          status: userState.status,
+        },
+      };
+    });
   }
 }

@@ -3,7 +3,7 @@ import { Column, Entity, Index, JoinTable, Long, ManyToMany, ManyToOne, OneToMan
 import { Rooms } from "./rooms.entity";
 
 @Entity()
-export class Ban {
+export class Mute {
     @PrimaryGeneratedColumn()
     id: number
 

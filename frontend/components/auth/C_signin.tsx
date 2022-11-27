@@ -38,8 +38,8 @@ export default function C_signin() {
                                             username: username,
                                             password: password,
                                         },
-                                        onSuccess: (user: SigninResponse) => {
-                                            router.push("/home");
+                                        onSuccess: (data: SigninResponse) => {
+                                            router.push(data.path);
                                         },
                                         onFailure: (err: ErrorResponse) => {
                                             alert(err.message);

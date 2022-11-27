@@ -11,6 +11,9 @@ run-with-build: build run
 down:
 	docker-compose down
 
+remove-modules:
+	rm -rf backend/node_moudles frontend/node_modules
+
 clean:
 	@echo "removing project's heavy dependencies..."
 	rm -rf backend/dist frontend/dist backend/package-lock.json

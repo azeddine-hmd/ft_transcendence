@@ -6,6 +6,7 @@ import { SigninDto } from "./dto/payload/signin.dto";
 import { SignupDto } from "./dto/payload/signup.dto";
 import { ErrorResponse } from "./dto/response/error-response.dto";
 import { FriendsResponse } from "./dto/response/friends-response.dto";
+import { OtpauthuriResponse } from "./dto/response/otpauthuri-response";
 import { ProfileResponse } from "./dto/response/profile-response.dto";
 import { RefreshResponse } from "./dto/response/refresh-response.dto";
 import { RelationResponse } from "./dto/response/relation-response.dto";
@@ -427,6 +428,53 @@ export namespace Apis {
   }) {
     try {
       const res = await localService.post<RefreshResponse>(`/api/auth/tfa`);
+      return options.onSuccess();
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+
+  export async function GetOtpAuthUri(options: {
+    onSuccess: (data: OtpauthuriResponse) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<OtpauthuriResponse>(`/api/auth/tfa/otpauth`);
+      return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+
+  export async function VerifyTfa(options: {
+    code: string,
+    onSuccess: () => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.post(`/api/auth/tfa/verify`, { 
+        code: options.code,
+      });
       return options.onSuccess();
     } catch (err: any) {
       if (axios.isAxiosError(err)) {

@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { authenticator } from 'otplib';
 import { EnvService } from 'src/conf/env.service';
 import { Repository } from 'typeorm';
 import { SignupUserDto } from '../../auth/dto/payload/signup-user.dto';
@@ -52,6 +53,12 @@ export class UsersService {
     return user.tfa;
   }
 
+  async getTfaSecret(username: string): Promise<string> {
+    const user = await this.findOneFromUsername(username);
+    if (!user) throw new NotFoundException();
+    return user.tfaSecret;
+  }
+
   /* creation operations */
 
   private async createUser(
@@ -70,6 +77,11 @@ export class UsersService {
     });
     if (profileFound)
       throw new BadRequestException('display name already exist');
+
+    // generate tfa secret
+    const tfaSecret = authenticator.generateSecret();
+    unsavedUser.tfaSecret = tfaSecret;
+
     const profile = await this.profileRepository.save(unsavedProfile);
     this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
