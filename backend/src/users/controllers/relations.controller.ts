@@ -19,16 +19,13 @@ import {
 } from '@nestjs/swagger/dist';
 import { Request } from 'express';
 import { JwtAuth } from '../../auth/guards/jwt-auth.guard';
-import { Profile } from '../../profiles/entities/profile.entity';
 import { profileToProfileResponse } from '../../profiles/utils/entity-payload-converter';
-import { Pair } from '../../utils/pair';
 import { FriendDto } from '../dto/payload/add-friend-payload.dto';
 import { FriendsResponse } from '../dto/response/friends-response.dto';
 import {
   FriendsStatus,
   RelationResponse,
 } from '../dto/response/other-user-relation.dt';
-import { UserRelation } from '../entities/user-relation.entity';
 import { RelationsService } from '../services/relations.service';
 import { relationToFriendsStatus } from '../utils/entity-response-converter';
 
