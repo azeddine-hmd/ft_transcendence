@@ -29,6 +29,10 @@ let url = "http://" + "localhost" + ":8080";
 socket = io(url + "/game", { transports: ['websocket'] });
 export { socket };
 
+var isWatching: boolean = false;
+var oldMode: string = "";
+var oldIndex: number = -1;
+
 function live() {
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
@@ -155,6 +159,13 @@ function live() {
 
 	})
 	function join(mode: string, index: number) {
+		if (isWatching) {			
+			socket.emit('stopLive', oldMode + " " + oldIndex);
+		}
+		isWatching = true;
+		oldMode = mode;
+		oldIndex = index;
+
 		console.log('joinning', mode, index);
 		// socket.on("abcd", (...args: any) => {
 		// 	var i = Number(args[3]);
@@ -173,12 +184,13 @@ function live() {
 			setEasyGames(allgames.easy);
 			setHardGames(allgames.hard);
 		}
-	});
+		});
 		canvas = document.getElementById('canvas');
 		initilizeGame();
 		socket.on("abcd", (...args: any) => {
 			//console.log('abcd.......');
-		}); socket.on("ballPos", (_data: string) => {
+		}); 
+		socket.on("ballPos", (_data: string) => {
 			var array1 = _data.split(' ');
 			//console.log('ballPos.......');
 			//console.log({ array1 });

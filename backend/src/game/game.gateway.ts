@@ -473,8 +473,8 @@ export class GameGateway {
  
 	@SubscribeMessage('live')
 	live(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-		console.log('ALL GAMES', _game[0]);
-		console.log('ALL GAMES', _game[1]);
+		// console.log('ALL GAMES', _game[0]);
+		// console.log('ALL GAMES', _game[1]);
 
 		let not_finished_easy = _game[0].map((gm:any) => {
 			if (gm.finished === false) return {left: gm.left, right: gm.right, ball: gm.ball,}
@@ -500,9 +500,26 @@ export class GameGateway {
 		const arr = _data.split(' ');
 		let mode = arr[0] === 'Easy' ? 0 : 1
 		let indx = Number(arr[1]);
+		console.log(`INDEX1=${indx} mode=${mode}`);
+
 		_game[mode][indx].spectators.push(client.id);
 		this.server.to(client.id).emit('abcd', _game[mode][indx].left.username, _game[mode][indx].right.username, mode, indx)
 	}
+
+	@SubscribeMessage('stopLive')
+	stopLive(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
+		const arr = _data.split(' ');
+		let mode = arr[0] === 'Easy' ? 0 : 1
+		let indx = Number(arr[1]);
+		console.log(`INDEX2=${indx} mode=${mode}`);
+
+		console.log(_game[mode][indx].spectators);
+		const clientIdIndx = _game[mode][indx].spectators.indexOf(client.id);
+		_game[mode][indx].spectators.splice(clientIdIndx, 1);
+		console.log(_game[mode][indx].spectators);
+		// this.server.to(client.id).emit('abcd', _game[mode][indx].left.username, _game[mode][indx].right.username, mode, indx)
+	}
+
 	@SubscribeMessage('quit')
 	quit(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');
