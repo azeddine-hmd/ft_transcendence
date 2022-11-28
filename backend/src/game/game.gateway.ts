@@ -10,11 +10,11 @@ import GameService from './game.service';
 /*-------------------------------------------------------*/
 const canvas_height = 600
 const canvas_width = 600
-var sBall = 2
+var sBall = 1
 const playerHeight = 75
 const playerWith = 10
 const ballHeight = 10
-const final_score = 10
+const final_score = 100
 var count = 0;
 let _game: any =
 	[
@@ -82,10 +82,6 @@ var sp: number;
 let waiting: boolean = true;
 /*-------------------------------------------------------*/
 
-
-
-
-
 let ind: any;
 function ballMove(m: any, i: any) {
 	var d: number;
@@ -146,45 +142,48 @@ function ballMove(m: any, i: any) {
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;
-	
+
 	constructor(
 		private readonly gameService: GameService,
 		private readonly usersSocketService: UsersSocketService,
 	) { }
 
-	final(m: any, i: any)
-	{	
-		var winner:any;
-		var winnerScore:any
-		var loser:any;
-		var loserScore:any;
+	final(m: any, i: any) {
+		var winner: any;
+		var winnerScore: any
+		var loser: any;
+		var loserScore: any;
 
-		if(_game[m][i].right.score > _game[m][i].left.score)
-		{	
+		if (_game[m][i].right.score > _game[m][i].left.score) {
 			winner = _game[m][i].right.username;
 			winnerScore = _game[m][i].right.score;
 
 			loser = _game[m][i].left.username;
 			loserScore = _game[m][i].left.score;
- 		}
-		else{
+		}
+		else {
 			winner = _game[m][i].left.username;
-			winnerScore =  _game[m][i].left.score;
-			
+			winnerScore = _game[m][i].left.score;
+
 			loser = _game[m][i].right.username;
-			loserScore =  _game[m][i].right.score;
+			loserScore = _game[m][i].right.score;
 		}
 		this.gameService.createGameMatch({
 			winner: winner,
 			loser: loser,
 			winnerScore: winnerScore,
 			loserScore: loserScore,
-			mode : m === 1 ? "Hard" : "Easy",
+			mode: m === 1 ? "Hard" : "Easy",
 		})
 	}
 
 	ft = (m: any, i: any) => {
 		ballMove(m, i);
+
+		// if (this.cout <= 1)
+		// //console.log(`ft: m=${m} | i=${i}`);
+		// //console.log("LEFT Y  = ",_game[m][i].left.y );
+		// //console.log("RIGHT Y = ",_game[m][i].right.y);
 		this.server.to([
 			..._game[m][i].left.sockets,
 			..._game[m][i].right.sockets,
@@ -201,6 +200,7 @@ export class GameGateway {
 
 				_game[m][i].left.y + " " +
 				_game[m][i].right.y);
+		// //console.log('AT', m, i)
 
 		if (m === 0)
 			sp = 1.5;
@@ -217,8 +217,9 @@ export class GameGateway {
 				..._game[m][i].right.sockets,
 				..._game[m][i].spectators,])
 				.emit('endGame')
-			this.final(m,i)
+			this.final(m, i)
 			_game[m][i].finished = true;
+			//console.log("clear interval call ...............");
 			clearInterval(_game[m][i].counter);
 			return;
 		}
@@ -228,7 +229,7 @@ export class GameGateway {
 	}
 
 	@SubscribeMessage('checkInvite')
-	checkInvite(@ConnectedSocket() client: Socket) {	
+	checkInvite(@ConnectedSocket() client: Socket) {
 
 		if (client.user.username == this.gameService.playr || client.user.username == this.gameService.playr2) {
 			if (client.user.username == this.gameService.playr)
@@ -241,7 +242,7 @@ export class GameGateway {
 			}
 
 			if (queue1.length >= 2) {
-	
+
 				var i: number = 0;
 				let contender = queue1[0].username;
 				let ind = _game[i].push({
@@ -262,27 +263,25 @@ export class GameGateway {
 					},
 					counter: 0,
 				}) - 1;
+				//console.log('INITIALIZED');
+
 				var index = queue1.findIndex(function (obj: any) { return (obj.username === client.user.username) });
 				if (index != -1)
 					_game[i][ind].right = { ...queue1.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
 				this.server.to([
 					..._game[i][ind].left.sockets,
 					..._game[i][ind].right.sockets
-				]).emit('abcd', client.user.username, contender, i, ind);		
-				
-			// console.log("event handlecon ........");
+				]).emit('abcd', client.user.username, contender, i, ind);
 
 				this.startGame(i, ind);
 			}
-			 
+
 		}
 	}
 
-	async handleConnection(client: Socket, ...args: any[]) 
-	{
+	async handleConnection(client: Socket, ...args: any[]) {
 		try {
 			await this.usersSocketService.authenticate(client);
-		
 
 		} catch (exception) {
 			handleWsException(client, exception);
@@ -292,10 +291,10 @@ export class GameGateway {
 	handleDisconnect(client: Socket, ...args: any[]) {
 		if (client.user) {
 			client.emit("ok", client.user.username);
-			console.log(`client disconnected on game gateway id=${client.id}`);
+			//console.log(`client disconnected on game gateway id=${client.id}`);
 			if (!client.user.username)
 				return
-			
+
 			if (client.handshake.query.mode) {
 				let usern = client.user.username;
 				let mode = client.handshake.query.mode;
@@ -311,50 +310,44 @@ export class GameGateway {
 			}
 
 			const usrname = client.user.username;
-			let index:any
+			let index: any
 
-			console.log('USER FOUND ----- ', usrname)
-			
-			index = _game[0].findIndex( (gm:any, key:any) => {
+			//console.log('USER FOUND ----- ', usrname)
+
+			index = _game[0].findIndex((gm: any, key: any) => {
 				return (gm.finished === false &&
 					(gm.left.username === usrname ||
-					gm.right.username === usrname))
+						gm.right.username === usrname))
 			})
-			console.log('INDEX FIRST TIME IS', index);
-			
+
 			if (index !== -1) {
-				console.log('INDEX FIRST TIME FOUND', index);
-				if(usrname === _game[0][index].left.username)
-				{
+				if (usrname === _game[0][index].left.username) {
 					_game[0][index].right.score = final_score;
 					_game[0][index].left.score = 0;
-					console.log('INDEX FIRST RIGHT IS WINNER');
 				}
-				else{
-					console.log('INDEX FIRST LEFT IS WINNER');
+				else {
 					_game[0][index].left.score = final_score;
 					_game[0][index].right.score = 0;
 				}
-				return ;
+				return;
 			}
 
 
-			index = _game[1].findIndex( (gm:any, key:any) => {
+			index = _game[1].findIndex((gm: any, key: any) => {
 				return (gm.finished === false &&
 					(gm.left.username === usrname ||
-					gm.right.username === usrname))
+						gm.right.username === usrname))
 			})
-			console.log('INDEX SECOND TIME IS', index);
+			//console.log('INDEX SECOND TIME IS', index);
 			if (index !== -1) {
-				console.log('INDEX SECOND TIME FOUND', index);
-				if(usrname === _game[1][index].left.username)
-				{
-					console.log('INDEX SECOND RIGHT IS WINNER');
+				//console.log('INDEX SECOND TIME FOUND', index);
+				if (usrname === _game[1][index].left.username) {
+					//console.log('INDEX SECOND RIGHT IS WINNER');
 					_game[1][index].right.score = final_score;
 					_game[1][index].left.score = 0;
 				}
-				else{
-					console.log('INDEX SECOND LEFT IS WINNER');
+				else {
+					//console.log('INDEX SECOND LEFT IS WINNER');
 					_game[1][index].left.score = final_score;
 					_game[1][index].right.score = 0;
 				}
@@ -410,14 +403,18 @@ export class GameGateway {
 					},
 					counter: 0,
 				}) - 1;
+				//console.log('INITIALIZED');
+				
 				var index = queue.findIndex(function (obj: any) { return (obj.username === client.user.username) });
 				if (index != -1)
 					_game[i][ind].right = { ...queue.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
-				
 				this.server.to([
 					..._game[i][ind].left.sockets,
 					..._game[i][ind].right.sockets
 				]).emit('abcd', client.user.username, contender, i, ind);
+
+				//console.log(`STARTING MODE ${i} INDEX ${ind}`);
+	
 				this.startGame(i, ind);
 			}
 		}
@@ -431,56 +428,72 @@ export class GameGateway {
 		let index = Number(arr[2]);
 		var playerName = arr[0];
 
-		if(playerName === _game[mode][index].left.username)
-		{
+		if (!_game || !_game[mode] || !_game[mode][index])
+			return;
+
+		if (playerName === _game[mode][index].left.username) {
 			_game[mode][index].right.score = final_score;
 			_game[mode][index].left.score = 0;
- 		}
-		else{
+		}
+		else {
 			_game[mode][index].left.score = final_score;
 			_game[mode][index].right.score = 0;
 		}
-
-		console.log("finished ",_game[mode][index].left.score,);
-		console.log("finished ",_game[mode][index].right.score,);
+		this.cout = 0;
+		//console.log("finished ", _game[mode][index].left.score,);
+		//console.log("finished ", _game[mode][index].right.score,);
 
 	}
 
+	cout: number = 0;
 	@SubscribeMessage('getPlayer')
 	getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');
-		var mode: number = Number(arr[0]);
-		let indx = Number(arr[1])
-		if (_game[mode][indx].left.username === arr[2])
-			_game[mode][indx].left.y = Number(arr[3])
-		else if (arr[2] === _game[mode][indx].right.username)
-			_game[mode][indx].right.y = Number(arr[3])
-		
-	}
+		var mode = Number(arr[0]);
+		var indx = Number(arr[1]);
 
+		if (!_game || !_game[mode] || !_game[mode][indx])
+			return;
+
+		// this.cout++;
+		// if (this.cout <= 1)
+		// 	//console.log(`getPlayer: m=${mode} | i=${indx}`);
+		if (_game[mode][indx].left.username === arr[2]) {
+			// //console.log('LEFT', _game[mode][indx].left.y, 'MOVED TO ', Number(arr[3]), mode, indx)
+			_game[mode][indx].left.y = Number(arr[3])
+			// //console.log('DID IT', _game[mode][indx].left.y === Number(arr[3]))
+		}
+		else if (arr[2] === _game[mode][indx].right.username) {
+			// //console.log('RIGHT', _game[mode][indx].right.y, 'MOVED TO ', Number(arr[3]), mode, indx)
+			_game[mode][indx].right.y = Number(arr[3])
+			// //console.log('DID IT', _game[mode][indx].right.y === Number(arr[3]))
+		}
+		//console.log('PLAYER MOVED', _data)
+	}
+ 
 	@SubscribeMessage('live')
 	live(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-		console.log("live ...........");
-		let not_finished_easy = _game[0].map((element: any) => { if (element.finished === false) return element })
-		let not_finished_hard = _game[1].map((element: any) => { if (element.finished === false) return element })
-		this.server.to(client.id).emit('live', { easy: not_finished_easy, hard: not_finished_hard });
+		console.log('ALL GAMES', _game[0]);
+		console.log('ALL GAMES', _game[1]);
+
+		let not_finished_easy = _game[0].map((gm:any) => {
+			if (gm.finished === false) return {left: gm.left, right: gm.right, ball: gm.ball,}
+		})
+
+		let not_finished_hard = _game[1].map((gm:any) => {
+			if (gm.finished === false) return {left: gm.left, right: gm.right, ball: gm.ball,}
+		})
+
+		this.server.to(client.id).emit('liveGames', { easy: not_finished_easy, hard: not_finished_hard });
 	}
 
-	// @SubscribeMessage('test')
-	// test(@ConnectedSocket() client: Socket, @MessageBody() _data: string)
-	// {
-	// 	// console.log('GAMES EASY', _game[0]);
-	// 	// console.log('GAMES HARD', _game[1]);
+	// @SubscribeMessage('clear')
+	// clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
+	// 	_game[0] = []
+	// 	_game[1] = []
+	// 	//console.log('CLEARED');
+	// 	//console.log(_game[0], _game[1]);
 	// }
-
-	@SubscribeMessage('clear')
-	clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-		_game[0] = []
-		_game[1] = []
-
-		console.log('CLEARED');
-		console.log(_game[0], _game[1]);
-	}
 
 	@SubscribeMessage('joingame')
 	joingame(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {

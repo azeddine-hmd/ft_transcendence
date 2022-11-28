@@ -3,6 +3,7 @@ import Useravatar from '../../components/profile/Useravatar'
 import React, { useEffect, useState } from "react";
 import io, { Socket } from 'socket.io-client';
 import style from '../../styles/game/gameStyle.module.css'
+import { useRouter } from 'next/router';
 
 interface GameOption {
 	player1: {
@@ -33,6 +34,7 @@ function live() {
 	buttomSearch[0] = "search";
 	var p1: string;
 	var p2: string;
+	var _mode: Number;
 	var canvas: any;
 	var colorG: string = "white";
 	var playerHeight: number = 75.0;
@@ -44,6 +46,7 @@ function live() {
 
 	const [easyGames, setEasyGames] = useState<[]>([]);
 	const [hardGames, setHardGames] = useState<[]>([]);
+	const router = useRouter()
 
 
 	function colorRect(leftX: number, topY: number, width: number, height: number, drawColor: string) {
@@ -135,72 +138,63 @@ function live() {
 			}
 		}
 	}
+
 	function ft() {
-		console.log("ft", socket, url);
-		socket.emit("live", {});
+		//console.log("ft", socket, url);
+		socket.emit("live");
 	}
-	function ft1() {
-		// console.log("ft1");
-		socket.emit("test");
-	}
-	function ft2() {
-		// console.log("empty games");
-		socket.emit("clear");
-	}
+	// function ft1() {
+	// 	//console.log("ft1");
+	// 	socket.emit("test");
+	// }
+	// function ft2() {
+	// 	// //////console.log("empty games");
+	// 	socket.emit("clear");
+	// }
+	socket.on("Index",()=>{
+
+	})
 	function join(mode: string, index: number) {
-		// join game
-		// console.log('joinning', mode, index);
-
+		console.log('joinning', mode, index);
+		// socket.on("abcd", (...args: any) => {
+		// 	var i = Number(args[3]);
+		// 	console.log("---",i);
 		socket.emit('joingame', mode + " " + index)
+		// });
 	}
-
-	socket.on("live", (...args: any) => {
-		console.log("hello from live...................................................");
+	useEffect(() => {
+	socket.on("liveGames", (...args: any) => {
+		//console.log("liveGame");
 		console.log(args[0]);
 		if (args[0]) {
 			let allgames = args[0];
+			
+			
 			setEasyGames(allgames.easy);
 			setHardGames(allgames.hard);
 		}
 	});
-
-	socket.on("ballPos", (_data: string) => {
-		// console.log('TRIGGERED', { _data });
-		canvas = document.getElementById('canvas');
-		let array1 = _data.split(' ');
-		p1 = array1[0];
-		p2 = array1[1];
-		game.ball.x = Number(array1[2]);
-		game.ball.y = Number(array1[3]);
-		game.player1.score = Number(array1[4]);
-		game.player2.score = Number(array1[5]);
-		if (array1[8] == p2)
-			game.player2.y = Number(array1[9]);
-		else if (array1[8] == p1)
-			game.player1.y = Number(array1[9]);
-
-		// console.log(game);
-		drawGame();
-
-	});
-
-	// socket.on("getPlayer", (_data: string) => {
-	// 	console.log("getPlayer");
-
-	// 	let array0 = _data.split(' ');
-
-	// 	if (array0[0] == p2)
-	// 		game.player2.y = Number(array0[1]);
-	// 	else if (array0[0] == p1)
-	// 		game.player1.y = Number(array0[1]);
-
-	// 	// game.player1.y = Number(array0[0]);
-	// 	// game.player2.y = Number(array0[1]);
-	// });
-
-	useEffect(() => {
 		canvas = document.getElementById('canvas');
 		initilizeGame();
+		socket.on("abcd", (...args: any) => {
+			//console.log('abcd.......');
+		}); socket.on("ballPos", (_data: string) => {
+			var array1 = _data.split(' ');
+			//console.log('ballPos.......');
+			//console.log({ array1 });
+			game.ball.x = Number(array1[2]);
+			game.ball.y = Number(array1[3]);
+			game.player1.score = Number(array1[4]);
+			game.player2.score = Number(array1[5]);
+			game.player1.y = Number(array1[6]);
+			game.player2.y = Number(array1[7]);
+			drawGame();
+		}); socket.on("endGame", (_data: string) => {
+			socket.off("ballPos");
+			setTimeout(() => {
+				router.reload();
+			}, 2000);
+		})
 		drawGame();
 	}, [])
 
