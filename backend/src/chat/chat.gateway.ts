@@ -20,15 +20,22 @@ import { AddRoleToSomeUserDto } from './dto/addRoleToSomeUser.dto';
 import { inBlockedList } from './tools/tools';
 import { BanDto } from './dto/ban.dto';
 import { WsExceptionFilter } from 'src/filter/ws-filter';
+import cookieParser from 'cookie-parser';
+import { disconnect } from 'process';
+import { KickDto } from './dto/kick.dto';
+import { InviteDto } from './dto/invite.dto';
+import { AcceptDto } from './dto/accept.dto';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
-let roomClients:Map<string, clientObj[] | undefined> = new Map();
+let roomClients:Map<string, string[] | undefined> = new Map();
 function getClientId(client: Socket, jwt: JwtService): number
 {
   try {
     let auth:any = "";
     let tmp;
-    auth =  client.handshake.auth.token;
+    if (client.handshake.headers.cookie)
+      auth =  client.handshake.headers.cookie.split('=')[1];
+    
     const claims = atob(auth.split('.')[1]);
     tmp = JSON.parse(claims);
     return (tmp.userId);
@@ -51,7 +58,7 @@ class roomModel {
 
 class clientObj {
   id: string;
-  clientId: string;
+  clientId: string[];
 }
 
 class dmModel {
@@ -78,13 +85,13 @@ class msgModel{
   msg:string;
   currentUser:boolean;
 };
-
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({
   namespace: 'chat',
   cors: {
     origin: '*',
   },
+  cookie: true,
 })
 export class ChatGateway {
   @WebSocketServer()
@@ -98,7 +105,10 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
+    
+    
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
+    
     if(test == null)
       this.server.emit('createRoom', { created: false });
     else
@@ -107,7 +117,7 @@ export class ChatGateway {
 
   @SubscribeMessage('updateRoom')
   async  updateRoom(@MessageBody() updateRoomDto: UpdateRoomDto, @ConnectedSocket() client: Socket) {
-    console.log(updateRoomDto);
+    
     
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
@@ -123,17 +133,17 @@ export class ChatGateway {
 
   @SubscribeMessage('addRoleToSomeUser')
   async  addRoleToSomeUser(@MessageBody() addRoleToSomeUserDto: AddRoleToSomeUserDto, @ConnectedSocket() client: Socket) {
-    console.log(addRoleToSomeUserDto);
+    
     
     let clientId:any =  getClientId(client, this.jwtService);
     let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
-    console.log(test);
+    
     
     if(test == 1)
       this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
     else if (test == 2)
     {
-      console.log('here');
+      
       
       this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
     }
@@ -160,29 +170,30 @@ export class ChatGateway {
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "room not found", msgs: null });
     else if (join == 3)
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
+    else if (join > 9)
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "the administrator baned you " + (join / 10) + "H", msgs: null });
     else
     {
       // client.join(joinRoomDto.roomId.toString());
       // roomClients.set(joinRoomDto.roomId.toString(), )
-      
-      
       if (roomClients.get(joinRoomDto.roomId.toString()) === undefined)
-        roomClients.set(joinRoomDto.roomId.toString(), [{"id": clientId, "clientId":client.id}]);
+        roomClients.set(joinRoomDto.roomId.toString(), [clientId]);
       else
       {
-        let arr: clientObj[] | undefined = new Array();
+        let arr: string[] | undefined = new Array();
         arr = roomClients.get(joinRoomDto.roomId.toString());
         if (arr)
         {
 
           let bl = 0;
+         
           arr.forEach(element => {
-            if (element.id == clientId)
+            if (element == clientId)
               bl = 1;
           });
           if (bl == 0)
           {
-            arr?.push({"id": clientId, "clientId":client.id});
+            arr?.push(clientId);
             roomClients.set(joinRoomDto.roomId.toString(), arr);
           }
           
@@ -254,6 +265,10 @@ export class ChatGateway {
       this.server.to(client.id).emit('createMsg', { created: false, error: "room not found!" });
     else if (test == 3)
       this.server.to(client.id).emit('createMsg', { created: false, error: "u didn't join this room!" });
+    else if (test > 9)
+      this.server.to(client.id).emit('createMsg', { created: false, error: "the administrator baned you " + (test / 10) + "H" });
+    else if (test > 109)
+      this.server.to(client.id).emit('createMsg', { created: false, error: "the administrator Muted you " + (test / 100) + "H" });
     else
     {
       client.join(createMsgDto.room.toString());
@@ -285,12 +300,14 @@ export class ChatGateway {
 
             for (let i = 0; i < room.length; i++) {
               const element = room[i];
-              if (clientId == element.id)
+              if (clientId == element)
                 continue;
-              const isbck = await this.chatService.isblock(element.id, clientId);
+              const isbck = await this.chatService.isblock(element, clientId);
               if (isbck)
                 continue;
-              this.server.to(element.clientId).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+              const clientIds: string[] | undefined = usersClient.get(element);
+              if (clientIds)
+                this.server.to( clientIds ).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
             }
             //client.broadcast.to(roomClients.get(roomid)).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
             tmp.currentUser = true;
@@ -394,10 +411,12 @@ export class ChatGateway {
   */
   @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
+    console.log("create new msg " + privateMsgDto.user);
     
     let clientId:any =  getClientId(client, this.jwtService);
     const blockedUsers = await this.chatService.getBlockedUsers(clientId);
     const usr:User | null = await this.chatService.checkUserByUserName(privateMsgDto.user);
+    console.log(usr);
     if (usr && inBlockedList(blockedUsers, usr.id))
       return;
     if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
@@ -416,17 +435,26 @@ export class ChatGateway {
     let date = new Date().toString().split(':');
     newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
     newDmMsg.currentUser = false;
-    if (usersClient.get((privateMsgDto.user).toString()) !== undefined)
+    
+    console.log('check1', (privateMsgDto.user).toString());
+    console.log('check2', usersClient);
+    
+    
+    if (usr)
     {
-      usersClient.get((privateMsgDto.user).toString())?.forEach(element => {
-        this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
-        console.log("here");
-      });
+      console.log("DM03333", usr.userId);
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      
+      if (clientIds)
+        this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
     }
+    
     newDmMsg.currentUser = true;
-    usersClient.get((clientId).toString())?.forEach(element => {
-      this.server.to(element).emit("receiveNewPrivateMsg", newDmMsg);
-    });
+    const clientIds: string[] | undefined = usersClient.get(clientId);
+    console.log("DM1", clientId);
+      if (clientIds)
+        this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
+    
   }
 
 
@@ -461,20 +489,48 @@ async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client
 /**********************************END BLOCK USER************************************/
 
 
-/************************************BAN USER**************************************/
+
+/************************************KICK USER**************************************/
 
 
 
-@SubscribeMessage('Ban')
-async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
-  console.log("here");
+@SubscribeMessage('Kick')
+async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket) {
+
+  
+  
   let clientId:any =  getClientId(client, this.jwtService);
   try {
-    let test = await this.chatService.banUser(ban, clientId);
+    let test = await this.chatService.kickUser(kick, clientId);
     if (!test)
-      this.server.to(client.id).emit('Ban', {isBaned: false});
+    {
+
+      let room = roomClients.get(kick.roomId.toString());
+      if (room)
+      {
+        
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          if (clientIds)
+            this.server.to(clientIds).emit('Kick', {isKicked: false, user: kick.user});
+        }
+      }
+    }
     else
-      this.server.to(client.id).emit('Ban', {isBaned: true});
+    {
+      let room = roomClients.get(kick.roomId.toString());
+      if (room) {
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          if (clientIds)
+            this.server.to(clientIds).emit('Kick', {isKicked: true, user: kick.user});
+        }
+      }
+    }
     
   } catch (error) {
     console.error(error);
@@ -482,8 +538,219 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
   return;
 }
 
+/**********************************END KICK USER************************************/
 
-/**********************************END BLOCK USER************************************/
+
+
+
+/************************************BAN USER**************************************/
+
+
+
+@SubscribeMessage('Ban')
+async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
+
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    let test = await this.chatService.banUser(ban, clientId);
+    if (!test)
+    {
+      let room = roomClients.get(ban.room.toString());
+      // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
+
+      
+      if (room)
+      {
+        
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          if (clientIds)
+            this.server.to(clientIds).emit('Ban', {isBaned: false, user: ban.user});
+        }
+      }
+    }
+    else
+    {
+      let room = roomClients.get(ban.room.toString());
+
+      if (room)
+      {
+        
+
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+          
+          
+          if (clientIds)
+            this.server.to(clientIds).emit('Ban', {isBaned: true, user: ban.user}); 
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+/**********************************END BAN USER************************************/
+
+/************************************MUTE USER**************************************/
+
+
+
+@SubscribeMessage('Mute')
+async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
+  let clientId:any =  getClientId(client, this.jwtService);
+  
+  try {
+   let test = await this.chatService.muteUser(ban, clientId);
+    if (!test)
+    {
+      let room = roomClients.get(ban.room.toString());
+      // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
+
+      if (room)
+      {
+        
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+
+          
+          if (clientIds)
+            this.server.to(clientIds).emit('Mute', {isBaned: false, user: ban.user});
+        }
+      }
+    }
+    else
+    {
+      let room = roomClients.get(ban.room.toString());
+
+      if (room)
+      {
+        
+
+        for (let index = 0; index < room.length; index++) {
+          const element = room[index];
+          const clientIds: string[] | undefined = usersClient.get(element);
+          
+          
+          if (clientIds)
+            this.server.to(clientIds).emit('Mute', {isMuted: true, user: ban.user}); 
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+/**********************************END MUTE USER************************************/
+
+
+
+/************************************INVITE USER**************************************/
+
+
+
+@SubscribeMessage('InviteToGame')
+async inviteUser(@MessageBody() inviteDto:  InviteDto, @ConnectedSocket() client: Socket) {
+  
+  
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    const usr: User | null = await this.chatService.checkUserByUserName(inviteDto.user);
+    const currentUser: User | null = await this.chatService.checkUser(clientId);
+    
+    if (usr && currentUser)
+    {
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      if (clientIds)
+      {
+        let test = await this.chatService.inviteUser(inviteDto, clientId);
+        
+        if (test)
+          this.server.to(clientIds).emit('showPopup', {isInvited: false, user1:currentUser.username, user2: usr.username}); 
+        else
+          this.server.to(clientIds).emit('showPopup', {isInvited: true, user1:currentUser.username, user2: usr.username}); 
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+@SubscribeMessage('inviteAccepted')
+async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() client: Socket) {
+  
+  
+  let clientId:any =  getClientId(client, this.jwtService);
+  try {
+    const usr: User | null = await this.chatService.checkUserByUserName(acceptDto.username);
+    const currentUser: User | null = await this.chatService.checkUser(clientId);
+    if (usr && currentUser)
+    {
+      const clientIds: string[] | undefined = usersClient.get(usr.userId);
+      if (clientIds)
+      {
+        this.server.to(clientIds).emit('inviteAccepted', {isAccepted: true}); 
+      }
+      const clientIds2: string[] | undefined = usersClient.get(currentUser.userId);
+      if (clientIds2)
+      {
+        this.server.to(clientIds2).emit('inviteAccepted', {isAccepted: true}); 
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  return;
+}
+
+/**********************************END INVITE USER************************************/
+
+
+@SubscribeMessage('clientId')
+async clientUsername(@ConnectedSocket() client: Socket) {
+  let clientId:any =  getClientId(client, this.jwtService);
+  const usr: User | null = await this.chatService.checkUser(clientId);
+  if (usr)
+    this.server.to(client.id).emit('clientId', { user: usr.username });
+}
+
+
+@SubscribeMessage('updateMessages')
+async updateMsg(@ConnectedSocket() client: Socket) {
+
+    this.server.to(client.id).emit('updateMessages');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -494,14 +761,16 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
 /*********************************HANDLE CONNECTION**********************************/
 
-
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
+		console.log("CONNECTED AT CHAAAT SERVER");
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
     try {
-      this.server.to(client.id).emit('clientId', { userId: clientId });     
+      const usr: User | null = await this.chatService.checkUser(clientId);
+      if (usr)
+        this.server.to(client.id).emit('clientId', { username: usr.username });     
       let checkUserJoined =  await this.chatService.joinToAllUrRooms(clientId);
       checkUserJoined.forEach(element => {
         client.join(element.rid.toString());
@@ -517,7 +786,26 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
       }
     } catch (error) { console.log(error); }
   }
+
+  async handleDisconnet(@ConnectedSocket() client: Socket){
+   
+
+    let clientId:any =  getClientId(client, this.jwtService);
+    if (!clientId)
+    return;
+    const soct = usersClient.get((clientId).toString());
+    if (soct)
+      for (let i = 0; i < soct.length; i++) {
+        const element = soct[i];
+        if (element == client.id)
+        {
+          soct.splice(i, 1);
+          
+          
+          usersClient.set((clientId).toString(), soct);
+          break;
+        }
+      }
+  }
 }
-
-
 /*********************************HANDLE CONNECTION**********************************/

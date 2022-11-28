@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GameModule } from './game/game.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { ConfModule } from 'src/conf/conf.module';
 import { EnvService } from 'src/conf/env.service';
@@ -35,6 +36,7 @@ import { UsersModule } from 'src/users/users.module';
     UsersModule,
     ProfilesModule,
     ChatModule,
+    GameModule,
   ],
 })
 export class AppModule {}
