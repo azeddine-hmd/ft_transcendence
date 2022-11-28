@@ -374,8 +374,12 @@ export class ChatService {
     
     if (ret && ret.owner.userId == auth)
       role = "owner";
-    const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId, role });
-    try{await this.joinRepository.save(joinuser);}catch(e){}
+    const checkJoin = this.checkJoined(checkuser.id, checkroom.id);
+    if (!checkJoin)
+    {
+      const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId, role });
+      try{await this.joinRepository.save(joinuser);}catch(e){}
+    }
     return (0);
   }
 
