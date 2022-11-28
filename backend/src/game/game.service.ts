@@ -9,6 +9,8 @@ import { Matchs } from './game-queue';
 @Injectable()
 export default class GameService {
   matches: Matchs = [[], []];
+  playr: string | null = null;
+  playr2: string | null = null;
 
   constructor(
     @InjectRepository(GameMatch)

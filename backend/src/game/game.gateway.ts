@@ -14,7 +14,7 @@ var sBall = 2
 const playerHeight = 75
 const playerWith = 10
 const ballHeight = 10
-const final_score = 5
+const final_score = 10
 var count = 0;
 let _game: any =
 	[
@@ -134,6 +134,7 @@ function ballMove(m: any, i: any) {
 		}
 	}
 }
+
 @UseFilters(WsExceptionFilter)
 @WSAuthGuard
 @WebSocketGateway({
@@ -145,12 +146,42 @@ function ballMove(m: any, i: any) {
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;
-	playr: string = "fbouibao";
- 	playr2: string = "murachid";
+	
 	constructor(
 		private readonly gameService: GameService,
 		private readonly usersSocketService: UsersSocketService,
 	) { }
+
+	final(m: any, i: any)
+	{	
+		var winner:any;
+		var winnerScore:any
+		var loser:any;
+		var loserScore:any;
+
+		if(_game[m][i].right.score > _game[m][i].left.score)
+		{	
+			winner = _game[m][i].right.username;
+			winnerScore = _game[m][i].right.score;
+
+			loser = _game[m][i].left.username;
+			loserScore = _game[m][i].left.score;
+ 		}
+		else{
+			winner = _game[m][i].left.username;
+			winnerScore =  _game[m][i].left.score;
+			
+			loser = _game[m][i].right.username;
+			loserScore =  _game[m][i].right.score;
+		}
+		this.gameService.createGameMatch({
+			winner: winner,
+			loser: loser,
+			winnerScore: winnerScore,
+			loserScore: loserScore,
+			mode : m === 1 ? "Hard" : "Easy",
+		})
+	}
 
 	ft = (m: any, i: any) => {
 		ballMove(m, i);
@@ -178,14 +209,16 @@ export class GameGateway {
 		_game[m][i].ball.x += _game[m][i].ball.speed.x * sp;
 		_game[m][i].ball.y += _game[m][i].ball.speed.y * sp;
 
-		if (Number(_game[m][i].right.score) === final_score ||
-			Number(_game[m][i].left.score) === final_score) {
+		if (Number(_game[m][i].right.score) >= final_score ||
+			Number(_game[m][i].left.score) >= final_score) {
 
 			this.server.to([
 				..._game[m][i].left.sockets,
 				..._game[m][i].right.sockets,
 				..._game[m][i].spectators,])
 				.emit('endGame')
+			this.final(m,i)
+			_game[m][i].finished = true;
 			clearInterval(_game[m][i].counter);
 			return;
 		}
@@ -194,51 +227,62 @@ export class GameGateway {
 		_game[m][i].counter = setInterval(this.ft, 1000 * 0.02, m, i);
 	}
 
+	@SubscribeMessage('checkInvite')
+	checkInvite(@ConnectedSocket() client: Socket) {	
+
+		if (client.user.username == this.gameService.playr || client.user.username == this.gameService.playr2) {
+			if (client.user.username == this.gameService.playr)
+				this.gameService.playr = null;
+			else
+				this.gameService.playr2 = null;
+			const queue1 = this.gameService.matches[0];
+			if (client.user.username) {
+				queue1.push({ sockets: [client.id], username: client.user.username });
+			}
+
+			if (queue1.length >= 2) {
+	
+				var i: number = 0;
+				let contender = queue1[0].username;
+				let ind = _game[i].push({
+					left: {
+						...queue1.splice(0, 1)[0], // sockets: [], username: '',
+						score: 0,
+						y: canvas_height / 2 - playerHeight / 2,
+					},
+					finished: false,
+					spectators: [],
+					ball: {
+						speed: {
+							x: sBall,
+							y: sBall,
+						},
+						x: canvas_width / 2,
+						y: canvas_height / 2,
+					},
+					counter: 0,
+				}) - 1;
+				var index = queue1.findIndex(function (obj: any) { return (obj.username === client.user.username) });
+				if (index != -1)
+					_game[i][ind].right = { ...queue1.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
+				this.server.to([
+					..._game[i][ind].left.sockets,
+					..._game[i][ind].right.sockets
+				]).emit('abcd', client.user.username, contender, i, ind);		
+				
+			// console.log("event handlecon ........");
+
+				this.startGame(i, ind);
+			}
+			 
+		}
+	}
+
 	async handleConnection(client: Socket, ...args: any[]) 
 	{
 		try {
 			await this.usersSocketService.authenticate(client);
-			console.log(`client connected on game gateway id=${client.id} "  username =  "${client.user.username}`);
-			if (client.user.username === this.playr || client.user.username == this.playr2) {
-				const queue = this.gameService.matches[0];
-				if (client.user.username) {
-					queue.push({ sockets: [client.id], username: client.user.username });
-				}
-
-				if (queue.length >= 2) {
-					var i: number = 0;
-					let contender = queue[0].username;
-					let ind = _game[i].push({
-						left: {
-							...queue.splice(0, 1)[0], // sockets: [], username: '',
-							score: 0,
-							y: canvas_height / 2 - playerHeight / 2,
-						},
-						finished: false,
-						spectators: [],
-						ball: {
-							speed: {
-								x: sBall,
-								y: sBall,
-							},
-							x: canvas_width / 2,
-							y: canvas_height / 2,
-						},
-						counter: 0,
-					}) - 1;
-					var index = queue.findIndex(function (obj: any) { return (obj.username === client.user.username) });
-					if (index != -1)
-						_game[i][ind].right = { ...queue.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
-					this.server.to([
-						..._game[i][ind].left.sockets,
-						..._game[i][ind].right.sockets
-					]).emit('abcd', client.user.username, contender, i, ind);		
-					// this.playr = "";
-					// this.playr2 = "";
-					this.startGame(i, ind);
-				}
-				 
-			}
+		
 
 		} catch (exception) {
 			handleWsException(client, exception);
@@ -249,18 +293,70 @@ export class GameGateway {
 		if (client.user) {
 			client.emit("ok", client.user.username);
 			console.log(`client disconnected on game gateway id=${client.id}`);
-			if (!client.user.username || !client.handshake.query.mode)
+			if (!client.user.username)
 				return
-			let usern = client.user.username
-			let mode = client.handshake.query.mode;
-			let i: any = mode === 'Easy' ? 0 : 1
-			const queue = this.gameService.matches[i];
-			ind = queue.findIndex((player: PlayerInfo) => {
-				return (player.username === usern)
-			}) // -1, >= 0
-			if (ind !== -1) {
-				if (queue[ind].sockets.indexOf(client.id) !== -1) {
-					queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
+			
+			if (client.handshake.query.mode) {
+				let usern = client.user.username;
+				let mode = client.handshake.query.mode;
+				let i: any = mode === 'Easy' ? 0 : 1
+				const queue = this.gameService.matches[i];
+				ind = queue.findIndex((player: PlayerInfo) => (player.username === usern)) // -1, >= 0
+
+				if (ind !== -1) {
+					if (queue[ind].sockets.indexOf(client.id) !== -1) {
+						queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
+					}
+				}
+			}
+
+			const usrname = client.user.username;
+			let index:any
+
+			console.log('USER FOUND ----- ', usrname)
+			
+			index = _game[0].findIndex( (gm:any, key:any) => {
+				return (gm.finished === false &&
+					(gm.left.username === usrname ||
+					gm.right.username === usrname))
+			})
+			console.log('INDEX FIRST TIME IS', index);
+			
+			if (index !== -1) {
+				console.log('INDEX FIRST TIME FOUND', index);
+				if(usrname === _game[0][index].left.username)
+				{
+					_game[0][index].right.score = final_score;
+					_game[0][index].left.score = 0;
+					console.log('INDEX FIRST RIGHT IS WINNER');
+				}
+				else{
+					console.log('INDEX FIRST LEFT IS WINNER');
+					_game[0][index].left.score = final_score;
+					_game[0][index].right.score = 0;
+				}
+				return ;
+			}
+
+
+			index = _game[1].findIndex( (gm:any, key:any) => {
+				return (gm.finished === false &&
+					(gm.left.username === usrname ||
+					gm.right.username === usrname))
+			})
+			console.log('INDEX SECOND TIME IS', index);
+			if (index !== -1) {
+				console.log('INDEX SECOND TIME FOUND', index);
+				if(usrname === _game[1][index].left.username)
+				{
+					console.log('INDEX SECOND RIGHT IS WINNER');
+					_game[1][index].right.score = final_score;
+					_game[1][index].left.score = 0;
+				}
+				else{
+					console.log('INDEX SECOND LEFT IS WINNER');
+					_game[1][index].left.score = final_score;
+					_game[1][index].right.score = 0;
 				}
 			}
 		}
@@ -281,7 +377,6 @@ export class GameGateway {
 			if (waiting) {
 
 				let ind = queue.findIndex(function (obj: any) { return (obj.username === client.user.username) }) // -1, >= 0
-
 				// not found
 				if (ind === -1)
 					queue.push({ sockets: [client.id], username: client.user.username });
@@ -318,9 +413,7 @@ export class GameGateway {
 				var index = queue.findIndex(function (obj: any) { return (obj.username === client.user.username) });
 				if (index != -1)
 					_game[i][ind].right = { ...queue.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
-
-				console.log(_game);
-
+				
 				this.server.to([
 					..._game[i][ind].left.sockets,
 					..._game[i][ind].right.sockets
@@ -330,18 +423,27 @@ export class GameGateway {
 		}
 	}
 
-	@SubscribeMessage('getResult')
+	@SubscribeMessage('leaveGame')
 	gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');
-		this.gameService.createGameMatch({
-			winner: arr[0],
-			loser: arr[1],
-			winnerScore: Number(arr[2]),
-			loserScore: Number(arr[3]),
-			mode: String(arr[4]),
-		});
-		let mode = (arr[4] === 'Easy') ? 0 : 1;
-		_game[mode][Number(arr[5])].finished = true;
+
+		let mode = (arr[1] === 'Easy') ? 0 : 1;
+		let index = Number(arr[2]);
+		var playerName = arr[0];
+
+		if(playerName === _game[mode][index].left.username)
+		{
+			_game[mode][index].right.score = final_score;
+			_game[mode][index].left.score = 0;
+ 		}
+		else{
+			_game[mode][index].left.score = final_score;
+			_game[mode][index].right.score = 0;
+		}
+
+		console.log("finished ",_game[mode][index].left.score,);
+		console.log("finished ",_game[mode][index].right.score,);
+
 	}
 
 	@SubscribeMessage('getPlayer')
@@ -353,6 +455,7 @@ export class GameGateway {
 			_game[mode][indx].left.y = Number(arr[3])
 		else if (arr[2] === _game[mode][indx].right.username)
 			_game[mode][indx].right.y = Number(arr[3])
+		
 	}
 
 	@SubscribeMessage('live')
@@ -374,7 +477,11 @@ export class GameGateway {
 	clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
 		_game[0] = []
 		_game[1] = []
+
+		console.log('CLEARED');
+		console.log(_game[0], _game[1]);
 	}
+
 	@SubscribeMessage('joingame')
 	joingame(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');

@@ -25,6 +25,7 @@ import { disconnect } from 'process';
 import { KickDto } from './dto/kick.dto';
 import { InviteDto } from './dto/invite.dto';
 import { AcceptDto } from './dto/accept.dto';
+import GameService from 'src/game/game.service';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 let roomClients:Map<string, string[] | undefined> = new Map();
@@ -97,7 +98,9 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly chatService: ChatService, private readonly jwtService: JwtService) {}
+  constructor(private readonly chatService: ChatService, 
+    private readonly jwtService: JwtService,
+    private readonly gameService: GameService) {}
 
 /***********************PUBLIC AND PROTECTED SUBSCRIBE MESSAGE***********************/
 
@@ -700,7 +703,9 @@ async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() cl
       const clientIds: string[] | undefined = usersClient.get(usr.userId);
       if (clientIds)
       {
-        this.server.to(clientIds).emit('inviteAccepted', {isAccepted: true}); 
+        this.server.to(clientIds).emit('inviteAccepted', {isAccepted: true});
+        this.gameService.playr = currentUser.username;
+        this.gameService.playr2 = usr.username;
       }
       const clientIds2: string[] | undefined = usersClient.get(currentUser.userId);
       if (clientIds2)
