@@ -25,6 +25,8 @@ import { disconnect } from 'process';
 import { KickDto } from './dto/kick.dto';
 import { InviteDto } from './dto/invite.dto';
 import { AcceptDto } from './dto/accept.dto';
+import { Rooms } from './entities/rooms.entity';
+import { Join } from './entities/join.entity';
 
 let usersClient:Map<string, string[] | undefined> = new Map();
 let roomClients:Map<string, string[] | undefined> = new Map();
@@ -84,6 +86,7 @@ class msgModel{
   date:string;
   msg:string;
   currentUser:boolean;
+  roleMsg:string;
 };
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({
@@ -140,21 +143,34 @@ export class ChatGateway {
     
     
     if(test == 1)
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "User not found" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { role: "", success: false, error: "User not found" });
     else if (test == 2)
     {
       
       
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} not found` });
+      this.server.to(client.id).emit('addRoleToSomeUser', { role: "", success: false, error: `${addRoleToSomeUserDto.username} not found` });
     }
     else if (test == 3)
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "room not found" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { role: "", success: false, error: "room not found" });
     else if (test == 4)
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: "This room have another owner" });
+      this.server.to(client.id).emit('addRoleToSomeUser', { role: "", success: false, error: "This room have another owner" });
     else if (test == 5)
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
+      this.server.to(client.id).emit('addRoleToSomeUser', { role: "", success: false, error: `${addRoleToSomeUserDto.username} doesn't join this room` });
     else
-      this.server.to(client.id).emit('addRoleToSomeUser', { success: true, error: "" });
+    {
+      const usr:User | null = await this.chatService.checkUserByUserName(addRoleToSomeUserDto.username);
+      if (usr)
+      {
+        const clientIds: string[] | undefined = usersClient.get(usr.userId);
+        const role:Join | null = await this.chatService.checkJoined(usr.id, addRoleToSomeUserDto.roomId);
+        if (role)
+        {
+          if (clientIds)
+            this.server.to(clientIds).emit('addRoleToSomeUser', { role: role.role, success: true, error: "" });
+        }
+      }
+      this.server.to(client.id).emit('addRoleToSomeUser', {  role: "owner", success: true, error: "" });
+    }
   }
 
 
@@ -171,7 +187,10 @@ export class ChatGateway {
     else if (join == 3)
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "password incorrect", msgs: null });
     else if (join > 9)
-      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "the administrator baned you " + (join / 10) + "H", msgs: null });
+    {
+      const limit: string = (join == 10) ? "30 second" : (join / 10).toString() + "H";
+      this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "the administrator baned you " + limit, msgs: null });
+    }
     else
     {
       // client.join(joinRoomDto.roomId.toString());
@@ -216,6 +235,9 @@ export class ChatGateway {
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
             // tmp.userId = msgs[index].user.userId;
+            const role:Join | null = await this.chatService.checkJoined(msgs[index].user.id, joinRoomDto.roomId);
+            
+            tmp.roleMsg = (role) ? role.role: "";
             tmp.msg = msgs[index].msg;
             tmp.date = dateMsg;
             tmp.username = msgs[index].user.username;
