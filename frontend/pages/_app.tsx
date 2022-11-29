@@ -1,6 +1,6 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { ErrorResponse } from "../network/dto/response/error-response.dto";
 import { localService } from "../network/local.service";
@@ -16,11 +16,15 @@ const blacklistPages = [
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const [displayPage, setDisplayPage] = useState<boolean>(false);
 
   useEffect(() => {
     if (!blacklistPages.includes(router.asPath)) {
       // allowed pages
+
       localService.get("/api/auth/verify").then(() => {
+        setDisplayPage(true);
+
         if (!window.statesSocket) {
           window.statesSocket = io(
             process.env.NEXT_PUBLIC_API_BASE_URL + "/states",
@@ -30,22 +34,31 @@ function MyApp({ Component, pageProps }: AppProps) {
             }
           );
         }  
+
       }).catch((err: ErrorResponse) => {
           console.log('error while verifying user credentials redirecting to root page');
           router.push("/");
       });
+
     } else {
       // disallowed pages
+
       if (typeof window.statesSocket !== 'undefined') {
         if (window.statesSocket.connected) {
           window.statesSocket.disconnect();
         }
         window.statesSocket = undefined;
       }
+
+      localService.get("/api/auth/verify").then(() => {
+        router.push("/home");
+      }).catch(() => {
+          setDisplayPage(true);
+      });
     }
   }, [router]);
 
-  return <Component {...pageProps} />;
+  return <>{displayPage ? <Component {...pageProps} /> : <></>}</>;
 }
 
 export default MyApp;
