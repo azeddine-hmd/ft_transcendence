@@ -59,6 +59,18 @@ export class UsersService {
     return user.tfaSecret;
   }
 
+  async getOnline(userId: string): Promise<boolean> {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException('user not found');
+    return user.online;
+  }
+
+  async getStatus(userId: string): Promise<string> {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException('user not found');
+    return user.status;
+  }
+
   /* creation operations */
 
   private async createUser(
@@ -83,7 +95,6 @@ export class UsersService {
     unsavedUser.tfaSecret = tfaSecret;
 
     const profile = await this.profileRepository.save(unsavedProfile);
-    this.usersSocketService.addUser(unsavedUser.userId);
     return profile.user;
   }
 
@@ -137,13 +148,26 @@ export class UsersService {
     await this.userRepository.save(user);
   }
 
+  async setOnline(userId: string, value: boolean) {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException('user not found');
+    user.online = value;
+    await this.userRepository.save(user);
+  }
+
+  async setStatus(userId: string, status: string) {
+    const user = await this.findOneFromUserId(userId);
+    if (!user) throw new NotFoundException('user not found');
+    user.status = status;
+    await this.userRepository.save(user);
+  }
+
   /* delete operation */
 
   async removeByUsername(username: string): Promise<void> {
     Logger.log(`user \`${username}\` is removed from database`);
     const user = await this.findOneFromUsername(username);
     if (user) {
-      this.usersSocketService.removeUser(user.userId);
       await this.userRepository.delete({ username: username });
     }
   }
@@ -152,7 +176,6 @@ export class UsersService {
     Logger.log(`user id \`${id}\` is removed from database`);
     const user = await this.findOneFromUserId(id);
     if (user) {
-      this.usersSocketService.removeUser(user.userId);
       await this.userRepository.delete({ userId: id });
     }
   }

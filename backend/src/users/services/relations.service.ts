@@ -89,9 +89,6 @@ export class RelationsService {
   ): Promise<Pair<{ relation: UserRelation; isBlocked: boolean }, Profile>[]> {
     const current = await this.userRepository.findOneBy({ userId: userId });
     if (!current) throw new InternalServerErrorException();
-    /* Logger.debug( */
-    /*   `RelationService#getFriends: fetching friends ${current.username}(id=${current.id})`, */
-    /* ); */
     const relations = await this.userRelationRepository.find({
       relations: {
         user1: true,
@@ -114,10 +111,11 @@ export class RelationsService {
         } else if (current.userId === relation.user2.userId) {
           friendUserId = relation.user1.userId;
         }
-        if (typeof friendUserId === 'undefined')
+        if (typeof friendUserId === 'undefined') {
           throw new InternalServerErrorException();
+        }
 
-        const profile = await this.profileRepostiroy.findOne({
+        const friendProfile = await this.profileRepostiroy.findOne({
           relations: {
             user: true,
           },
@@ -125,9 +123,12 @@ export class RelationsService {
             user: { userId: friendUserId },
           },
         });
-        if (!profile) throw new InternalServerErrorException();
+        if (!friendProfile) throw new InternalServerErrorException();
 
-        const isBlocked = await this.getBlockRelation(userId, friendUserId);
+        const isBlocked = await this.getBlockRelation(
+          userId,
+          friendProfile.user.username,
+        );
 
         const pair: Pair<
           { relation: UserRelation; isBlocked: boolean },
@@ -137,7 +138,7 @@ export class RelationsService {
             relation: relation,
             isBlocked: isBlocked,
           },
-          second: profile,
+          second: friendProfile,
         };
 
         return pair;
@@ -181,7 +182,6 @@ export class RelationsService {
       other.userId,
       current.username,
     );
-    console.log(`blockrel1=${blockRelation_1} | blockrel2=${blockRelation_2}`);
     if (blockRelation_1 || blockRelation_2)
       throw new BadRequestException(
         `you can't add him as friend if block relation exist`,
