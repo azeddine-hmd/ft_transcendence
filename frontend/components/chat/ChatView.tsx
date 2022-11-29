@@ -15,6 +15,7 @@ interface props {
     msg: string;
     currentUser: boolean;
     userState: string;
+    roleMsg: string;
 }
 
 interface Props {
@@ -37,6 +38,7 @@ export default function ChatView() {
 
     function Layout() {
 
+        socket.emit('clientId');
         const [text, setText] = useState('');
         const [mdata, setmData] = useState(data);
         const [showSetting, setShowSetiig] = useState(false);
@@ -168,7 +170,7 @@ export default function ChatView() {
                             return (
                                 <ChatCard id={messages.username} date={messages.date} 
                                 name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
-                                role={userRole} state={messages.userState} room={roomID} showPop={roomType === 'room'} />
+                                role={userRole} state={messages.userState} room={roomID} showPop={roomType === 'room'} roleMsg={messages.roleMsg} />
                             );
                         }) : null}
                         <div ref={bottom}></div>
@@ -189,9 +191,12 @@ export default function ChatView() {
     // -------------------- Layout --------------------------
     const router = useRouter();
     useEffect(() => {
-        socket.on('addRoleToSomeUser', ({success, error}) => {
+        socket.on('addRoleToSomeUser', ({role, success, error}) => {
             if (success == true)
+            {
+                userRole = role;
                 alert('user added successfuly');
+            }
             else
                 alert('Error: ' + error);
             socket.emit('updateMessages', {});    
@@ -244,6 +249,7 @@ export default function ChatView() {
                     msg: tmp.msg,
                     currentUser: tmp.currentUser,
                     userState: tmp.userState,
+                    roleMsg: tmp.roleMsg,
                 }
                 newData.push(dd);
                 data = newData;
@@ -262,7 +268,8 @@ export default function ChatView() {
                     date: newDmMsg.date,
                     msg: newDmMsg.msg,
                     currentUser: newDmMsg.currentUser,
-                    userState: "none"
+                    userState: "none",
+                    roleMsg: "",
                 }
                 newData.push(dd);
                 data = newData;
