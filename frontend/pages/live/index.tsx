@@ -38,7 +38,6 @@ function live() {
 	buttomSearch[0] = "search";
 	var p1: string;
 	var p2: string;
-	var _mode: Number;
 	var canvas: any;
 	var colorG: string = "white";
 	var playerHeight: number = 75.0;
@@ -144,56 +143,32 @@ function live() {
 	}
 
 	function ft() {
-		//console.log("ft", socket, url);
 		socket.emit("live");
 	}
-	// function ft1() {
-	// 	//console.log("ft1");
-	// 	socket.emit("test");
-	// }
-	// function ft2() {
-	// 	// //////console.log("empty games");
-	// 	socket.emit("clear");
-	// }
-	socket.on("Index",()=>{
 
-	})
 	function join(mode: string, index: number) {
-		if (isWatching) {			
+		if (isWatching) {
 			socket.emit('stopLive', oldMode + " " + oldIndex);
 		}
 		isWatching = true;
 		oldMode = mode;
 		oldIndex = index;
-
-		console.log('joinning', mode, index);
-		// socket.on("abcd", (...args: any) => {
-		// 	var i = Number(args[3]);
-		// 	console.log("---",i);
 		socket.emit('joingame', mode + " " + index)
-		// });
 	}
 	useEffect(() => {
-	socket.on("liveGames", (...args: any) => {
-		//console.log("liveGame");
-		console.log(args[0]);
-		if (args[0]) {
-			let allgames = args[0];
-			
-			
-			setEasyGames(allgames.easy);
-			setHardGames(allgames.hard);
-		}
+		socket.on("liveGames", (...args: any) => {
+			if (args[0]) {
+				let allgames = args[0];
+				setEasyGames(allgames.easy);
+				setHardGames(allgames.hard);
+			}
 		});
 		canvas = document.getElementById('canvas');
 		initilizeGame();
 		socket.on("abcd", (...args: any) => {
-			//console.log('abcd.......');
-		}); 
+		});
 		socket.on("ballPos", (_data: string) => {
 			var array1 = _data.split(' ');
-			//console.log('ballPos.......');
-			//console.log({ array1 });
 			game.ball.x = Number(array1[2]);
 			game.ball.y = Number(array1[3]);
 			game.player1.score = Number(array1[4]);
@@ -221,10 +196,7 @@ function live() {
 					<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
 						<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div>
-							<div ><button onClick={() => ft()}>live</button><br />
-								{/* <button onClick={() => ft1()}>test</button><br /> */}
-								<button onClick={() => ft2()}>clear</button></div>
-
+							<div ><button onClick={() => ft()}>live</button><br /></div>
 							<div className=" background-color: coral  width: 200px overflow-y: scroll">
 								<div id="livegames">
 									{

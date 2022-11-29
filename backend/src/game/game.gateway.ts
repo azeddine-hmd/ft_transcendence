@@ -1,4 +1,4 @@
-import { Logger, UseFilters } from '@nestjs/common';
+import { UseFilters } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WSAuthGuard } from 'src/auth/guards/ws-auth.guard';
@@ -10,12 +10,12 @@ import GameService from './game.service';
 /*-------------------------------------------------------*/
 const canvas_height = 600
 const canvas_width = 600
-var sBall = 1
+var sBall = 3
 const playerHeight = 75
 const playerWith = 10
 const ballHeight = 10
-const final_score = 100
-var count = 0;
+const final_score = 300
+let _gameChat: any = [[],[]];
 let _game: any =
 	[
 		[
@@ -108,7 +108,7 @@ function ballMove(m: any, i: any) {
 			let direction: number = ((_game[m][i].ball.x + _game[m][i].ball.r) < canvas_width / 2) ? 1 : -1;
 			_game[m][i].ball.speed.x = direction * sBall * Math.cos(angleRad);
 			_game[m][i].ball.speed.y = sBall * Math.sin(angleRad);
-			sBall += 0.1;
+			// sBall += 0.1;
 		}
 	}
 	else if (_game[m][i].ball.x < playerWith) {
@@ -126,7 +126,7 @@ function ballMove(m: any, i: any) {
 			let direction: number = ((_game[m][i].ball.x + _game[m][i].ballHeight / 2) < canvas_width / 2) ? -1 : 1;
 			_game[m][i].ball.speed.x = direction * sBall * Math.cos(angleRad);
 			_game[m][i].ball.speed.y = sBall * Math.sin(angleRad);
-			sBall += 0.1;
+			// sBall += 0.1;
 		}
 	}
 }
@@ -179,11 +179,6 @@ export class GameGateway {
 
 	ft = (m: any, i: any) => {
 		ballMove(m, i);
-
-		// if (this.cout <= 1)
-		// //console.log(`ft: m=${m} | i=${i}`);
-		// //console.log("LEFT Y  = ",_game[m][i].left.y );
-		// //console.log("RIGHT Y = ",_game[m][i].right.y);
 		this.server.to([
 			..._game[m][i].left.sockets,
 			..._game[m][i].right.sockets,
@@ -200,10 +195,8 @@ export class GameGateway {
 
 				_game[m][i].left.y + " " +
 				_game[m][i].right.y);
-		// //console.log('AT', m, i)
-
 		if (m === 0)
-			sp = 1.5;
+			sp = 1;
 		else
 			sp = 2;
 		_game[m][i].ball.x += _game[m][i].ball.speed.x * sp;
@@ -219,7 +212,6 @@ export class GameGateway {
 				.emit('endGame')
 			this.final(m, i)
 			_game[m][i].finished = true;
-			//console.log("clear interval call ...............");
 			clearInterval(_game[m][i].counter);
 			return;
 		}
@@ -231,18 +223,25 @@ export class GameGateway {
 	@SubscribeMessage('checkInvite')
 	checkInvite(@ConnectedSocket() client: Socket) {
 
-		if (client.user.username == this.gameService.playr || client.user.username == this.gameService.playr2) {
+		if (client.user.username == this.gameService.playr || client.user.username == this.gameService.playr2) 
+		{
 			if (client.user.username == this.gameService.playr)
 				this.gameService.playr = null;
 			else
 				this.gameService.playr2 = null;
-			const queue1 = this.gameService.matches[0];
+			const queue1 = this.gameService.matchesChat[0];
 			if (client.user.username) {
-				queue1.push({ sockets: [client.id], username: client.user.username });
+				let ind = queue1.findIndex(function (obj: any) { return (obj.username === client.user.username) }) // -1, >= 0
+				// not found
+				if (ind === -1)
+					queue1.push({ sockets: [client.id], username: client.user.username });
+				// found
+				else
+					queue1[ind].sockets.push(client.id)
+				// queue1.push({ sockets: [client.id], username: client.user.username });
 			}
 
 			if (queue1.length >= 2) {
-
 				var i: number = 0;
 				let contender = queue1[0].username;
 				let ind = _game[i].push({
@@ -263,26 +262,26 @@ export class GameGateway {
 					},
 					counter: 0,
 				}) - 1;
-				//console.log('INITIALIZED');
 
 				var index = queue1.findIndex(function (obj: any) { return (obj.username === client.user.username) });
+				
+				
 				if (index != -1)
 					_game[i][ind].right = { ...queue1.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
 				this.server.to([
 					..._game[i][ind].left.sockets,
 					..._game[i][ind].right.sockets
 				]).emit('abcd', client.user.username, contender, i, ind);
-
+				console.log("ind = ", ind);
+				console.log("i = ", i);
 				this.startGame(i, ind);
 			}
-
 		}
 	}
 
 	async handleConnection(client: Socket, ...args: any[]) {
 		try {
 			await this.usersSocketService.authenticate(client);
-
 		} catch (exception) {
 			handleWsException(client, exception);
 		}
@@ -291,7 +290,6 @@ export class GameGateway {
 	handleDisconnect(client: Socket, ...args: any[]) {
 		if (client.user) {
 			client.emit("ok", client.user.username);
-			//console.log(`client disconnected on game gateway id=${client.id}`);
 			if (!client.user.username)
 				return
 
@@ -301,7 +299,6 @@ export class GameGateway {
 				let i: any = mode === 'Easy' ? 0 : 1
 				const queue = this.gameService.matches[i];
 				ind = queue.findIndex((player: PlayerInfo) => (player.username === usern)) // -1, >= 0
-
 				if (ind !== -1) {
 					if (queue[ind].sockets.indexOf(client.id) !== -1) {
 						queue[ind].sockets.splice(queue[ind].sockets.indexOf(client.id));
@@ -311,8 +308,6 @@ export class GameGateway {
 
 			const usrname = client.user.username;
 			let index: any
-
-			//console.log('USER FOUND ----- ', usrname)
 
 			index = _game[0].findIndex((gm: any, key: any) => {
 				return (gm.finished === false &&
@@ -338,16 +333,12 @@ export class GameGateway {
 					(gm.left.username === usrname ||
 						gm.right.username === usrname))
 			})
-			//console.log('INDEX SECOND TIME IS', index);
 			if (index !== -1) {
-				//console.log('INDEX SECOND TIME FOUND', index);
 				if (usrname === _game[1][index].left.username) {
-					//console.log('INDEX SECOND RIGHT IS WINNER');
 					_game[1][index].right.score = final_score;
 					_game[1][index].left.score = 0;
 				}
 				else {
-					//console.log('INDEX SECOND LEFT IS WINNER');
 					_game[1][index].left.score = final_score;
 					_game[1][index].right.score = 0;
 				}
@@ -403,8 +394,6 @@ export class GameGateway {
 					},
 					counter: 0,
 				}) - 1;
-				//console.log('INITIALIZED');
-				
 				var index = queue.findIndex(function (obj: any) { return (obj.username === client.user.username) });
 				if (index != -1)
 					_game[i][ind].right = { ...queue.splice(index, 1)[0], score: 0, y: canvas_height / 2 - playerHeight / 2, };
@@ -412,9 +401,6 @@ export class GameGateway {
 					..._game[i][ind].left.sockets,
 					..._game[i][ind].right.sockets
 				]).emit('abcd', client.user.username, contender, i, ind);
-
-				//console.log(`STARTING MODE ${i} INDEX ${ind}`);
-	
 				this.startGame(i, ind);
 			}
 		}
@@ -439,13 +425,8 @@ export class GameGateway {
 			_game[mode][index].left.score = final_score;
 			_game[mode][index].right.score = 0;
 		}
-		this.cout = 0;
-		//console.log("finished ", _game[mode][index].left.score,);
-		//console.log("finished ", _game[mode][index].right.score,);
-
 	}
 
-	cout: number = 0;
 	@SubscribeMessage('getPlayer')
 	getPlayer(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');
@@ -455,53 +436,30 @@ export class GameGateway {
 		if (!_game || !_game[mode] || !_game[mode][indx])
 			return;
 
-		// this.cout++;
-		// if (this.cout <= 1)
-		// 	//console.log(`getPlayer: m=${mode} | i=${indx}`);
 		if (_game[mode][indx].left.username === arr[2]) {
-			// //console.log('LEFT', _game[mode][indx].left.y, 'MOVED TO ', Number(arr[3]), mode, indx)
 			_game[mode][indx].left.y = Number(arr[3])
-			// //console.log('DID IT', _game[mode][indx].left.y === Number(arr[3]))
 		}
 		else if (arr[2] === _game[mode][indx].right.username) {
-			// //console.log('RIGHT', _game[mode][indx].right.y, 'MOVED TO ', Number(arr[3]), mode, indx)
 			_game[mode][indx].right.y = Number(arr[3])
-			// //console.log('DID IT', _game[mode][indx].right.y === Number(arr[3]))
 		}
-		//console.log('PLAYER MOVED', _data)
 	}
  
 	@SubscribeMessage('live')
 	live(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-		// console.log('ALL GAMES', _game[0]);
-		// console.log('ALL GAMES', _game[1]);
-
 		let not_finished_easy = _game[0].map((gm:any) => {
 			if (gm.finished === false) return {left: gm.left, right: gm.right, ball: gm.ball,}
 		})
-
 		let not_finished_hard = _game[1].map((gm:any) => {
 			if (gm.finished === false) return {left: gm.left, right: gm.right, ball: gm.ball,}
 		})
-
 		this.server.to(client.id).emit('liveGames', { easy: not_finished_easy, hard: not_finished_hard });
 	}
-
-	// @SubscribeMessage('clear')
-	// clear(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
-	// 	_game[0] = []
-	// 	_game[1] = []
-	// 	//console.log('CLEARED');
-	// 	//console.log(_game[0], _game[1]);
-	// }
 
 	@SubscribeMessage('joingame')
 	joingame(@ConnectedSocket() client: Socket, @MessageBody() _data: string) {
 		const arr = _data.split(' ');
 		let mode = arr[0] === 'Easy' ? 0 : 1
 		let indx = Number(arr[1]);
-		console.log(`INDEX1=${indx} mode=${mode}`);
-
 		_game[mode][indx].spectators.push(client.id);
 		this.server.to(client.id).emit('abcd', _game[mode][indx].left.username, _game[mode][indx].right.username, mode, indx)
 	}
@@ -511,13 +469,8 @@ export class GameGateway {
 		const arr = _data.split(' ');
 		let mode = arr[0] === 'Easy' ? 0 : 1
 		let indx = Number(arr[1]);
-		console.log(`INDEX2=${indx} mode=${mode}`);
-
-		console.log(_game[mode][indx].spectators);
 		const clientIdIndx = _game[mode][indx].spectators.indexOf(client.id);
 		_game[mode][indx].spectators.splice(clientIdIndx, 1);
-		console.log(_game[mode][indx].spectators);
-		// this.server.to(client.id).emit('abcd', _game[mode][indx].left.username, _game[mode][indx].right.username, mode, indx)
 	}
 
 	@SubscribeMessage('quit')
