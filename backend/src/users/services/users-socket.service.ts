@@ -10,19 +10,20 @@ import { parse } from 'cookie';
 import { Socket } from 'socket.io';
 import { AuthService } from '../../auth/auth.service';
 import { UserJwtPayload } from '../../auth/types/user-jwt-payload';
-import { UserStates } from '../../auth/types/user-states';
 import { FriendsStates } from '../dto/types/friends-states';
 import { RelationsService } from './relations.service';
-import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class UsersSocketService {
-  usersState = new Map<string, UserStates>();
+  usersClients = new Map<string, string[]>();
 
   constructor(
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly relationsService: RelationsService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   async authenticate(client: Socket): Promise<UserJwtPayload> {
@@ -36,68 +37,46 @@ export class UsersSocketService {
     return jwtPayload;
   }
 
-  addUser(userId: string) {
-    this.usersState.set(userId, new UserStates());
-    Logger.log(`User(userId=${userId}) added to UserStatus List`);
+  async addClient(clientId: string, userId: string) {
+    const clients = this.usersClients.get(userId);
+    if (!clients) this.usersClients.set(userId, [clientId]);
+    Logger.log(`user userId=${userId} goes online!`);
+    this.usersService.setOnline(userId, true);
   }
 
-  removeUser(userId: string) {
-    this.usersState.delete(userId);
-    Logger.log(`User(userId=${userId}) removed from UserStatus List`);
-  }
+  async removeClient(userId: string, clientId: string) {
+    const clients = this.usersClients.get(userId);
+    if (!clients)
+      throw new InternalServerErrorException(
+        `illegal state: user clients list doens't exist`,
+      );
 
-  addClient(clientId: string, userId: string) {
-    let userStates = this.usersState.get(userId);
+    console.log(`client before: ${JSON.stringify(clients)}`);
+    const clientIndex = clients.indexOf(clientId);
+    clients.splice(clientIndex, 1);
+    console.log(`client after: ${JSON.stringify(clients)}`);
 
-    //DEBUG
-    if (!userStates) {
-      this.usersState.set(userId, new UserStates());
-      userStates = this.usersState.get(userId);
-    }
-
-    if (!userStates) throw new WsException('user not found!');
-    userStates.clients.add(clientId);
-    userStates.online = true;
-  }
-
-  removeClient(userId: string, clientId: string) {
-    const userStates = this.usersState.get(userId);
-    if (!userStates)
-      throw new InternalServerErrorException(`user state doesn't exist`);
-    userStates.clients.delete(clientId);
-    if (userStates.clients.size === 0) {
-      userStates.online = false;
+    if (clients.length === 0) {
+      Logger.log(`user userId=${userId} goes offline!`);
+      await this.usersService.setOnline(userId, false);
     }
   }
 
-  getUserId(clientId: string): string | null {
-    this.usersState.forEach((userStates: UserStates, userId: string) => {
-      if (userStates.clients.has(clientId)) {
-        return userId;
-      }
-    });
-
-    return null;
-  }
-
-  setStates(userId: string, status: string) {
-    const userStates = this.usersState.get(userId);
-    if (!userStates) return;
-    userStates.status = status;
+  async setStates(userId: string, status: string) {
+    await this.usersService.setStatus(userId, status);
   }
 
   async getFriendsStates(userId: string): Promise<FriendsStates[]> {
     const friends = await this.relationsService.getAllFriendsRelations(userId);
+
     return friends.map((pair) => {
       const { second: profile } = pair;
-      const userState = this.usersState.get(userId);
-      if (!userState) throw new WsException('user states not found');
+
       return {
-        profile: profileToProfileResponse(profile),
-        states: {
-          online: userState.online,
-          status: userState.status,
-        },
+        username: profile.user.username,
+        displayName: profile.displayName,
+        online: profile.user.online,
+        status: profile.user.status,
       };
     });
   }

@@ -52,6 +52,16 @@ export class User {
   @Column()
   tfaSecret: string;
 
+  @Column({
+    default: false,
+  })
+  online: boolean;
+
+  @Column({
+    default: '',
+  })
+  status: string;
+
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 

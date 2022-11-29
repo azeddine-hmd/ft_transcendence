@@ -182,7 +182,6 @@ export class RelationsService {
       other.userId,
       current.username,
     );
-    console.log(`blockrel1=${blockRelation_1} | blockrel2=${blockRelation_2}`);
     if (blockRelation_1 || blockRelation_2)
       throw new BadRequestException(
         `you can't add him as friend if block relation exist`,
