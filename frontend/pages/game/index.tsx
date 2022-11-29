@@ -30,22 +30,23 @@ interface GameOption {
 	}
 }
 // let url = "";
-// if (process.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
+// if (proess.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
 // 	url = "http://localhost";
 // else
 // 	url = "http://".concat(process.env.REACT_APP_IP);
 let url = "http://localhost:8080";
 
-let socket = io(url + '/game', {
+const socket = io(url + '/game', {
 	withCredentials: true,
 	transports: ['websocket'],
 });
+let gameIndex = 0;
+let px:number;
+let py:number;
 export { socket };
 
 function Game() {
-	/*--------------------------------------------------*/
 	var _mode: number;
-	var a: any;
 	let counter: any;
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
@@ -58,7 +59,7 @@ function Game() {
 	var canvas: any;
 	var colorG: string = "white";
 	var game: GameOption;
-	var playerHeight: number = 75.0;
+	var playerHeight: number = 75;
 	var playerWith: number = 10;
 	var ballHeight: number = 10;
 	var sBall: number = 2;
@@ -69,52 +70,57 @@ function Game() {
 	const [isWinerLoser, setLoserWiner] = React.useState("");
 	const [pone, setName] = React.useState("");
 	const [ptwo, setName1] = React.useState("");
-	const [isstop, stop] = React.useState(false);
 	const [scr1, setscr1] = React.useState(0);
 	const [scr2, setscr2] = React.useState(0);
 	const router = useRouter()
-	/*-------------------------------------------------------*/
 
 	const Refreche = (e: any) => {
-		getResult();
-		setscr1(Number(game.player1.score));
-		setscr2(Number(game.player2.score));
-		clearInterval(counter);
-		e.preventDefault();
-		socket.emit('quit', mode + " " + a)
+		socket.emit("leaveGame", playerName + " " + mode + " " + gameIndex)
+		socket.off("ballPos");
+		e.preventDefault()
 		router.push('/startGame')
 	}
 	useEffect(() => {
+		socket.connect();
 		canvas = document.getElementById('canvas');
 		initilizeGame();
-		drawGame();
 		socket.on("abcd", (...args: any) => {
+			addEventListener('mousemove', playerMove);
 			set(false);
 			p1 = args[0];
 			p2 = args[1];
 			_mode = args[2];
-			addEventListener('mousemove', playerMove);
 			setName(p1);
 			setName1(p2);
-			a = args[3];
+			gameIndex = (Number(args[3]));
 			if (p1 != contender && p1 == playerName)
 				contender = p2;
 			else if (p2 != contender && p2 == playerName)
 				contender = p1;
+			socket.on("ballPos", (_data: string) => {
+				array1 = _data.split(' ');
+				game.ball.x = Number(array1[2]);
+				game.ball.y = Number(array1[3]);
+				game.player1.score = Number(array1[4]);
+				game.player2.score = Number(array1[5]);
+				game.player1.y = Number(array1[6]);
+				game.player2.y = Number(array1[7]);
+				// console.log("event : ",game.player1.y);
+				// console.log("event : ",game.player2.y);
+				drawGame();
+			});
 		});
-		socket.on("ballPos", (_data: string) => {
-			array1 = _data.split(' ');
-			game.ball.x = Number(array1[2]);
-			game.ball.y = Number(array1[3]);
-			game.player1.score = Number(array1[4]);
-			game.player2.score = Number(array1[5]);
-			game.player1.y = Number(array1[6]);
-			game.player2.y = Number(array1[7]);
-			drawGame();
-		});
+		socket.emit('checkInvite');
 		socket.on("endGame", (_data: string) => {
-			getResult()
+			socket.off("ballPos");
+			getResult();
+			removeEventListener("mousemove", playerMove);
 		})
+		return () => {
+			socket.off('ballPos')
+			socket.disconnect()
+			removeEventListener("mousemove", playerMove);
+		}
 	}, [])
 
 	function _search() {
@@ -164,6 +170,7 @@ function Game() {
 	}
 
 	function drawPaddle() {
+
 		var context = canvas.getContext('2d');
 		context.fillStyle = 'black';
 		context.fillRect(0, 0, canvas.width, canvas.height);
@@ -207,22 +214,23 @@ function Game() {
 	}
 
 	function playerMove(event: any) {
-		console.log(_mode);
 		var gamePos = canvas.getBoundingClientRect();
-		var mousePos = event.clientY - gamePos.y - playerHeight / 2;
-
-		if (playerName === p1) {
+		var mousePos = event.clientY - gamePos.y;
+		if (playerName === p1) 
+		{
 			game.player1.y = mousePos - playerHeight / 2;
 			if (mousePos < playerHeight / 2)
 				game.player1.y = 0;
-			else if (mousePos > canvas.height - playerHeight / 2)
+			else if (mousePos > canvas.height)
 				game.player1.y = canvas.height - playerHeight;
 			else
 				game.player1.y = mousePos - playerHeight / 2;
-			if (playerName && contender && game.player1.y)
-				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player1.y);
+			if (playerName && game.player1.y != null) {
+				socket.emit('getPlayer', _mode + " " + gameIndex + " " + p1 + " " + Number(game.player1.y));
+			}
 		}
-		else if (playerName === p2) {
+		else if (playerName === p2) 
+		{
 			game.player2.y = mousePos - playerHeight / 2;
 			if (mousePos < playerHeight / 2)
 				game.player2.y = 0;
@@ -230,10 +238,51 @@ function Game() {
 				game.player2.y = canvas.height - playerHeight;
 			else
 				game.player2.y = mousePos - playerHeight / 2;
-			if (playerName && contender && game.player1.y)
-				socket.emit('getPlayer', _mode + " " + a + " " + playerName + " " + game.player2.y);
+			if (playerName && game.player1.y != null) {
+				socket.emit('getPlayer', _mode + " " + gameIndex + " " + p2 + " " + Number(game.player2.y));
+			}
 		}
 	}
+
+
+
+	// function playerMove(event: any) {
+
+	// 	var code = event.keyCode;
+	// 	// up : 38
+	// 	// down : 40
+
+
+	// 	if (code !== 38 && code !== 40)
+	// 		return
+	// 	if (playerName === p1) {
+	// 		console.log("befor ", px);
+	// 		px = code === 38 ? game.player1.y - 10 : game.player1.y + 10
+	// 		console.log("after", px);
+	// 		if (px < 0)
+	// 			px = 0;
+	// 		else if (px > canvas.height - playerHeight)
+	// 			px = canvas.height - playerHeight;
+	// 		if (playerName && px != null) {
+				
+	// 			socket.emit('getPlayer', _mode + " " + gameIndex + " " + p1 + " " + Number(px));
+	// 		}
+	// 	}
+	// 	else if (playerName === p2) 
+	// 	{
+	// 		console.log("befor", py);
+	// 		py = code === 38 ? game.player2.y - 10 : game.player2.y + 10
+	// 		console.log("after", py);
+	// 		if (py < 0)
+	// 			py = 0;
+	// 		else if (py > canvas.height - playerHeight)
+	// 			py = canvas.height - playerHeight;
+	// 		if (playerName && py != null) {
+	// 			console.log(py);
+	// 			socket.emit('getPlayer', _mode + " " + gameIndex + " " + p2 + " " + Number(py));
+	// 		}
+	// 	}
+	// }
 
 	function getResult() {
 		if (Number(game.player1.score) > Number(game.player2.score)) {
@@ -248,7 +297,7 @@ function Game() {
 			else
 				setLoserWiner("loser");
 			setscr1(game.player1.score)
-			setscr1(game.player2.score)
+			setscr2(game.player2.score)
 		}
 		game.ball.speed.x = 0;
 		game.ball.speed.y = 0;
@@ -256,6 +305,7 @@ function Game() {
 		game.ball.y = canvas.height / 2 - ballHeight / 2;
 		game.player1.y = canvas.height / 2 - playerHeight / 2;
 		game.player2.y = canvas.height / 2 - playerHeight / 2;
+		set(true);
 	}
 
 	Apis.CurrentProfile({
@@ -263,9 +313,10 @@ function Game() {
 			setUser(userResponse.username);
 			playerName = userResponse.username;
 			setUsername(userResponse.username);
-			canvas = document.getElementById('canvas');
+			canvas = document.getElementById('canvas');	
 			initilizeGame();
 			drawGame();
+			
 		},
 		onFailure: (err: ErrorResponse) => {
 			// callAlert();
@@ -284,7 +335,6 @@ function Game() {
 					</div>
 					<div className="contentss w-full   flex-col ">
 						<Useravatar avata={"/profile/Avatar.png"} userid={username} />
-
 						<div className="resultplayers   w-[100%]  flex justify-center ">
 							<div className="justcenter flex justify-between items-center rounded-[20px] w-[80%] h-[110px] px-7 bg-[#49367c] my-5 bg-opacity-90">
 								<div className="player1 flex items-center justify-between w-[50%] ">
@@ -317,7 +367,6 @@ function Game() {
 							<div className={`flex w-[100%] justify-center items-center xl:mr-[368px]`}>
 								<div className={`popcenter flex sm:h-[24%] h-[300px] ${style.prompt}`}>
 									<div className='w-full flex justify-center'>How would you like to play?</div>
-
 									<div className={style.difficulty}>
 										<span><input id="hard" type="radio" name="difficulty" value="Hard" onChange={e => chanScopeSet(e.target.value)} />
 											<label htmlFor="hard">Hard</label></span>
@@ -328,12 +377,11 @@ function Game() {
 									<div className={style.start}>
 										<button type="button" id="search" className={style.button1} onClick={() => _search()}>{buttomSearch[0]}</button>
 									</div>
-
 								</div>
 							</div>
 						</div> : ""}
 
-						<div className={style.start}> <button id="restart" onClick={Refreche}>Restart</button> </div>
+						<div className={style.start}> <button id="restart" onClick={Refreche}>Retry</button> </div>
 					</div>
 				</div>
 			</div>

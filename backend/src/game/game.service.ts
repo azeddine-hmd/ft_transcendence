@@ -5,10 +5,14 @@ import { UsersService } from 'src/users/services/users.service';
 import { Repository } from 'typeorm';
 import { GameMatch} from './game-match.entity';
 import { Matchs } from './game-queue';
+import { MatchsChat } from './game-queue';
 
 @Injectable()
 export default class GameService {
   matches: Matchs = [[], []];
+  matchesChat: MatchsChat = [[], []];
+  playr: string | null = null;
+  playr2: string | null = null;
 
   constructor(
     @InjectRepository(GameMatch)

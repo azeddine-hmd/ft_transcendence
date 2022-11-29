@@ -3,6 +3,7 @@ import Useravatar from '../../components/profile/Useravatar'
 import React, { useEffect, useState } from "react";
 import io, { Socket } from 'socket.io-client';
 import style from '../../styles/game/gameStyle.module.css'
+import { useRouter } from 'next/router';
 
 interface GameOption {
 	player1: {
@@ -28,6 +29,10 @@ let url = "http://" + "localhost" + ":8080";
 socket = io(url + "/game", { transports: ['websocket'] });
 export { socket };
 
+var isWatching: boolean = false;
+var oldMode: string = "";
+var oldIndex: number = -1;
+
 function live() {
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
@@ -44,6 +49,7 @@ function live() {
 
 	const [easyGames, setEasyGames] = useState<[]>([]);
 	const [hardGames, setHardGames] = useState<[]>([]);
+	const router = useRouter()
 
 
 	function colorRect(leftX: number, topY: number, width: number, height: number, drawColor: string) {
@@ -135,72 +141,47 @@ function live() {
 			}
 		}
 	}
-	function ft() {
-		console.log("ft", socket, url);
-		socket.emit("live", {});
-	}
-	function ft1() {
-		// console.log("ft1");
-		socket.emit("test");
-	}
-	function ft2() {
-		// console.log("empty games");
-		socket.emit("clear");
-	}
-	function join(mode: string, index: number) {
-		// join game
-		// console.log('joinning', mode, index);
 
+	function ft() {
+		socket.emit("live");
+	}
+
+	function join(mode: string, index: number) {
+		if (isWatching) {
+			socket.emit('stopLive', oldMode + " " + oldIndex);
+		}
+		isWatching = true;
+		oldMode = mode;
+		oldIndex = index;
 		socket.emit('joingame', mode + " " + index)
 	}
-
-	socket.on("live", (...args: any) => {
-		console.log("hello from live...................................................");
-		console.log(args[0]);
-		if (args[0]) {
-			let allgames = args[0];
-			setEasyGames(allgames.easy);
-			setHardGames(allgames.hard);
-		}
-	});
-
-	socket.on("ballPos", (_data: string) => {
-		// console.log('TRIGGERED', { _data });
-		canvas = document.getElementById('canvas');
-		let array1 = _data.split(' ');
-		p1 = array1[0];
-		p2 = array1[1];
-		game.ball.x = Number(array1[2]);
-		game.ball.y = Number(array1[3]);
-		game.player1.score = Number(array1[4]);
-		game.player2.score = Number(array1[5]);
-		if (array1[8] == p2)
-			game.player2.y = Number(array1[9]);
-		else if (array1[8] == p1)
-			game.player1.y = Number(array1[9]);
-
-		// console.log(game);
-		drawGame();
-
-	});
-
-	// socket.on("getPlayer", (_data: string) => {
-	// 	console.log("getPlayer");
-
-	// 	let array0 = _data.split(' ');
-
-	// 	if (array0[0] == p2)
-	// 		game.player2.y = Number(array0[1]);
-	// 	else if (array0[0] == p1)
-	// 		game.player1.y = Number(array0[1]);
-
-	// 	// game.player1.y = Number(array0[0]);
-	// 	// game.player2.y = Number(array0[1]);
-	// });
-
 	useEffect(() => {
+		socket.on("liveGames", (...args: any) => {
+			if (args[0]) {
+				let allgames = args[0];
+				setEasyGames(allgames.easy);
+				setHardGames(allgames.hard);
+			}
+		});
 		canvas = document.getElementById('canvas');
 		initilizeGame();
+		socket.on("abcd", (...args: any) => {
+		});
+		socket.on("ballPos", (_data: string) => {
+			var array1 = _data.split(' ');
+			game.ball.x = Number(array1[2]);
+			game.ball.y = Number(array1[3]);
+			game.player1.score = Number(array1[4]);
+			game.player2.score = Number(array1[5]);
+			game.player1.y = Number(array1[6]);
+			game.player2.y = Number(array1[7]);
+			drawGame();
+		}); socket.on("endGame", (_data: string) => {
+			socket.off("ballPos");
+			setTimeout(() => {
+				router.reload();
+			}, 2000);
+		})
 		drawGame();
 	}, [])
 
@@ -215,10 +196,7 @@ function live() {
 					<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
 						<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div>
-							<div ><button onClick={() => ft()}>live</button><br />
-								{/* <button onClick={() => ft1()}>test</button><br /> */}
-								<button onClick={() => ft2()}>clear</button></div>
-
+							<div ><button onClick={() => ft()}>live</button><br /></div>
 							<div className=" background-color: coral  width: 200px overflow-y: scroll">
 								<div id="livegames">
 									{
