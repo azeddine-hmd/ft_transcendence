@@ -41,7 +41,13 @@ export class UsersSocketService {
     const clients = this.usersClients.get(userId);
     if (!clients) this.usersClients.set(userId, [clientId]);
     Logger.log(`user userId=${userId} goes online!`);
-    this.usersService.setOnline(userId, true);
+    try {
+      this.usersService.setOnline(userId, true);
+    } catch (exception) {
+      console.log(`catching exception:`);
+      console.log(exception);
+      throw exception;
+    }
   }
 
   async removeClient(userId: string, clientId: string) {
