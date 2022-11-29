@@ -5,6 +5,7 @@
         "date" : "",
         "msg" : "",
         "currentUser" : false,
-        "userState" : "none"
+        "userState" : "none",
+        "roleMsg" : ""
     }
 ]

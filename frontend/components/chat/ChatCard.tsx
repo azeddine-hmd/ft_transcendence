@@ -23,16 +23,18 @@ interface props {
     state: string;
     room: number;
     showPop: boolean;
+    roleMsg: string;
 }
 
 
 
-export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room, showPop }: props) {
+export default function ChatCard({ name, message, date, avatar, currentUser, role, state, room, showPop, roleMsg }: props) {
 
     const [isMuteMenu, setMuteMenu] = useState(false);
     const [isBanMenu, setBanMenu] = useState(false);
     const [isKickMenu, setKickMenu] = useState(false);
     const [isInviteMenu, setInviteMenu] = useState(false);
+    const [u, update] = useState('');
 
     interface props {
         role:string;
@@ -71,6 +73,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                   if (isAccepted)
                       Router.push('/game');
               })
+
 
               return () => {
                 socket.off('blockUser');
@@ -144,13 +147,13 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
                     {({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Invite to game'); }} > Invite to game </a> )}
                   </Menu.Item>
                   <Menu.Item>
-                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Mute'); }} > Mute </a> ) : <></>}
+                    {(role !== 'member' && roleMsg !== 'owner' && roleMsg !== 'admin')  || role === 'owner' ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Mute'); }} > Mute </a> ) : <></>}
                   </Menu.Item>
                   <Menu.Item>
-                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Ban'); }} > Ban </a> ) : <></>}
+                    {(role !== 'member' && roleMsg !== 'owner' && roleMsg !== 'admin')  || role === 'owner' ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Ban'); }} > Ban </a> ) : <></>}
                   </Menu.Item>
                   <Menu.Item>
-                    {(role !== 'member') ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Kick'); }} > Kick </a> ) : <></>}
+                    {(role !== 'member' && roleMsg !== 'owner' && roleMsg !== 'admin')  || role === 'owner' ? ({ active }) => ( <a className={classNames( active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm' )} onClick={() => { handleItemClick('Kick'); }} > Kick </a> ) : <></>}
                   </Menu.Item>
                   
                 </div>
@@ -169,7 +172,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
                 <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Ban for : </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>30sec</button>
                     <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
                     <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
@@ -215,7 +218,7 @@ export default function ChatCard({ name, message, date, avatar, currentUser, rol
             <div  className={style.chatcard} style={{"margin": "0px 0px 10px 0px", "padding":"5px"}}>
                 <p style={{"fontSize":"14px", "marginLeft":"8px"}}>Mute for: </p>
                 <div style={{"display": "flex" }}>
-                    <button id={style.messageBarSendBtn} onClick={T1}>1H</button>
+                    <button id={style.messageBarSendBtn} onClick={T1}>30sec</button>
                     <button id={style.messageBarSendBtn} onClick={T2}>3H</button>
                     <button id={style.messageBarSendBtn} onClick={T3}>10H</button>
                     <button id={style.messageBarSendBtn} onClick={Cancel}>Cancel</button>
