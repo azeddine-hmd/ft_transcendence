@@ -50,9 +50,7 @@ export default function Profile() {
                 }
             }
         )
-    }, [])
 
-    useEffect(() => {
         Apis.getFriends({
             onSuccess: (friends: FriendsResponse[]) => {
                 console.log(friends);
@@ -60,24 +58,28 @@ export default function Profile() {
             },
             onFailure: (error: ErrorResponse) => {},
         });
+
+        let task: NodeJS.Timer | null = null;
+
+        setTimeout(() => {
+            window?.statesSocket?.on("FriendsStates", (data) => {
+                // TODO: set online/offline/status and bind it to profile
+                console.log(`received data: ${JSON.stringify(data)}`);
+            });
+
+            task = setInterval(() => {
+                window.statesSocket!.emit("FriendsStates");
+            }, 2000);
+
+        }, 500);
+
+        return () => {
+            if (task)
+                clearInterval(task);
+        };
+
     }, []);
 
-    if (typeof window !== "undefined") {
-        if (window.statesSocket && window.statesSocket.connected) {
-
-            window.statesSocket.on("FriendsStates", (data) => {
-                // TODO: set online/offline/status and bind it to profile
-            });
-
-            const task = setInterval(() => {
-                window.statesSocket!.emit("FriendsStates");
-            }, 5000);
-
-            Router.events.on("beforeHistoryChange", (path) => {
-                clearInterval(task);
-            });
-        }
-    }
     
     const RecentGame = [
         {
