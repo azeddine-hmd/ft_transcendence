@@ -358,12 +358,11 @@ export class ChatService {
     let checkroom = await this.checkRoom(joinRoomDto.roomId);
     if (checkroom == null)
       return 2;
-    if (joinRoomDto.privacy)
-    {
-      let checkroomPass = await this.checkProtectedRoomPassword(joinRoomDto);
-      if (checkroomPass == null)
-        return 3;
-    }
+
+    let checkroomPass = await this.checkProtectedRoomPassword(joinRoomDto);
+    if (checkroomPass == null)
+      return 3;
+
     let checkBan = await this.checkRoomBan(auth , joinRoomDto.roomId);
     if (checkBan)
       return checkBan.limit_time * 10;

@@ -177,8 +177,6 @@ export class ChatGateway {
   @SubscribeMessage('joinRoom')
   async  joinRoom(@MessageBody() joinRoomDto: JoinRoomDto, @ConnectedSocket() client: Socket)
   {
-    console.log(joinRoomDto);
-    
     let messages:msgModel[] = [];
     let clientId:any =  getClientId(client, this.jwtService);
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
