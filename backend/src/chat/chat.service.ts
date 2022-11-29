@@ -148,8 +148,8 @@ export class ChatService {
     {
       var currentDate = new Date();
       const banTime: number = checkBanroom.time.getTime();
-
-      const unbanTime: number = banTime + 30000;//checkBanroom.limit_time *  * 60 * 60 * 1000;
+      let limit_time: number = (checkBanroom.limit_time == 1) ? 30000 : checkBanroom.limit_time * 60 * 60 * 1000;
+      const unbanTime: number = banTime + limit_time;
       if (unbanTime < currentDate.getTime())
       {
         await this.banRepository.createQueryBuilder('ban')
@@ -177,8 +177,8 @@ export class ChatService {
     {
       var currentDate = new Date();
       const banTime: number = checkMuteroom.time.getTime();
-
-      const unbanTime: number = banTime + 30000;//checkMuteroom.limit_time *  * 60 * 60 * 1000;
+      let limit_time: number = (checkMuteroom.limit_time == 1) ? 30000 : checkMuteroom.limit_time * 60 * 60 * 1000;
+      const unbanTime: number = banTime + limit_time;
       if (unbanTime < currentDate.getTime())
       {
         await this.muteRepository.createQueryBuilder('mute')
@@ -374,7 +374,7 @@ export class ChatService {
     
     if (ret && ret.owner.userId == auth)
       role = "owner";
-    const checkJoin = this.checkJoined(checkuser.id, checkroom.id);
+    const checkJoin = await this.checkJoined(checkuser.id, checkroom.id);
     if (!checkJoin)
     {
       const joinuser = this.joinRepository.create({ "uid": u1.id, "rid": joinRoomDto.roomId, "user": { ...u1}, "room": joinRoomDto.roomId, role });
