@@ -26,6 +26,7 @@ import { time } from 'console';
 import { Mute } from './entities/mute.entity';
 import { KickDto } from './dto/kick.dto';
 import { InviteDto } from './dto/invite.dto';
+import * as bcrypt from 'bcrypt';
 
 
 let roomsusers = new Map<number, number[]>();
@@ -198,9 +199,11 @@ export class ChatService {
     let checkroom = await this.roomRepository.createQueryBuilder('rooms')
     .select()
     .where("rooms.id = :id", { id: joinRoomDto.roomId })
-    .andWhere("rooms.password = :password", {password: joinRoomDto.password})
     .getOne()
-    return checkroom;
+      
+    if (checkroom && await bcrypt.compare(joinRoomDto.password, checkroom?.password))
+      return checkroom;
+    return null;
   }
 
 
@@ -250,7 +253,7 @@ export class ChatService {
   }
 
   async joinToAllUrRooms(auth: string) {
-    let checkUserJoined = await this.joinRepository.createQueryBuilder('join') // for password rooms
+    let checkUserJoined = await this.joinRepository.createQueryBuilder('join')
       .innerJoinAndSelect("join.user", "user")
       .select()
       .where("user.userId = :userId", { userId: auth })
@@ -325,6 +328,9 @@ export class ChatService {
       return checkuser;
     createRoomDto.date = new Date();
     u1.id = checkuser.id;
+    if (createRoomDto.privacy)
+     createRoomDto.password = await bcrypt.hash(createRoomDto.password,10)
+
     const room = this.roomRepository.create({ ...createRoomDto, owner: u1});
     await this.roomRepository.save(room);
     let ret = await this.getRoomByOwner(u1.id, createRoomDto.date);
@@ -342,6 +348,9 @@ export class ChatService {
       return 2;
     if(checkOwner.owner.userId != auth)
       return 3;
+
+    if (updateRoomDto.privacy)
+      updateRoomDto.password = await bcrypt.hash(updateRoomDto.password,10);
     checkOwner.privacy = updateRoomDto.privacy;
     checkOwner.password = updateRoomDto.password;
     u1.id = checkuser.id;

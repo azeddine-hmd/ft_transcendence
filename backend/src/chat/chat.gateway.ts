@@ -193,8 +193,6 @@ export class ChatGateway {
     }
     else
     {
-      // client.join(joinRoomDto.roomId.toString());
-      // roomClients.set(joinRoomDto.roomId.toString(), )
       if (roomClients.get(joinRoomDto.roomId.toString()) === undefined)
         roomClients.set(joinRoomDto.roomId.toString(), [clientId]);
       else
@@ -234,7 +232,6 @@ export class ChatGateway {
             let tmp:msgModel =new msgModel();
             let date:string[] = msgs[index].date.toString().split(':');
             let dateMsg:string = date[0] + ':' + date[1].split(' ')[0];
-            // tmp.userId = msgs[index].user.userId;
             const role:Join | null = await this.chatService.checkJoined(msgs[index].user.id, joinRoomDto.roomId);
             
             tmp.roleMsg = (role) ? role.role: "";
@@ -309,9 +306,7 @@ export class ChatGateway {
 
         tmp.avatar = userInfo.profile.avatar;
         tmp.currentUser = false;
-        
-        // client.broadcast.to(createMsgDto.room.toString()).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
-        // this.server.to(client.id).emit('createMsg', { created: true, room: createMsgDto.room, tmp });
+
         const roomid:string | string[] = createMsgDto.room.toString();
         if (roomid == undefined)
           return;
@@ -433,12 +428,11 @@ export class ChatGateway {
   */
   @SubscribeMessage('createnNewPrivateMsg')
   async  createMsgPrivate(@MessageBody() privateMsgDto:  PrivateMsgDto, @ConnectedSocket() client: Socket) {
-    console.log("create new msg " + privateMsgDto.user);
+
     
     let clientId:any =  getClientId(client, this.jwtService);
     const blockedUsers = await this.chatService.getBlockedUsers(clientId);
     const usr:User | null = await this.chatService.checkUserByUserName(privateMsgDto.user);
-    console.log(usr);
     if (usr && inBlockedList(blockedUsers, usr.id))
       return;
     if(!(await this.chatService.createMsgPrivate(privateMsgDto, clientId)))
@@ -458,13 +452,9 @@ export class ChatGateway {
     newDmMsg.date = date[0] + ':' + date[1].split(' ')[0];
     newDmMsg.currentUser = false;
     
-    console.log('check1', (privateMsgDto.user).toString());
-    console.log('check2', usersClient);
-    
     
     if (usr)
     {
-      console.log("DM03333", usr.userId);
       const clientIds: string[] | undefined = usersClient.get(usr.userId);
       
       if (clientIds)
@@ -473,7 +463,6 @@ export class ChatGateway {
     
     newDmMsg.currentUser = true;
     const clientIds: string[] | undefined = usersClient.get(clientId);
-    console.log("DM1", clientId);
       if (clientIds)
         this.server.to( clientIds ).emit("receiveNewPrivateMsg", newDmMsg);
     
@@ -577,10 +566,7 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
     let test = await this.chatService.banUser(ban, clientId);
     if (!test)
     {
-      let room = roomClients.get(ban.room.toString());
-      // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
-
-      
+      let room = roomClients.get(ban.room.toString()); 
       if (room)
       {
         
@@ -633,8 +619,6 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
     if (!test)
     {
       let room = roomClients.get(ban.room.toString());
-      // this.server.to(roomClients[ban.room.toString()]).emit('Ban', {isBaned: false});
-
       if (room)
       {
         
@@ -678,7 +662,6 @@ async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
 
 /************************************INVITE USER**************************************/
-
 
 
 @SubscribeMessage('InviteToGame')
@@ -785,7 +768,6 @@ async updateMsg(@ConnectedSocket() client: Socket) {
 
   async handleConnection(@ConnectedSocket() client: Socket)
   { 
-		console.log("CONNECTED AT CHAAAT SERVER");
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
     return;
