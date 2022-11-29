@@ -208,6 +208,9 @@ export default function ChatView() {
         })
     
         socket.on("updateRoom", (success, error) => {
+            socket.emit('findAllRooms');
+            setVisibility(false);
+            alert('You\'ve been exited from the room due to some changes!');
             socket.emit('updateMessages', {});
         })
         

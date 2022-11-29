@@ -31,7 +31,7 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket, ..._args: any[]) {
     try {
       await this.usersSocketService.authenticate(client);
-      this.usersSocketService.addClient(client.id, client.user.userId);
+      await this.usersSocketService.addClient(client.id, client.user.userId);
       Logger.log(`client socket connected on user gateway: id=${client.id}`);
     } catch (exception) {
       handleWsException(client, exception);

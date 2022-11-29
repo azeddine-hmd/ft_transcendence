@@ -1,9 +1,10 @@
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
-import "../styles/globals.css";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import { Apis } from "../network/apis";
+import { ErrorResponse } from "../network/dto/response/error-response.dto";
+import { localService } from "../network/local.service";
+import "../styles/globals.css";
 
 const blacklistPages = [
   "/",
@@ -15,31 +16,49 @@ const blacklistPages = [
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const [displayPage, setDisplayPage] = useState<boolean>(false);
 
   useEffect(() => {
     if (!blacklistPages.includes(router.asPath)) {
       // allowed pages
-      if (!window.statesSocket) {
-        window.statesSocket = io(
-          process.env.NEXT_PUBLIC_API_BASE_URL + "/states",
-          {
-            transports: ["websocket"],
-            withCredentials: true,
-          }
-        );
-      }  
+
+      localService.get("/api/auth/verify").then(() => {
+        setDisplayPage(true);
+
+        if (!window.statesSocket) {
+          window.statesSocket = io(
+            process.env.NEXT_PUBLIC_API_BASE_URL + "/states",
+            {
+              transports: ["websocket"],
+              withCredentials: true,
+            }
+          );
+        }  
+
+      }).catch((err: ErrorResponse) => {
+          console.log('error while verifying user credentials redirecting to root page');
+          router.push("/");
+      });
+
     } else {
       // disallowed pages
+
       if (typeof window.statesSocket !== 'undefined') {
         if (window.statesSocket.connected) {
           window.statesSocket.disconnect();
         }
         window.statesSocket = undefined;
       }
+
+      localService.get("/api/auth/verify").then(() => {
+        router.push("/home");
+      }).catch(() => {
+          setDisplayPage(true);
+      });
     }
   }, [router]);
 
-  return <Component {...pageProps} />;
+  return <>{displayPage ? <Component {...pageProps} /> : <></>}</>;
 }
 
 export default MyApp;
