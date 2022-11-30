@@ -8,7 +8,9 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuth } from 'src/auth/guards/jwt-auth.guard';
+import { profileToProfileResponse } from 'src/profiles/utils/entity-payload-converter';
 import { GameProfile } from './dto/response/game-profile-response';
+import { GameMatch } from './game-match.entity';
 import GameService from './game.service';
 
 @ApiTags('games')
@@ -17,6 +19,21 @@ import GameService from './game.service';
 @Controller('games')
 export class GamesController {
   constructor(private readonly gameService: GameService) {}
+
+  @ApiOperation({ summary: 'list of all game matches of current user' })
+  @Get('all')
+  async getAllMatchs(@Req() req: Request) {
+    if (!req.user) throw new UnauthorizedException();
+    const gameMatches = await this.gameService.getAllMatchs(req.user.userId);
+    return gameMatches.map((match: GameMatch) => {
+      const { winner, loser, id, ...rest } = match;
+      return {
+        winner: profileToProfileResponse(match.winner.profile),
+        loser: profileToProfileResponse(match.loser.profile),
+        ...rest,
+      };
+    });
+  }
 
   @ApiOperation({ summary: 'get current user game profile' })
   @Get()
