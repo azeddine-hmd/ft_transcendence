@@ -1,10 +1,10 @@
 import { UseFilters } from '@nestjs/common';
 import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
+    ConnectedSocket,
+    MessageBody,
+    SubscribeMessage,
+    WebSocketGateway,
+    WebSocketServer
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WSAuthGuard } from 'src/auth/guards/ws-auth.guard';
@@ -308,7 +308,7 @@ export class GameGateway {
     }
   }
 
-  handleDisconnect(client: Socket, ...args: any[]) {
+  async handleDisconnect(client: Socket, ...args: any[]) {
     if (client.user) {
       try {
         await this.usersSocketService.setStates(client.user.userId, 'in game');
