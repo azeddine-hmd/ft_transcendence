@@ -14,9 +14,20 @@ import axios from "axios";
 import { style } from "@mui/system/Stack/createStack";
 import { IoConstructOutline } from "react-icons/io5";
 import { ProfilesUser } from "../../network/dto/payload/profileuser";
+import MatchHistory from "../../components/profile/match_history";
+import { FriendsResponse } from "../../network/dto/response/friends-response.dto";
 
 
-export default function user(){
+
+
+export default function User(){
+
+    
+
+
+
+
+
         const router = useRouter();
         const userid = router.query.user;
          const [isopen, setisopen] = useState(false);
@@ -28,6 +39,8 @@ export default function user(){
          const [openfriends,setopenfriends] = useState(false);
          const [allinfoanotheruser,setallinfoanotheruser] = useState({});
          const [currnetdispayname,setcurrnetdispayname] = useState('');
+         const [listFreinds,setlistFreinds] = useState([{}]);
+
         //  console.log("user: " +userid);
 
          useEffect(() => {
@@ -41,7 +54,6 @@ export default function user(){
                          }
                      }
                  )
-                
                 if(userid != undefined)
                 {
                     Apis.ProfilesUser({
@@ -53,7 +65,7 @@ export default function user(){
                             console.log(allinfoanotheruser);
                             setusername(username.username);
                              setdisplayname(username.displayName);
-                            setavatar("/profile/Avatar.png");   
+                            setavatar(username.avatar);   
                         },
                         onFailure:(error:ErrorResponse) =>{
                             console.log(error.message)
@@ -61,50 +73,6 @@ export default function user(){
                         }
                     })
                 }},[userid])
-                
-                const listFreinds = [
-                    {
-                      image: avatar,
-                      displayn: currnetdispayname,
-                      user: username,
-                    },
-                    {
-                        image: avatar,
-                        displayn: currnetdispayname,
-                        user: username,
-                    },
-                    {
-                        image: avatar,
-                        displayn: currnetdispayname,
-                        user: username,
-                    },
-                   {
-                        image: avatar,
-                        displayn: currnetdispayname,
-                        user: username,
-                    },
-                    {
-                        image: avatar,
-                        displayn: currnetdispayname,
-                        user: username,
-                      },
-                      {
-                          image: avatar,
-                          displayn: currnetdispayname,
-                          user: username,
-                      },
-                      {
-                          image: avatar,
-                          displayn: currnetdispayname,
-                          user: username,
-                      },
-                     {
-                          image: avatar,
-                          displayn: currnetdispayname,
-                          user: username,
-                      },
-                  ];
-
         return (
     
             <>
@@ -140,7 +108,7 @@ export default function user(){
                                             <img src={avatar} className={`rounded-full w-[75px]`} alt="ss" />
                                     </div>
                                     <div className="displayname_user px-4 relative ">
-                                        <h1 className="font-bold text-[20px]">{currnetdispayname}</h1>
+                                        <h1 className="font-bold text-[20px]">{"ddd"}</h1>
                                         <h1 className="text-[18px]">@{username}</h1>
                                     </div>
                                     <div className="btns flex">
@@ -163,38 +131,33 @@ export default function user(){
                         </div>
             </div>
             :null}
-                    {opensettings ? <div className="popup absolute justify-center  z-50 w-full items-center h-full flex  ">
-                        <div className="bgopaci absolute top-0 left-0 w-full h-full  min-w-full bg-opacity-95  bg-[#463573] " onClick={() => setopensettings(!opensettings)}></div>
-                                <div className="popupsettings absolute z-10 bg-white w-[85%] sm:w-[75%] md:w-[60%] lg:w-[50%] xl:w-[40%] 2xl:w-[600px] h-[50%] rounded-[18px]">
-                                    <div className="closebtn w-full p-8">
-                                        <button className="text-[23px] flex justify-end text-[#000] " onClick={() => setopensettings(!opensettings)}>X</button>
-                                    </div>
-                                </div>
-                    </div>
-                    :null}
+                   
         
                         <div className="contain  flex-col py-20  flex w-full h-full ">
                             <div className="avatar px-10 sm:px-20 md:px-28 lg:px-32 xl:px-44 2xl:px-72">
-                                <Useravatar avata={avatar} userid={currnetdispayname} />
+                                <Useravatar/>
                             </div>
                             <div className="info px-6 lg:px-10 py-8  flex justify-center">
                                 <Infouser avatar={avatar} userid={username} displayname={displayname} />
                             </div>
                             <div className="info px-6 lg:px-10 py-8 flex justify-center  w-full h-full">
-                                <div className="over w-[95%] xl:w-[75%] h-full rounded-[20px] bg-opacity-50 bg-[#3d2c6bbe]">
-                                    <div className="menu bg-opacity-50 bg-[#644dad] w-full flex rounded-[20px] flex-col  ">
-                                    <div className="firstbtn flex py-2 px-2 flex-col md:flex-row md:justify-between w-full">
-                                        <div className="btns flex flex-grow ">
-                                        <h1 onClick={() => setview_history(false)} style={{background:view_history?"#5d48a3db":"#705bb1"}} className=" flex-grow md:flex-grow-0 sm:text-[25px] md:px-4 lg:px-9 font-bold   py-4 rounded-[19px] bg-[#705bb1] text-[#cec0fb] flex justify-center  cursor-pointer">Overview</h1>
-                                        <h1 onClick={() => setview_history(true)} style={{background:view_history?"#705bb1":"#5d48a3db"}} className="sm:text-[25px] flex-grow md:flex-grow-0 font-bold md:px-4 lg:px-9  mx-1 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1>
-                                        <h1 onClick={() => setopenfriends(!openfriends)} className="sm:text-[25px] font-bold  mx-2 py-4 rounded-[19px] flex-grow md:flex-grow-0 bg-[#5d48a3db] md:px-4 lg:px-9 text-[#cec0fb] flex justify-center  cursor-pointer">Friends</h1>
+                            <div className="over w-[95%] xl:w-[75%] rounded-[20px] bg-opacity-50 bg-[#3d2c6bbe]" style={{ height: view_history ? "80%" : "55%" }}>
+                                    <div className="menu bg-opacity-50 bg-[#644dad] w-full flex rounded-[20px] flex-col md:flex-row ">
+                                        <div className="firstbtn flex py-2 px-2 flex-col md:flex-row md:justify-between w-full">
+                                            <div className="btns flex flex-grow ">
+                                                <h1 onClick={() => setview_history(false)} style={{ background: view_history ? "#5d48a3db" : "#705bb1" }} className=" flex-grow md:flex-grow sm:text-[25px] md:px-4 lg:px-9 font-bold   py-4 rounded-[19px] bg-[#705bb1] text-[#cec0fb] flex justify-center  cursor-pointer">Overview</h1>
+                                                <h1 onClick={() => setview_history(true)} style={{ background: view_history ? "#705bb1" : "#5d48a3db" }} className="sm:text-[25px] flex-grow md:flex-grow font-bold md:px-4 lg:px-9  mx-1 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1>
+                                                {/* <h1 onClick={() => setopenfriends(!openfriends)} className="sm:text-[25px] font-bold  mx-2 py-4 rounded-[19px] flex-grow md:flex-grow bg-[#5d48a3db] md:px-4 lg:px-9 text-[#cec0fb] flex justify-center  cursor-pointer">Friends</h1> */}
+                                            </div>
+                                        
                                         </div>
                                     </div>
-                                    </div>
-                                    <div className="">
-                                        sdsd
-                                    </div>
-        
+                                    {/* <Overview/> */}
+                                    {view_history ?
+                                        <MatchHistory listFreinds={listFreinds} avatar={avatar} userid={username} />
+
+                                        : <Overview RecentGame={listFreinds} avatar={avatar} />}
+
                                 </div>
                             </div>
                             
