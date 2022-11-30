@@ -1,6 +1,14 @@
+import { useEffect } from "react";
 import styles from "../../styles/Profile/overview.module.css";
+import { Apis } from "../../network/apis";
 
 export default function MatchHistory({listFreinds,avatar}: any) {
+
+
+    useEffect(() => {
+        Apis.getFriends({onSuccess : () =>{}, onFailure: () =>{}})
+        
+    }, )
 
     return (
         <div className="over w-full h-full rounded-[20px] flex justify-center items-center bg-opacity-50 bg-[#3d2c6bbe]">

@@ -41,7 +41,7 @@ export class RelationsService {
         'cannot procced with relation between same user',
       );
     const { user1, user2 } = normalizeTwoUsersRelation(current, other);
-    const relation = await this.userRelationRepository.findOne({
+    let relation = await this.userRelationRepository.findOne({
       relations: {
         user1: true,
         user2: true,
@@ -51,7 +51,17 @@ export class RelationsService {
         user2: { id: user2.id },
       },
     });
+
     const isBlocked = await this.getBlockRelation(userId, otherUsername);
+
+    // if (relation && relation.friend1_2 === true && relation.friend2_1 === false) {
+    //   console.log(`deleting relation`);
+      
+    //   await this.userRelationRepository.delete({ id: relation.id });
+    //   relation = null;
+    // }
+
+
     return {
       relation: relation,
       isBlocked: isBlocked,
@@ -66,7 +76,7 @@ export class RelationsService {
     const other = await this.userRepository.findOneBy({
       username: otherUsername,
     });
-    if (!current || !other) throw new InternalServerErrorException();
+    if (!current || !other) throw new InternalServerErrorException(`friend not found`);
     if (current === other)
       throw new BadRequestException(
         'cannot procced with relation between same user',
@@ -88,7 +98,10 @@ export class RelationsService {
     userId: string,
   ): Promise<Pair<{ relation: UserRelation; isBlocked: boolean }, Profile>[]> {
     const current = await this.userRepository.findOneBy({ userId: userId });
-    if (!current) throw new InternalServerErrorException();
+    if (!current) throw new InternalServerErrorException('user not found');
+    /* Logger.debug( */
+    /*   `RelationService#getFriends: fetching friends ${current.username}(id=${current.id})`, */
+    /* ); */
     const relations = await this.userRelationRepository.find({
       relations: {
         user1: true,
@@ -111,9 +124,10 @@ export class RelationsService {
         } else if (current.userId === relation.user2.userId) {
           friendUserId = relation.user1.userId;
         }
-        if (typeof friendUserId === 'undefined') {
-          throw new InternalServerErrorException();
-        }
+        
+        if (typeof friendUserId === 'undefined')
+          throw new InternalServerErrorException(`friend userid undefined`);
+
 
         const friendProfile = await this.profileRepostiroy.findOne({
           relations: {
@@ -200,6 +214,9 @@ export class RelationsService {
         throw new BadRequestException('friend request already exist');
       relation.friend2_1 = true;
     }
+
+    console.log(relation);
+    
 
     await this.userRelationRepository.save(relation);
   }
