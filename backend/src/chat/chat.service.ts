@@ -209,7 +209,6 @@ export class ChatService {
     return null;
   }
 
-
   async getRooms() {
     const rooms = await this.roomRepository.find({
       relations: ['owner'],
