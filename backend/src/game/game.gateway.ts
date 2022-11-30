@@ -14,8 +14,7 @@ var sBall = 3
 const playerHeight = 75
 const playerWith = 10
 const ballHeight = 10
-const final_score = 300
-let _gameChat: any = [[],[]];
+const final_score = 3
 let _game: any =
 	[
 		[
@@ -308,7 +307,6 @@ export class GameGateway {
 
 			const usrname = client.user.username;
 			let index: any
-
 			index = _game[0].findIndex((gm: any, key: any) => {
 				return (gm.finished === false &&
 					(gm.left.username === usrname ||

@@ -41,8 +41,8 @@ const socket = io(url + '/game', {
 	transports: ['websocket'],
 });
 let gameIndex = 0;
-let px:number;
-let py:number;
+let px: number;
+let py: number;
 export { socket };
 
 function Game() {
@@ -74,11 +74,13 @@ function Game() {
 	const [scr2, setscr2] = React.useState(0);
 	const router = useRouter()
 
-	const Refreche = (e: any) => {
+	const Refreche = () => {
+		setscr1(game.player1.score)
+		setscr2(game.player2.score)
 		socket.emit("leaveGame", playerName + " " + mode + " " + gameIndex)
+		
 		socket.off("ballPos");
-		e.preventDefault()
-		router.push('/startGame')
+		router.push('/game')
 	}
 	useEffect(() => {
 		socket.connect();
@@ -105,8 +107,6 @@ function Game() {
 				game.player2.score = Number(array1[5]);
 				game.player1.y = Number(array1[6]);
 				game.player2.y = Number(array1[7]);
-				// console.log("event : ",game.player1.y);
-				// console.log("event : ",game.player2.y);
 				drawGame();
 			});
 		});
@@ -214,14 +214,13 @@ function Game() {
 	}
 
 	function playerMove(event: any) {
-		var gamePos = canvas.getBoundingClientRect();
-		var mousePos = event.clientY - gamePos.y;
-		if (playerName === p1) 
-		{
+		
+		var mousePos = event.clientY;
+		if (playerName === p1) {
 			game.player1.y = mousePos - playerHeight / 2;
 			if (mousePos < playerHeight / 2)
 				game.player1.y = 0;
-			else if (mousePos > canvas.height)
+			else if (mousePos > canvas.height- playerHeight / 2)
 				game.player1.y = canvas.height - playerHeight;
 			else
 				game.player1.y = mousePos - playerHeight / 2;
@@ -229,8 +228,7 @@ function Game() {
 				socket.emit('getPlayer', _mode + " " + gameIndex + " " + p1 + " " + Number(game.player1.y));
 			}
 		}
-		else if (playerName === p2) 
-		{
+		else if (playerName === p2) {
 			game.player2.y = mousePos - playerHeight / 2;
 			if (mousePos < playerHeight / 2)
 				game.player2.y = 0;
@@ -247,12 +245,9 @@ function Game() {
 
 
 	// function playerMove(event: any) {
-
 	// 	var code = event.keyCode;
 	// 	// up : 38
 	// 	// down : 40
-
-
 	// 	if (code !== 38 && code !== 40)
 	// 		return
 	// 	if (playerName === p1) {
@@ -264,7 +259,6 @@ function Game() {
 	// 		else if (px > canvas.height - playerHeight)
 	// 			px = canvas.height - playerHeight;
 	// 		if (playerName && px != null) {
-				
 	// 			socket.emit('getPlayer', _mode + " " + gameIndex + " " + p1 + " " + Number(px));
 	// 		}
 	// 	}
@@ -313,10 +307,10 @@ function Game() {
 			setUser(userResponse.username);
 			playerName = userResponse.username;
 			setUsername(userResponse.username);
-			canvas = document.getElementById('canvas');	
+			canvas = document.getElementById('canvas');
 			initilizeGame();
 			drawGame();
-			
+
 		},
 		onFailure: (err: ErrorResponse) => {
 			// callAlert();
