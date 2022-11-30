@@ -20,6 +20,10 @@ import AlertTitle from "@mui/material/AlertTitle";
 import { ProfileResponse } from "../../network/dto/response/profile-response.dto";
 import { localService } from "../../network/local.service";
 import { FriendsResponse } from "../../network/dto/response/friends-response.dto";
+import InfoCurrentUser from "../../components/profile/infocurrentuser";
+import { FriendsStates } from "../../network/dto/response/friends-states";
+
+
 
 export default function Profile() {
     const router = useRouter();
@@ -36,6 +40,8 @@ export default function Profile() {
         messages: [""],
         severity: "",
     });
+    const [listFreinds, setlistFreinds] = useState<FriendsResponse[]>([]);
+    const [statusonline, setstatusonline] = useState(true);
     useEffect(() => {
         Apis.CurrentProfile(
             {
@@ -54,6 +60,7 @@ export default function Profile() {
         Apis.getFriends({
             onSuccess: (friends: FriendsResponse[]) => {
                 console.log(friends);
+                setlistFreinds(friends);
                 //TODO: set friends to UI
             },
             onFailure: (error: ErrorResponse) => {},
@@ -62,14 +69,27 @@ export default function Profile() {
         let task: NodeJS.Timer | null = null;
 
         setTimeout(() => {
-            window?.statesSocket?.on("FriendsStates", (data) => {
-                // TODO: set online/offline/status and bind it to profile
-                console.log(`received data: ${JSON.stringify(data)}`);
+            window?.statesSocket?.on("FriendsStates", (data: FriendsStates[]) => {
+                let newListFreinds = listFreinds.copyWithin(0, 0, listFreinds.length);
+
+                newListFreinds.forEach((friend: FriendsResponse) => {
+                    friend.online = false;
+                    friend.status = "";
+                    console.log(friend);
+                    data.forEach((friendState: FriendsStates) => {
+                        if (friend.profile.username === friendState.username) {
+                            friend.online = friendState.online;
+                            friend.status = friendState.status;
+                        }
+                    });
+                });
+                setlistFreinds(newListFreinds);
             });
+
 
             task = setInterval(() => {
                 window.statesSocket!.emit("FriendsStates");
-            }, 2000);
+            }, 5000);
 
         }, 500);
 
@@ -79,6 +99,19 @@ export default function Profile() {
         };
 
     }, []);
+
+    useEffect(() => {
+        Apis.getFriends({
+            onSuccess: (friends: FriendsResponse[]) => {
+                // console.log("frends :: "+    friends[0].profile.displayName);
+                setlistFreinds(friends);
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+            }
+        })
+       
+    }, []);
+
 
     
     const RecentGame = [
@@ -90,56 +123,56 @@ export default function Profile() {
         }
     ];
 
-    const listFreinds = [
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 5,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 7,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 9,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 10,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 11,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 3,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 1,
-        },
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 2,
-        },
-    ];
+    // const listFreinds = [
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 5,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 7,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 9,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 10,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 11,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 3,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 1,
+    //     },
+    //     {
+    //         image: avatar,
+    //         displayn: currnetdispayname,
+    //         user: username,
+    //         resultmtch: 2,
+    //     },
+    // ];
 
     useEffect(() => {
         if (uploadFile) {
@@ -207,17 +240,20 @@ export default function Profile() {
                                     {listFreinds.map((friends, index) => {
                                         return (<>
                                             <div key={index} className="list  bg-[#dddae4] w-[90%] h-24 mt-3 rounded-[20px] justify-around flex items-center px-5">
-                                                <div className="img w-[84px] z-20  rounded-full justify-center  bg-white h-[84px] items-center flex">
-                                                    <img src={avatar} crossorigin="anonymous" className={`rounded-full w-[75px]`} alt="ss" />
+                                                <div className="img w-[84px] z-20  rounded-full justify-center  bg-white h-[84px] items-center relative flex">
+                                                    <img src={friends.profile.avatar} crossOrigin="anonymous" className={`rounded-full w-[75px]`} alt="ss" />
+                                                    {statusonline? <div className="dot h-[15px] w-[15px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>:
+                                                        <div className="dot h-[15px] w-[15px] bg-slate-400 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>
+                                                        }
                                                 </div>
                                                 <div className="displayname_user px-4 relative ">
-                                                    <h1 className="font-bold text-[20px]">{currnetdispayname}</h1>
-                                                    <h1 className="text-[18px]">@{username}</h1>
+                                                    <h1 className="font-bold text-[20px]">{friends.profile.displayName}</h1>
+                                                    <h1 className="text-[18px]">@{friends.profile.username}</h1>
                                                 </div>
                                                 <div className="btns flex">
                                                     <div className={`btnprofile flex p-5 justify-center rounded-[20px] cursor-pointer ${styles.btnprofile}`}>
                                                         <img src="/profile/popup/user.png" className="w-[30px] " alt="" />
-                                                        <p className="px-2 text-[19px] font-bold text-[#4b3d7f]">Profile</p>
+                                                        <Link href={`/user/${friends.profile.username}`}><p className="px-2 text-[19px] font-bold text-[#4b3d7f]">Profile</p></Link>
                                                     </div>
                                                     <div className={`btncontact mx-2 flex p-5 justify-center rounded-[20px] cursor-pointer ${styles.btnconact}`}>
                                                         <img src="/profile/popup/chat.png" className="w-[30px]" alt="" />
@@ -336,10 +372,10 @@ export default function Profile() {
 
                         <div className="contain  flex-col py-20  flex w-full h-full ">
                             <div className="avatar px-10 sm:px-20 md:px-28 lg:px-32 xl:px-44 2xl:px-72">
-                                <Useravatar avata={avatar} userid={currnetdispayname} />
+                                <Useravatar />
                             </div>
                             <div className="info px-6 lg:px-10 py-8  flex justify-center">
-                                <Infouser avatar={avatar} userid={username} displayname={currnetdispayname} />
+                                <InfoCurrentUser avatar={avatar} userid={username} displayname={currnetdispayname} />
                             </div>
                             <div className="info px-6 lg:px-10 py-8 flex justify-center  w-full h-full">
                                 <div className="over w-[95%] xl:w-[75%] rounded-[20px] bg-opacity-50 bg-[#3d2c6bbe]" style={{ height: view_history ? "80%" : "55%" }}>

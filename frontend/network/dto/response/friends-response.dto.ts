@@ -8,7 +8,9 @@ export enum FriendsStatus {
 }
 
 export interface FriendsResponse {
-    profile: ProfileResponse,
-    friends_status: FriendsStatus,
+    profile: ProfileResponse;
+    friends_status: FriendsStatus;
     is_blocked: boolean;
+    online: boolean;
+    status: string;
 }
