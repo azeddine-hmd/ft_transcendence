@@ -38,10 +38,10 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     if (client.user) {
       Logger.log(`client socket disconnected on user gateway: id=${client.id}`);
-      this.usersSocketService.removeClient(client.user.userId, client.id);
+      await this.usersSocketService.removeClient(client.user.userId, client.id);
     }
   }
 

@@ -41,13 +41,7 @@ export class UsersSocketService {
     const clients = this.usersClients.get(userId);
     if (!clients) this.usersClients.set(userId, [clientId]);
     Logger.log(`user userId=${userId} goes online!`);
-    try {
-      this.usersService.setOnline(userId, true);
-    } catch (exception) {
-      console.log(`catching exception:`);
-      console.log(exception);
-      throw exception;
-    }
+    await this.usersService.setOnline(userId, true);
   }
 
   async removeClient(userId: string, clientId: string) {
@@ -56,12 +50,8 @@ export class UsersSocketService {
       throw new InternalServerErrorException(
         `illegal state: user clients list doens't exist`,
       );
-
-    console.log(`client before: ${JSON.stringify(clients)}`);
     const clientIndex = clients.indexOf(clientId);
     clients.splice(clientIndex, 1);
-    console.log(`client after: ${JSON.stringify(clients)}`);
-
     if (clients.length === 0) {
       Logger.log(`user userId=${userId} goes offline!`);
       await this.usersService.setOnline(userId, false);
