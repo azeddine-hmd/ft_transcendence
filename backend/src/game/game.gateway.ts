@@ -14,17 +14,17 @@ import { PlayerInfo } from './game-queue';
 import GameService from './game.service';
 
 /*-------------------------------------------------------*/
-const canvas_height = 600;
-const canvas_width = 600;
-var sBall = 3;
-const playerHeight = 75;
-const playerWith = 10;
-const ballHeight = 10;
-const final_score = 300;
-let _gameChat: any = [[], []];
-let _game: any = [
-  [
-    /*
+const canvas_height = 600
+const canvas_width = 600
+var sBall = 3
+const playerHeight = 75
+const playerWith = 10
+const ballHeight = 10
+const final_score = 3
+let _game: any =
+	[
+		[
+			/*
 			GAME 0 x: 200, y: 200		(200, 201)
 			{
 				left: {
@@ -355,90 +355,13 @@ export class GameGateway {
         return;
       }
 
-      index = _game[1].findIndex((gm: any, key: any) => {
-        return (
-          gm.finished === false &&
-          (gm.left.username === usrname || gm.right.username === usrname)
-        );
-      });
-      if (index !== -1) {
-        if (usrname === _game[1][index].left.username) {
-          _game[1][index].right.score = final_score;
-          _game[1][index].left.score = 0;
-        } else {
-          _game[1][index].left.score = final_score;
-          _game[1][index].right.score = 0;
-        }
-      }
-    }
-  }
-
-  @SubscribeMessage('match')
-  messageMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: string,
-  ) {
-    var i: number = 0;
-    if (data.includes('Easy')) i = 0;
-    if (data.includes('Hard')) i = 1;
-    const queue = this.gameService.matches[i];
-    waiting = true;
-    if (data.toString().includes('cancel')) waiting = false;
-    if (client.user.username) {
-      if (waiting) {
-        let ind = queue.findIndex(function (obj: any) {
-          return obj.username === client.user.username;
-        }); // -1, >= 0
-        // not found
-        if (ind === -1)
-          queue.push({ sockets: [client.id], username: client.user.username });
-        // found
-        else queue[ind].sockets.push(client.id);
-      } else {
-        const index = queue.findIndex(function (obj: any) {
-          return obj.username === client.user.username;
-        });
-        if (index > -1) {
-          queue.splice(index, 1);
-        }
-      }
-      if (queue.length >= 2) {
-        let contender = queue[0].username;
-        let ind =
-          _game[i].push({
-            left: {
-              ...queue.splice(0, 1)[0], // sockets: [], username: '',
-              score: 0,
-              y: canvas_height / 2 - playerHeight / 2,
-            },
-            finished: false,
-            spectators: [],
-            ball: {
-              speed: {
-                x: sBall,
-                y: sBall,
-              },
-              x: canvas_width / 2,
-              y: canvas_height / 2,
-            },
-            counter: 0,
-          }) - 1;
-        var index = queue.findIndex(function (obj: any) {
-          return obj.username === client.user.username;
-        });
-        if (index != -1)
-          _game[i][ind].right = {
-            ...queue.splice(index, 1)[0],
-            score: 0,
-            y: canvas_height / 2 - playerHeight / 2,
-          };
-        this.server
-          .to([..._game[i][ind].left.sockets, ..._game[i][ind].right.sockets])
-          .emit('abcd', client.user.username, contender, i, ind);
-        this.startGame(i, ind);
-      }
-    }
-  }
+			const usrname = client.user.username;
+			let index: any
+			index = _game[0].findIndex((gm: any, key: any) => {
+				return (gm.finished === false &&
+					(gm.left.username === usrname ||
+						gm.right.username === usrname))
+			})
 
   @SubscribeMessage('leaveGame')
   gameEnd(@ConnectedSocket() socket: Socket, @MessageBody() _data: string) {
