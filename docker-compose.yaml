@@ -23,7 +23,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      - MODE=dev
+      - MODE=prod
       - PORT=8080
       - BACKEND_HOST=http://localhost:8080
       - FRONTEND_HOST=http://localhost:3000
@@ -38,6 +38,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      - MODE=dev
+      - MODE=prod
       - PORT=3000
       - BACKEND_HOST=http://localhost:8080

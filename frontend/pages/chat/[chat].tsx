@@ -45,13 +45,11 @@ export { socket };
 
 function Layout() {
 
-  useEffect(()=>{
-    console.log(socket.id);
-  }, [socket])
-
   return (
     <div className="homepage w-full h-screen min-w-full relative">
-      <img src="/profile/bg.png" className="  w-full h-full min-w-full " alt="" />
+      <picture className="  w-full h-full min-w-full ">
+        <img src="/profile/bg.png" alt="" />
+      </picture>
       <div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
       <div className="contain absolute top-0 w-full h-screen flex justify-between">
         <Sidebar />
