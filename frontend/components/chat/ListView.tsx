@@ -134,13 +134,13 @@ export default function ListView() {
                 (channel == 'rooms') ?
                 data.map(data => {
                     return (
-                        <Card title={data.title} description={data.description} members={data.members} id={data.id} privacy={data.privacy} />
+                        <Card key={data.title} title={data.title} description={data.description} members={data.members} id={data.id} privacy={data.privacy} />
                     );
                 })
                 :
                 dms.map(data => {
                     return (
-                        <DM displayName={data.displayName} username={data.username} userId={data.userId} avatar={data.avatar} />
+                        <DM key={data.displayName} displayName={data.displayName} username={data.username} userId={data.userId} avatar={data.avatar} />
                     );
                 })
                 }

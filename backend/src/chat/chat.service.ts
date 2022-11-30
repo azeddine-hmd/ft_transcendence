@@ -200,6 +200,9 @@ export class ChatService {
     .select()
     .where("rooms.id = :id", { id: joinRoomDto.roomId })
     .getOne()
+
+    if (joinRoomDto.password === "" && checkroom?.password === "")
+    return checkroom;
       
     if (checkroom && await bcrypt.compare(joinRoomDto.password, checkroom?.password))
       return checkroom;

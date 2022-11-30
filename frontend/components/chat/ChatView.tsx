@@ -168,9 +168,9 @@ export default function ChatView() {
                     <div className={style.scroll}>
                         {(mdata !== undefined) ? mdata.map(messages => {
                             return (
-                                <ChatCard id={messages.username} date={messages.date} 
-                                name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser} 
-                                role={userRole} state={messages.userState} room={roomID} showPop={roomType === 'room'} roleMsg={messages.roleMsg} />
+                                <ChatCard key={messages.username} id={messages.username} date={messages.date}
+                                    name={messages.username} message={messages.msg} avatar={messages.avatar} currentUser={messages.currentUser}
+                                    role={userRole} state={messages.userState} room={roomID} showPop={roomType === 'room'} roleMsg={messages.roleMsg} />
                             );
                         }) : null}
                         <div ref={bottom}></div>

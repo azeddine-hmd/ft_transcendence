@@ -38,6 +38,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      - MODE=prod
+      - MODE=dev
       - PORT=3000
       - BACKEND_HOST=http://localhost:8080
