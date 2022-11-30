@@ -1,9 +1,31 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ErrorResponse } from "../../network/dto/response/error-response.dto";
+import { ProfileResponse } from "../../network/dto/response/profile-response.dto";
 import styles from "../../styles/Profile/Useravatar.module.css";
+import { Apis } from "../../network/apis";
 
-export default function Useravatar({ avata, userid }: any) {
+export default function Useravatar() {
   const [open, setopen] = useState(false);
+  const [userid, setuserid] = useState("");
+  const [avatar, setavatar] = useState("");
+  const [currnetdispayname, setcurrnetdispayname] = useState("");
+  const [onlinestatus,setOnlinestatus] = useState(true);
+
+  useEffect(() => {
+    Apis.CurrentProfile(
+        {
+            onSuccess: (profile: ProfileResponse) => {
+                setcurrnetdispayname(profile.displayName);
+                setavatar(profile.avatar);
+                //  setavatar("/profile/Avatar.png");
+            },
+            onFailure: (error: ErrorResponse) => {
+                console.log(error.message)
+            }
+        }
+    )
+}, [])
 
   return (
     <div className="iconuser  relative flex  justify-end  ">
@@ -15,9 +37,14 @@ export default function Useravatar({ avata, userid }: any) {
         <div className="elauser  w-full flex px-2 pr-3 items-center justify-center">
           <div className="avataru flex items-center ">
             <div className="a w-[52px] min-w-[48px]">
-              <img src={avata} className={`rounded-[50%] shadow-2xl`} alt="" />
+              <div className="image relative flex">
+              <img src={avatar} className={`rounded-[50%] shadow-2xl`} alt="" />
+              {onlinestatus? <div className="dot h-[15px] w-[15px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-8 "></div>:
+               <div className="dot h-[15px] w-[15px] bg-slate-400 rounded-[50%] flex z-60 absolute right-0 top-8 "></div>
+               }
+              </div>
             </div>
-            <h1 className="text-[#fff] px-3">{userid}</h1>
+            <h1 className="text-[#fff] px-3">{currnetdispayname}</h1>
           </div>
           <div className="selec">
             <img
