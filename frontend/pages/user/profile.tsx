@@ -22,6 +22,8 @@ import { localService } from "../../network/local.service";
 import { FriendsResponse } from "../../network/dto/response/friends-response.dto";
 import InfoCurrentUser from "../../components/profile/infocurrentuser";
 import { FriendsStates } from "../../network/dto/response/friends-states";
+import { GameProfile } from "../../network/dto/response/gameprofile.dto";
+import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
 
 
 
@@ -109,70 +111,14 @@ export default function Profile() {
                 console.log(error.message);
             }
         })
-       
-    }, []);
+
+        
+    }, [view_history]);
 
 
-    
-    const RecentGame = [
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 5,
-        }
-    ];
 
-    // const listFreinds = [
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 5,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 7,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 9,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 10,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 11,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 3,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 1,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 2,
-    //     },
-    // ];
+
+ 
 
     useEffect(() => {
         if (uploadFile) {
@@ -195,6 +141,31 @@ export default function Profile() {
                 });
         }
     }, [uploadFile]);
+
+
+    const [ allinfogame, setallinfogame] = useState<GameProfile[]>([]);
+    const[RecentGame, setRecentGame] = useState<ResultuserGame[]>([]);
+    useEffect(() => {
+        Apis.GetGameprofile({
+            onSuccess: (gameprofile: GameProfile[]) => {
+                setallinfogame(gameprofile);
+                console.log(gameprofile);
+               
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+            }
+        })
+        Apis.GetallresulteGame({
+            onSuccess: (gameprofile: ResultuserGame[]) => {
+                setRecentGame(gameprofile);
+                console.log(gameprofile);
+               
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+            }
+        })
+    }, []);
+        
 
     return (
         <>
@@ -234,7 +205,7 @@ export default function Profile() {
                                     <button className="text-[23px]  flex justify-end text-[#000] w-[30px] " onClick={() => setopenfriends(!openfriends)}><img src="/profile/popup/exit.png" alt="" /></button>
                                 </div>
                                 <div className="friend w-full flex justify-center">
-                                    <h1 className="text-[25px] font-bold text-[#42386f]">All Friends <span>{'(14)'}</span></h1>
+                                    <h1 className="text-[25px] font-bold text-[#42386f]">All Friends <span>{`(${listFreinds.length})`}</span></h1>
                                 </div>
                                 <div className="listfriend  w-full flex justify-center items-center overflow-y-scroll mt-4 relative pt-[50%]  h-[69%] flex-col">
                                     {listFreinds.map((friends, index) => {
@@ -257,7 +228,7 @@ export default function Profile() {
                                                     </div>
                                                     <div className={`btncontact mx-2 flex p-5 justify-center rounded-[20px] cursor-pointer ${styles.btnconact}`}>
                                                         <img src="/profile/popup/chat.png" className="w-[30px]" alt="" />
-                                                        <p className="px-2 text-[19px] font-bold text-[#fff]">Contact</p>
+                                                        <Link href={`/chat/${friends.profile.username}`}><p className="px-2 text-[19px] font-bold text-[#fff]">Contact</p></Link>
                                                     </div>
                                                 </div>
                                             </div>
@@ -375,7 +346,7 @@ export default function Profile() {
                                 <Useravatar />
                             </div>
                             <div className="info px-6 lg:px-10 py-8  flex justify-center">
-                                <InfoCurrentUser avatar={avatar} userid={username} displayname={currnetdispayname} />
+                                <InfoCurrentUser avatar={avatar} userid={username} displayname={currnetdispayname} allinfogames={allinfogame} />
                             </div>
                             <div className="info px-6 lg:px-10 py-8 flex justify-center  w-full h-full">
                                 <div className="over w-[95%] xl:w-[75%] rounded-[20px] bg-opacity-50 bg-[#3d2c6bbe]" style={{ height: view_history ? "80%" : "55%" }}>
@@ -394,9 +365,9 @@ export default function Profile() {
                                     </div>
                                     {/* <Overview/> */}
                                     {view_history ?
-                                        <MatchHistory listFreinds={listFreinds} avatar={avatar} userid={username} />
+                                        <MatchHistory listFreinds={RecentGame} avatar={avatar} userid={username}  />
 
-                                        : <Overview RecentGame={RecentGame} avatar={avatar} />}
+                                        : <Overview RecentGame={RecentGame} avatar={avatar}  />}
 
                                 </div>
                             </div>

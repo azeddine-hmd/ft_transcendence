@@ -2,8 +2,25 @@ import styles from "../../styles/Profile/Infouser.module.css"
 //Apis
 import { Apis } from "../../network/apis";
 import {AddFriendDto} from "../../network/dto/payload/add-friend.dto"
+import { GameProfile } from "../../network/dto/response/gameprofile.dto";
+import { useEffect, useState } from "react";
+import { ErrorResponse } from "../../network/dto/response/error-response.dto";
 
-export default function Infouser({ avatar, userid, displayname, booling }: any) {
+export default function Infouser({ avatar, userid, displayname }: any) {
+
+    const [allinfogame, setallinfogame] = useState<GameProfile[]>({});
+    useEffect(() => {
+        Apis.GetGameprofile({
+            onSuccess: (gameprofile: GameProfile[]) => {
+                setallinfogame(gameprofile);
+                console.log(gameprofile);
+               
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+            }
+        })
+        
+    }, [])
     return (
         <div className="level_info w-full h-full flex justify-center ">
             <div className={`backg w-[95%] xl:w-[75%] rounded-tl-[60px]  rounded-br-[60px] md:rounded-r-[18px] bg-opacity-30 flex justify-center  ${styles.userlevelinfo}`}>
@@ -25,10 +42,10 @@ export default function Infouser({ avatar, userid, displayname, booling }: any) 
                         </div>
 
                         <div className="displayname w-full px-4 flex flex-col">
-                            <h1 className="text-[#3b2b60] sm:text-[23px] lg:text-[26px] font-bold ">Level 20</h1>
+                            <h1 className="text-[#3b2b60] sm:text-[23px] lg:text-[26px] font-bold flex "><p className=" space-x-5 mr-6"> Level</p> { allinfogame.level}</h1>
                             <h2 className="text-[#3b2b60]  sm:text-[21px]  bottom-2 font-light ">Congrats! You're intermediate now</h2>
                             <div className="w-full bg-[#fae1a1] rounded-full h-2.5 dark:bg-gray-700">
-                                <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{ width: "45%" }}></div>
+                                <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{ width: `${allinfogame.percent_pation}` }}></div>
                             </div>
                         </div>
                     </div>
