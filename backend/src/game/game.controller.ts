@@ -24,7 +24,25 @@ export class GamesController {
   @Get('all')
   async getAllMatchs(@Req() req: Request) {
     if (!req.user) throw new UnauthorizedException();
-    const gameMatches = await this.gameService.getAllMatchs(req.user.userId);
+    const gameMatches = await this.gameService.getAllMatchs(req.user.username);
+    return gameMatches.map((match: GameMatch) => {
+      const { winner, loser, id, ...rest } = match;
+      return {
+        winner: profileToProfileResponse(match.winner.profile),
+        loser: profileToProfileResponse(match.loser.profile),
+        ...rest,
+      };
+    });
+  }
+
+  @ApiOperation({ summary: 'list of all game matches of other user' })
+  @Get('matches/:username')
+  async getOtherMatchs(
+    @Req() req: Request,
+    @Param('username') otherUsername: string,
+  ) {
+    if (!req.user) throw new UnauthorizedException();
+    const gameMatches = await this.gameService.getAllMatchs(otherUsername);
     return gameMatches.map((match: GameMatch) => {
       const { winner, loser, id, ...rest } = match;
       return {
