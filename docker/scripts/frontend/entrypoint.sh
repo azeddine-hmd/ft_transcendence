@@ -11,3 +11,8 @@ else
 	npm run build
 	npm run start
 fi
+
+while true
+do
+	sleep 1
+done
