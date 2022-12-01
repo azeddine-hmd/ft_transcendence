@@ -22,6 +22,8 @@ import { localService } from "../../network/local.service";
 import { FriendsResponse } from "../../network/dto/response/friends-response.dto";
 import InfoCurrentUser from "../../components/profile/infocurrentuser";
 import { FriendsStates } from "../../network/dto/response/friends-states";
+import { GameProfile } from "../../network/dto/response/gameprofile.dto";
+import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
 
 
 
@@ -41,7 +43,9 @@ export default function Profile() {
         severity: "",
     });
     const [listFreinds, setlistFreinds] = useState<FriendsResponse[]>([]);
-    const [statusonline, setstatusonline] = useState(true);
+    const [tfa, settfa] = useState<boolean>(false);
+    const [defaultuser, setdefaultuser] = useState(currnetdispayname);
+    // const [statusonline, setstatusonline] = useState(true);
     useEffect(() => {
         Apis.CurrentProfile(
             {
@@ -49,6 +53,8 @@ export default function Profile() {
                     setusername(profile.username);
                     setcurrnetdispayname(profile.displayName);
                     setavatar(profile.avatar);
+                    if (profile.tfa)
+                        settfa(profile.tfa);
                     //  setavatar("/profile/Avatar.png");
                 },
                 onFailure: (error: ErrorResponse) => {
@@ -70,20 +76,36 @@ export default function Profile() {
 
         setTimeout(() => {
             window?.statesSocket?.on("FriendsStates", (data: FriendsStates[]) => {
-                let newListFreinds = listFreinds.copyWithin(0, 0, listFreinds.length);
+                // let newListFreinds = listFreinds.copyWithin(0, 0, listFreinds.length);
 
-                newListFreinds.forEach((friend: FriendsResponse) => {
-                    friend.online = false;
-                    friend.status = "";
-                    console.log(friend);
-                    data.forEach((friendState: FriendsStates) => {
-                        if (friend.profile.username === friendState.username) {
-                            friend.online = friendState.online;
-                            friend.status = friendState.status;
-                        }
+                // newListFreinds.forEach((friend: FriendsResponse) => {
+                //     friend.online = false;
+                //     friend.status = "";
+                //     console.log(friend);
+                //     data.forEach((friendState: FriendsStates) => {
+                //         if (friend.profile.username === friendState.username) {
+                //             friend.online = friendState.online;
+                //             friend.status = friendState.status;
+                //         }
+                //     });
+                // });
+                // setlistFreinds(newListFreinds);
+
+                setlistFreinds((friends: FriendsResponse[]) => {
+                    return friends.map((friend) => {
+                            friend.online = false;
+                            friend.status = "";
+                            
+                            data.forEach((friendState: FriendsStates) => {
+                                if (friend.profile.username === friendState.username) {
+                                    friend.online = friendState.online;
+                                    friend.status = friendState.status;
+                                }
+                            });
+
+                            return friend;
                     });
                 });
-                setlistFreinds(newListFreinds);
             });
 
 
@@ -109,70 +131,9 @@ export default function Profile() {
                 console.log(error.message);
             }
         })
-       
-    }, []);
 
-
-    
-    const RecentGame = [
-        {
-            image: avatar,
-            displayn: currnetdispayname,
-            user: username,
-            resultmtch: 5,
-        }
-    ];
-
-    // const listFreinds = [
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 5,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 7,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 9,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 10,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 11,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 3,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 1,
-    //     },
-    //     {
-    //         image: avatar,
-    //         displayn: currnetdispayname,
-    //         user: username,
-    //         resultmtch: 2,
-    //     },
-    // ];
+        
+    }, [view_history]);
 
     useEffect(() => {
         if (uploadFile) {
@@ -196,6 +157,42 @@ export default function Profile() {
         }
     }, [uploadFile]);
 
+
+    const [ allinfogame, setallinfogame] = useState<GameProfile>();
+    const[RecentGame, setRecentGame] = useState<GameProfile[]>([]);
+    useEffect(() => {
+        // Apis.GetGameprofile({
+        //     onSuccess: (gameprofile: GameProfile[]) => {
+        //         setallinfogame(gameprofile);
+        //         console.log(gameprofile);
+               
+        //     }, onFailure: (error: ErrorResponse) => {
+        //         console.log(error.message);
+        //     }
+        // })
+        localService.get<GameProfile>("/api/games").then((res) => {
+            setallinfogame(res.data);
+            console.log(res.data);
+        }).catch((err) => {
+            console.log(err);
+        });
+        
+        
+        Apis.GetallresulteGame({
+            onSuccess: (gameprofile: ResultuserGame[]) => {
+                setRecentGame(gameprofile);
+                console.log(gameprofile);
+               
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+
+
+                
+            }
+        })
+    }, []);
+        
+
     return (
         <>
             <div className="w-full flex absolute justify-end h-full top-0 right-0  ">
@@ -217,10 +214,9 @@ export default function Profile() {
                         <img src="/profile/LOGO.png" className="w-[18%]" alt="" />
                             <div className="sm:flex justify-center w-full  ">
                                 <div className="menu flex list-none justify-around h-full lg:w-[60%] sm:w-[80%] ">
-                                    <li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1"> <img className="" src="/profile/Home.png" alt="" /> <p className="sm:flex hidden">Home</p> </li>
-                                    <li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1"> <img src="/profile/Profile user.png" alt="" /><p className="sm:flex hidden">Profile</p>  </li>
-                                    <li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1"> <img src="/profile/chat.png" alt="" /><p className="sm:flex hidden">Chat</p>  </li>
-                                    <li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1"> <img src="/profile/level.png" alt="" /><p className="sm:flex hidden">Game</p>  </li>
+                                   <Link href={`/user/profile`}><li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1 cursor-pointer"> <img src="/profile/Profile user.png" alt="" /><p className="sm:flex hidden">Profile</p></li></Link>
+                                   <Link href={"/chat/0"}><li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1 cursor-pointer"> <img src="/profile/chat.png" alt="" /><p className="sm:flex hidden">Chat</p></li></Link>
+                                   <Link href={"/game"}><li className="text-[23px] flex font-semibold text-[#463573] bg-[#ebca83] p-1 rounded-[18px] justify-center px-5 mx-1 cursor-pointer" > <img src="/profile/level.png" alt="" /><p className="sm:flex hidden">Game</p></li></Link>
 
                                 </div>
                             </div>
@@ -234,15 +230,15 @@ export default function Profile() {
                                     <button className="text-[23px]  flex justify-end text-[#000] w-[30px] " onClick={() => setopenfriends(!openfriends)}><img src="/profile/popup/exit.png" alt="" /></button>
                                 </div>
                                 <div className="friend w-full flex justify-center">
-                                    <h1 className="text-[25px] font-bold text-[#42386f]">All Friends <span>{'(14)'}</span></h1>
+                                    <h1 className="text-[25px] font-bold text-[#42386f]">All Friends <span>{`(${listFreinds.length})`}</span></h1>
                                 </div>
-                                <div className="listfriend  w-full flex justify-center items-center overflow-y-scroll mt-4 relative pt-[50%]  h-[69%] flex-col">
+                                <div className="listfriend  w-full flex justify-start items-center overflow-y-scroll mt-4 relative  h-[69%] flex-col">
                                     {listFreinds.map((friends, index) => {
                                         return (<>
                                             <div key={index} className="list  bg-[#dddae4] w-[90%] h-24 mt-3 rounded-[20px] justify-around flex items-center px-5">
                                                 <div className="img w-[84px] z-20  rounded-full justify-center  bg-white h-[84px] items-center relative flex">
                                                     <img src={friends.profile.avatar} crossOrigin="anonymous" className={`rounded-full w-[75px]`} alt="ss" />
-                                                    {statusonline? <div className="dot h-[15px] w-[15px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>:
+                                                    {friends.online? <div className="dot h-[15px] w-[15px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>:
                                                         <div className="dot h-[15px] w-[15px] bg-slate-400 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>
                                                         }
                                                 </div>
@@ -250,14 +246,20 @@ export default function Profile() {
                                                     <h1 className="font-bold text-[20px]">{friends.profile.displayName}</h1>
                                                     <h1 className="text-[18px]">@{friends.profile.username}</h1>
                                                 </div>
+
+                                                {friends.status ?
+                                                     <div className="status font-bold text-[20px]">
+                                                        {friends.status}
+                                                    </div>
+                                                    :
+                                                    <></>
+                                                }
                                                 <div className="btns flex">
                                                     <div className={`btnprofile flex p-5 justify-center rounded-[20px] cursor-pointer ${styles.btnprofile}`}>
-                                                        <img src="/profile/popup/user.png" className="w-[30px] " alt="" />
-                                                        <Link href={`/user/${friends.profile.username}`}><p className="px-2 text-[19px] font-bold text-[#4b3d7f]">Profile</p></Link>
+                                                        <Link href={`/user/${friends.profile.username}`}><img src="/profile/popup/user.png" className="w-[30px] " alt="" /></Link>
                                                     </div>
                                                     <div className={`btncontact mx-2 flex p-5 justify-center rounded-[20px] cursor-pointer ${styles.btnconact}`}>
-                                                        <img src="/profile/popup/chat.png" className="w-[30px]" alt="" />
-                                                        <p className="px-2 text-[19px] font-bold text-[#fff]">Contact</p>
+                                                        <Link href={`/chat/${friends.profile.username}`}><img src="/profile/popup/chat.png" className="w-[30px]" alt="" /></Link>
                                                     </div>
                                                 </div>
                                             </div>
@@ -299,7 +301,7 @@ export default function Profile() {
                                                 // value={currnetdispayname}
                                                 placeholder={currnetdispayname}
                                                 onClick={(e) => { e.target.value = '' }}
-                                                onChange={(e) => setdisplayName(e.target.value)}
+                                                onChange={(e) => setdefaultuser(e.target.value)}
 
                                             />
                                             <p className="mt-6  text-[#3b2b60] sm:text-[18px] lg:text-[20px] font-bold">Username</p>
@@ -310,7 +312,17 @@ export default function Profile() {
                                                 value={'@' + username}
                                             // onChange={(e) => setName(e.target.value)}
                                             />
+                                            <div className="2fa pt-4 flex">
+                                                <label className="flex space-x-3">
+                                                    <input type="checkbox"
+                                                        defaultChecked={tfa}
+                                                        onChange={() => settfa(!tfa)}
+                                                    />
+                                                    <p className=" space-x-3">Activate 2 Factor!</p>
+                                                </label>
 
+                                            </div>
+                                            {console.log("tfa out " +tfa)}
                                         </form>
                                         {alertUI.show ? (
                                             <div className="ml-8 my-5 mr-8">
@@ -333,14 +345,14 @@ export default function Profile() {
                                         )}
                                         <button className={`btncontact w-[40%] mx-2 flex p-3 justify-center rounded-[20px] cursor-pointer mt-7 ${styles.btnconact}`} onClick={() => {
                                             Apis.UpdateDisplayName({
-                                                displayNameDto: { displayName: displayName }, onSuccess: () => {
+                                                displayNameDto: { displayName: defaultuser }, onSuccess: () => {
                                                     setAlertUI({
                                                         show: true,
-                                                        messages: [`Display Name ${displayName} is changed`],
+                                                        messages: [`Display Name ${defaultuser} is changed`],
                                                         severity: "success",
                                                     });
-                                                    setdisplayName(displayName);
-                                                    setcurrnetdispayname(displayName);
+                                                    setdisplayName(defaultuser);
+                                                    setcurrnetdispayname(defaultuser);
                                                     setTimeout(() => {
                                                         setAlertUI({   show: false, messages: [], severity: "" }); setopensettings(!opensettings)  }, 1500);
                                                 }, onFailure(err: ErrorResponse) {
@@ -356,10 +368,17 @@ export default function Profile() {
                                                     }
                                                 },
                                             })
+                                            localService.post("/api/auth/tfa", { value: tfa }).then((res) => {
+                                                console.log("tfa in send it " +tfa)
+                                                console.log(res.data)
+                                            }).catch((err) => {
+                                                alert(err)
+                                            })
+
 
 
                                         }}><h1 className="text-[22px] font-bold text-[#fff] ">Save Profile</h1></button>
-                                        <button></button>
+                                        
                                     </div>
 
 
@@ -375,7 +394,7 @@ export default function Profile() {
                                 <Useravatar />
                             </div>
                             <div className="info px-6 lg:px-10 py-8  flex justify-center">
-                                <InfoCurrentUser avatar={avatar} userid={username} displayname={currnetdispayname} />
+                                <InfoCurrentUser avatar={avatar} userid={username} displayname={currnetdispayname} allinfogames={allinfogame} />
                             </div>
                             <div className="info px-6 lg:px-10 py-8 flex justify-center  w-full h-full">
                                 <div className="over w-[95%] xl:w-[75%] rounded-[20px] bg-opacity-50 bg-[#3d2c6bbe]" style={{ height: view_history ? "80%" : "55%" }}>
@@ -394,9 +413,9 @@ export default function Profile() {
                                     </div>
                                     {/* <Overview/> */}
                                     {view_history ?
-                                        <MatchHistory listFreinds={listFreinds} avatar={avatar} userid={username} />
+                                        <MatchHistory listFreinds={RecentGame} avatar={avatar} userid={username}  /> : <Overview listFreinds={RecentGame} RecentGame={allinfogame} avatar={avatar} />}
 
-                                        : <Overview RecentGame={RecentGame} avatar={avatar} />}
+                                        {/* // : <Overview RecentGame={RecentGame} avatar={avatar} />} */}
 
                                 </div>
                             </div>

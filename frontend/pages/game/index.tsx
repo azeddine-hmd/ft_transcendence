@@ -34,7 +34,7 @@ interface GameOption {
 // 	url = "http://localhost";
 // else
 // 	url = "http://".concat(process.env.REACT_APP_IP);
-let url = "http://localhost:8080";
+let url = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const socket = io(url + '/game', {
 	withCredentials: true,

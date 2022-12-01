@@ -21,24 +21,24 @@ export default function MatchHistory({listFreinds,avatar}: any) {
                                     <div className="player1 flex items-center justify-between w-[50%] ">
                                         <div className="avatarwithuser flex items-center">
                                             <div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
-                                                <img src={avatar} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
+                                                <img src={item.winner.avatar} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
                                             </div>
-                                            <div className="uername text-[#9681d5] text-[19px] font-bold  px-4">{item.user}</div>
+                                            <div className="uername text-[#9681d5] text-[19px] font-bold  px-4">{item.winner.username}</div>
                                         </div>
                                         <div className="resultnum">
-                                            <div className="resultnum1 text-[#cfc0fb] text-[35px] font-bold  px-4">{item.resultmtch}</div>
+                                            <div className="resultnum1 text-[#cfc0fb] text-[35px] font-bold  px-4">{item.winnerScore}</div>
                                         </div>
 
                                     </div>
                                     <div className="vs text-[#9681d5] text-[19px] font-bold  px-4">VS</div>
                                     <div className="player2 flex items-center justify-between w-[50%]">
                                         <div className="resultnum">
-                                            <div className="resultnum1 text-[#cfc0fb] text-[35px] font-bold  px-4">{item.resultmtch}</div>
+                                            <div className="resultnum1 text-[#cfc0fb] text-[35px] font-bold  px-4">{item.loserScore}</div>
                                         </div>
                                         <div className="avatarwithuser flex items-center">
-                                            <div className="uername text-[#9681d5] text-[19px] font-bold  px-4">{item.user}</div>
+                                            <div className="uername text-[#9681d5] text-[19px] font-bold  px-4">{item.loser.username}</div>
                                             <div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
-                                                <img src={avatar} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
+                                                <img src={item.loser.avatar} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
                                             </div>
                                         </div>
                                     </div>

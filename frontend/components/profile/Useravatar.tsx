@@ -60,9 +60,9 @@ export default function Useravatar() {
           className={`dropdown absolute z-10 w-[220px] h-[80px] rounded-[18px] flex items-center flex-col mt-[75px] bg-white ${styles.dropdown} `}
         >
           <div className="buttonsetting w-full h-full flex overflow-hidden flex-col justify-center">
-            <Link href={"/user/majdahim/#"}>
+            <Link href={"/user/profile"}>
               <p className="w-full h-[50%] relative rounded-t-[18px] bg-[#e2daf6] text-[#392763] cursor-pointer overflow-hidden flex justify-center items-center">
-                Account Settings
+                My Account
               </p>
             </Link>
             <Link href={"/logout"}>

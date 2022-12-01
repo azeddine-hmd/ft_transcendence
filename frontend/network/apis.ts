@@ -6,10 +6,12 @@ import { SigninDto } from "./dto/payload/signin.dto";
 import { SignupDto } from "./dto/payload/signup.dto";
 import { ErrorResponse } from "./dto/response/error-response.dto";
 import { FriendsResponse } from "./dto/response/friends-response.dto";
+import { GameProfile } from "./dto/response/gameprofile.dto";
 import { OtpauthuriResponse } from "./dto/response/otpauthuri-response";
 import { ProfileResponse } from "./dto/response/profile-response.dto";
 import { RefreshResponse } from "./dto/response/refresh-response.dto";
 import { RelationResponse } from "./dto/response/relation-response.dto";
+import { ResultuserGame } from "./dto/response/resultgameuser.dto";
 import { SigninResponse } from "./dto/response/signin-response.dto";
 import { localService } from "./local.service";
 
@@ -265,6 +267,110 @@ export namespace Apis {
       error: "bad request",
     });
   }
+
+
+  export async function GetGameprofile(options: {
+    onSuccess: (gameprofile: GameProfile) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<GameProfile>(
+        "/api/games"
+      );
+      return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+
+//==================================================================================================
+export async function GetGameOtherprofile(options: {
+  username:ProfilesUser;
+  onSuccess: (gameprofile: GameProfile) => void;
+  onFailure: (err: ErrorResponse) => void;
+}) {
+  try {
+    const res = await localService.get<GameProfile>(
+      "/api/games"
+    );
+    return options.onSuccess(res.data);
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      const error = err as AxiosError<ErrorResponse>;
+      if (error && error.response && error.response.data) {
+        return options.onFailure(error.response.data);
+      }
+    }
+  }
+  return options.onFailure({
+    statusCode: 400,
+    message: networkError,
+    error: "bad request",
+  });
+}
+//==================================================================================================
+
+
+
+
+  export async function GetallresulteGame(options: {
+    onSuccess: (gameprofile: ResultuserGame[]) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<ResultuserGame[]>(
+        "/api/games/all"
+      );
+      return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+  export async function GetresulteGameotheruser(options: {
+    username: ProfilesUser;
+    onSuccess: (gameprofile: GameProfile[]) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<GameProfile[]>(
+        `/api/games/username/${options.username.username}`
+      );
+      return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+
 
   /*
     returns relation between current user and other user

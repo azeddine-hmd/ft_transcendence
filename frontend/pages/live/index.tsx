@@ -25,7 +25,8 @@ interface GameOption {
 	}
 }
 var socket: any;
-let url = "http://" + "localhost" + ":8080";
+
+let url = process.env.NEXT_PUBLIC_API_BASE_URL;
 socket = io(url + "/game", { transports: ['websocket'] });
 export { socket };
 

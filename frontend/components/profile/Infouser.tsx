@@ -9,6 +9,8 @@ import { useState } from "react";
 import { FriendsStatus } from "../../network/dto/response/friends-response.dto";
 import { BsTropicalStorm } from "react-icons/bs";
 import { ErrorResponse } from "../../network/dto/response/error-response.dto";
+import { GameProfile } from "../../network/dto/response/gameprofile.dto";
+import { useRouter } from "next/router";
 
 
 
@@ -21,7 +23,25 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
     const [blockstatus,setBlockstatus] = useState("");
     const [onlinestatus,setOnlinestatus] = useState(true);
 
-        console.log("userid :",userid)
+    const router = useRouter();
+    const userids = router.query.user;
+    const [allinfogame, setallinfogame] = useState<GameProfile>();
+    useEffect(() => {
+        if (userids) {
+           
+            console.log("samurai was here " +userids);
+            localService.get<GameProfile>(`/api/games/username/${userids}`).then((res )=> {
+                setallinfogame(res.data);
+                console.log(res.data);
+            }).catch((err) => {
+                alert(err.message);
+            });
+        }
+        // if(username)
+            // console.log("other user : " + username);
+
+        
+    }, [userids])
 
     useEffect(() => {
         if(userid)
@@ -48,7 +68,7 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
                 setBlockstatus("Unblock");
             else if (res.data.blocked == false)
                 setBlockstatus("Block");
-            console.log(`friends status: ${res.data.friends} | block status: ${res.data.blocked})}`);
+            // console.log(`friends status: ${res.data.friends} | block status: ${res.data.blocked})}`);
         }).catch((err)=>{
             alert(err.messages);
         })
@@ -107,8 +127,8 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
                                 <div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
 
                                 <img src={avatar} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
-                                {onlinestatus? <div className="dot h-[18px] w-[18px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>:
-                                 <div className="dot h-[18px] w-[18px] bg-slate-400 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>}
+                                {/* {onlinestatus? <div className="dot h-[18px] w-[18px] bg-emerald-500 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>:
+                                 <div className="dot h-[18px] w-[18px] bg-slate-400 rounded-[50%] flex z-60 absolute right-0 top-14 "></div>} */}
                                
                                 </div>
                                 <div className="displayname    px-4 flex flex-col">
@@ -146,10 +166,10 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
                                 </div>
 
                                 <div className="displayname w-full px-4 flex flex-col">
-                                    <h1 className="text-[#3b2b60] sm:text-[23px] lg:text-[26px] font-bold ">Level 20</h1>
+                                    <h1 className="text-[#3b2b60] sm:text-[23px] lg:text-[26px] font-bold "><p className=" space-x-5 mr-6"> Level</p> {allinfogame?.level}</h1>
                                     <h2 className="text-[#3b2b60]  sm:text-[21px]  bottom-2 font-light ">Congrats! You're intermediate now</h2>
                                     <div className="w-full bg-[#fae1a1] rounded-full h-2.5 dark:bg-gray-700">
-                                        <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{width: "45%"}}></div>
+                                        <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{ width: `${allinfogame?.percent_pation}` }}></div>
                                     </div>
                             </div>
                         </div>
