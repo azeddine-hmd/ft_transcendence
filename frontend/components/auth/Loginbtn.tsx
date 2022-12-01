@@ -41,7 +41,7 @@ export default function LoginBtn() {
             <br />
             <p className=" w-[400px] sm:w-full sm:min-w-[300px] min-w-[300px]  text-[#fff]">
               The object is to hit the ball so that it goes over the net and
-              bounces on the opponent's half of the table in such a way that the
+              bounces on the opponents half of the table in such a way that the
               opponent cannot reach it or return it correctly. The lightweight
               hollow ball is propelled back and forth across the net by small
               rackets (bats, or paddles) held by the players.

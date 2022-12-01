@@ -23,6 +23,7 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
     const [blockstatus,setBlockstatus] = useState("");
     const [onlinestatus,setOnlinestatus] = useState(true);
 
+
     const router = useRouter();
     const userids = router.query.user;
     const [allinfogame, setallinfogame] = useState<GameProfile>();
@@ -167,7 +168,7 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
 
                                 <div className="displayname w-full px-4 flex flex-col">
                                     <h1 className="text-[#3b2b60] sm:text-[23px] lg:text-[26px] font-bold "><p className=" space-x-5 mr-6"> Level</p> {allinfogame?.level}</h1>
-                                    <h2 className="text-[#3b2b60]  sm:text-[21px]  bottom-2 font-light ">Congrats! You're intermediate now</h2>
+                                    <h2 className="text-[#3b2b60]  sm:text-[21px]  bottom-2 font-light ">Congrats! Youre intermediate now</h2>
                                     <div className="w-full bg-[#fae1a1] rounded-full h-2.5 dark:bg-gray-700">
                                         <div className="bg-[#3d2d6d] h-2.5 rounded-full" style={{ width: `${allinfogame?.percent_pation}` }}></div>
                                     </div>

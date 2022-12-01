@@ -196,7 +196,7 @@ function Live() {
 				<div className="contain absolute top-0 w-full h-screen flex justify-between">
 					<Sidebar />
 					<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
-						<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
+						<Useravatar />{/*  edited */}
 						<div>
 
 							<div className={style.start} ><button className={style.start} onClick={() => ft()}>Matchs On linge</button><br /></div>
@@ -205,7 +205,7 @@ function Live() {
 									{
 										easyGames.map((elm: any, index: number) =>
 											elm ?
-											<div onClick={() => join("Easy", index)}>
+											<div key={""} onClick={() => join("Easy", index)}>
 												<button  className="w-[100%]">
 													<div className="resultplayers   w-[100%]  flex justify-center ">
 														<div className="justcenter flex justify-between items-center rounded-[20px] w-[80%] h-[110px] px-7 bg-[#49367c] my-5 bg-opacity-90">
@@ -239,7 +239,7 @@ function Live() {
 									{
 										hardGames.map((elm: any, index: number) =>
 											elm ?
-												<button onClick={() => join("Hard", index)} className="w-[100%]">
+												<button key="" onClick={() => join("Hard", index)} className="w-[100%]">
 
 													<div className="resultplayers   w-[100%]  flex justify-center ">
 														<div className="justcenter flex justify-between items-center rounded-[20px] w-[80%] h-[110px] px-7 bg-[#f0272074] my-5 bg-opacity-90">

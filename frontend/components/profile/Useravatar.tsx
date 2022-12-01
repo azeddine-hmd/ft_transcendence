@@ -18,7 +18,7 @@ export default function Useravatar() {
             onSuccess: (profile: ProfileResponse) => {
                 setcurrnetdispayname(profile.displayName);
                 setavatar(profile.avatar);
-                //  setavatar("/profile/Avatar.png");
+                // setavatar("/profile/Avatar.png");
             },
             onFailure: (error: ErrorResponse) => {
                 console.log(error.message)

@@ -105,7 +105,7 @@ export default function C_signin() {
                                 </span>
                             </button>
                             <div className="signup mt-3 flex text-[14px] w-full justify-center">
-                                <p>Don't have an account?</p>
+                                <p>Dont have an account?</p>
                                 <Link href={"/signup"}>
                                     <span className="ml-[6px] cursor-pointer text-[#785cd3]">
                                         Sign up

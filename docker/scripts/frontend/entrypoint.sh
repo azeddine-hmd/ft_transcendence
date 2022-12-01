@@ -9,6 +9,8 @@ if [ "$MODE" == "dev" ]; then
 	npm run dev
 else
 	echo "mode [prod]..."
+	tail -f /dev/null
 	npm run build
 	npm run start
 fi
+

@@ -30,7 +30,7 @@ import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
 export default function Profile() {
     const router = useRouter();
     const [username, setusername] = useState('')
-    const [avatar, setavatar] = useState("");
+    const [avatar, setavatar] = useState("http://localhost:8080/api/images/default-avatar.png");
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [view_history, setview_history] = useState(false);
     const [opensettings, setopensettings] = useState(false);
@@ -146,9 +146,9 @@ export default function Profile() {
                     },
                 })
                 .then((res) => {
-                    const avatar = res.data.url;
-                    console.log("new avatar url: " + avatar);
-                    setavatar(avatar);
+                    // const avatar = res.data.url;
+                    // console.log("new avatar url: " + avatar);
+                    // setavatar(avatar);
                     setUploadFile(null);
                 })
                 .catch((err) => {
@@ -159,7 +159,13 @@ export default function Profile() {
 
 
     const [ allinfogame, setallinfogame] = useState<GameProfile>();
-    const[RecentGame, setRecentGame] = useState<GameProfile[]>([]);
+    const[RecentGame, setRecentGame] = useState<ResultuserGame>({
+        winner: "",
+        loser: "",
+        winnerScore: 0,
+        loserScore: 0,
+        mode: "",
+    });
     useEffect(() => {
         // Apis.GetGameprofile({
         //     onSuccess: (gameprofile: GameProfile[]) => {
@@ -179,15 +185,12 @@ export default function Profile() {
         
         
         Apis.GetallresulteGame({
-            onSuccess: (gameprofile: ResultuserGame[]) => {
+            onSuccess: (gameprofile: ResultuserGame) => {
                 setRecentGame(gameprofile);
                 console.log(gameprofile);
                
             }, onFailure: (error: ErrorResponse) => {
                 console.log(error.message);
-
-
-                
             }
         })
     }, []);
@@ -285,6 +288,7 @@ export default function Profile() {
                                     <div className="form w-full justify-center flex flex-col items-center">
 
                                         <form className="flex w-[66%] flex-col mt-7" encType="multipart/form-data">
+                                            <>
                                             <input type="file" name="file" id="file" className="inputfile hidden" onChange={(e) => {
                                                 if (e.target.files) {
                                                     setUploadFile(e.target.files[0]);
@@ -300,7 +304,7 @@ export default function Profile() {
                                                 className="border border-gray-500 py-3 rounded-xl px-5"
                                                 // value={currnetdispayname}
                                                 placeholder={currnetdispayname}
-                                                onClick={(e) => { e.target.value = '' }}
+                                                onClick={(e:any) => { e.target.value = '' }}
                                                 onChange={(e) => setdefaultuser(e.target.value)}
 
                                             />
@@ -323,6 +327,8 @@ export default function Profile() {
 
                                             </div>
                                             {console.log("tfa out " +tfa)}
+                                            </>
+                                            
                                         </form>
                                         {alertUI.show ? (
                                             <div className="ml-8 my-5 mr-8">
@@ -413,9 +419,9 @@ export default function Profile() {
                                     </div>
                                     {/* <Overview/> */}
                                     {view_history ?
-                                        <MatchHistory listFreinds={RecentGame} avatar={avatar} userid={username}  /> : <Overview listFreinds={RecentGame} RecentGame={allinfogame} avatar={avatar} />}
+                                     <MatchHistory listFreinds={RecentGame} avatar={avatar} userid={username}  /> : <Overview listFreinds={RecentGame} />}
 
-                                        {/* // : <Overview RecentGame={RecentGame} avatar={avatar} />} */}
+                                   
 
                                 </div>
                             </div>

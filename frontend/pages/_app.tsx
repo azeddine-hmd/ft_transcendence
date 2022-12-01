@@ -51,7 +51,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
 
       localService.get("/api/auth/verify").then(() => {
-        router.push("/home");
+        router.push("/user/profile");
       }).catch(() => {
           setDisplayPage(true);
       });
