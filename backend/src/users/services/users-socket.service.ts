@@ -58,7 +58,7 @@ export class UsersSocketService {
     }
   }
 
-  async setStates(userId: string, status: string) {
+  async setStatus(userId: string, status: string) {
     await this.usersService.setStatus(userId, status);
   }
 
