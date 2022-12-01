@@ -6,7 +6,6 @@ import { Socket } from 'socket.io';
 @Catch(WsException, HttpException)
 export class WsExceptionFilter extends BaseExceptionFilter {
   catch(exception: WsException | HttpException, host: ArgumentsHost): void {
-    Logger.debug(`Websocket Exception Filter catchs something!`);
     const client = host.switchToWs().getClient();
     const error =
       exception instanceof WsException
