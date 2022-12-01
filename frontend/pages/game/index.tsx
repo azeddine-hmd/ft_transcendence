@@ -302,7 +302,7 @@ function Game() {
 						<Sidebar />
 					</div>
 					<div className="contentss w-full   flex-col ">
-						<Useravatar avata={"/profile/Avatar.png"} userid={username} />
+						<Useravatar />
 						<div className="resultplayers   w-[100%]  flex justify-center ">
 							<div className="justcenter flex justify-between items-center rounded-[20px] w-[80%] h-[110px] px-7 bg-[#49367c] my-5 bg-opacity-90">
 								<div className="player1 flex items-center justify-between w-[50%] ">

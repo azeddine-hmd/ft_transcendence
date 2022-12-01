@@ -32,12 +32,6 @@ export default function Sidebar() {
 
     const MenuItems = [
         {
-          label: 'Home',
-          url: "/home",
-          icon: "/profile/Home.png",
-          active: true,
-        },
-        {
           label: 'Profile',
           url: "/user/profile",
           icon: "/profile/Profile user.png",

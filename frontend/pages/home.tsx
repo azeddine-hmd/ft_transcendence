@@ -44,8 +44,6 @@ export default function Game() {
             </div>
                     <div className="contentss w-full  h-full py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
                         <Useravatar
-                            avata={imageUrl}
-                            userid={username}
                         />
 
                         <h1>data</h1>

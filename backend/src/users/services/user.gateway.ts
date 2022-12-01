@@ -34,7 +34,6 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await this.usersSocketService.addClient(client.id, client.user.userId);
       Logger.log(`client socket connected on user gateway: id=${client.id}`);
     } catch (exception) {
-      console.log(`inside handleConnection`);
       handleWsException(client, exception);
     }
   }
@@ -42,7 +41,11 @@ export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(client: Socket) {
     if (client.user) {
       Logger.log(`client socket disconnected on user gateway: id=${client.id}`);
-      await this.usersSocketService.removeClient(client.user.userId, client.id);
+      try {
+        await this.usersSocketService.removeClient(client.user.userId, client.id);
+      } catch (exception) {
+        
+      }
     }
   }
 

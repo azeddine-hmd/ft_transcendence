@@ -12,3 +12,4 @@ else
 	npm run build
 	npm run start
 fi
+

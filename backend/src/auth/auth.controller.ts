@@ -94,7 +94,7 @@ export class AuthController {
       return newCookie;
     });
     res.setHeader('Set-Cookie', setCookieHedaerNew);
-    let url = `${frontendHost}/home`;
+    let url = `${frontendHost}/user/profile`;
     if (login.tfa && login.tfa === 'pending') {
       url = `${frontendHost}/auth/tfa`;
     }
@@ -165,7 +165,7 @@ export class AuthController {
       return newCookie;
     });
     res.setHeader('Set-Cookie', setCookieHedaerNew);
-    let url = `/home`;
+    let url = `/user/profile`;
     if (login.tfa && login.tfa === 'pending') {
       url = `/auth/tfa`;
     }

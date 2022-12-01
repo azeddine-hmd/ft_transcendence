@@ -73,7 +73,7 @@ export default function C_signup() {
                         severity: "success",
                       });
                       setTimeout(() => {
-                        router.push("/home");
+                        router.push("/user/profile");
                       }, 1500);
                     },
                     onFailure: (err: ErrorResponse) => {

@@ -5,10 +5,18 @@ import { Apis } from "../../network/apis";
 import { GameProfile } from "../../network/dto/response/gameprofile.dto";
 import { ErrorResponse } from "../../network/dto/response/error-response.dto";
 import { useRouter } from "next/router";
+import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
 
 
-export default function Overview({listFreinds,RecentGame,avatar}: any) {
+export default function Overview({listFreinds}: any) {
     const  router = useRouter();
+    const[RecentGame, setRecentGame] = useState<ResultuserGame>({
+        winner: "",
+        loser: "",
+        winnerScore: 0,
+        loserScore: 0,
+        mode: "",
+    });
     
     const [allinfogame, setallinfogame] = useState<GameProfile>({
         total_games: 0,
@@ -34,6 +42,18 @@ export default function Overview({listFreinds,RecentGame,avatar}: any) {
                 console.log(error.message);
             }
         })
+
+        Apis.GetallresulteGame({
+            onSuccess: (gameprofile: ResultuserGame) => {
+                setRecentGame(gameprofile);
+                console.log(gameprofile);
+               
+            }, onFailure: (error: ErrorResponse) => {
+                console.log(error.message);
+            }
+        })
+
+
         
     }, [])
 
@@ -66,10 +86,11 @@ export default function Overview({listFreinds,RecentGame,avatar}: any) {
 
                     </div>
                 </div>
-                <div className={` flex justify-start bg-[#624c9e] h-[230px] my-9 rounded-[20px] py-6  px-9 m-auto flex-col min-w-[300px] overflow-y-scroll ${styles.scrollbar}  `}>
-                        <p className="text-[22px] text-[#fff] font-medium ">Recent Game</p>
-                        {listFreinds.slice(0, 1).map((item:any, index:any) => {return(<>
-                                <div key={index = 1} className="resultplayers  bg-[#49367c] my-5 bg-opacity-90 w-[100%] h-[110px] rounded-[20px] flex justify-between items-center px-7 min-w-[700px]">
+                {/* <div className={` flex justify-start bg-[#624c9e] h-[230px] my-9 rounded-[20px] py-6  px-9 m-auto flex-col min-w-[300px] overflow-y-scroll ${styles.scrollbar}  `}> */}
+                        {/* <p className="text-[22px] text-[#fff] font-medium ">Recent Game</p> */}
+                        {/* {listFreinds && listFreinds.slice(0, 1).map((item:any, index:any) => {return(<>
+                        
+                                <div className="resultplayers  bg-[#49367c] my-5 bg-opacity-90 w-[100%] h-[110px] rounded-[20px] flex justify-between items-center px-7 min-w-[700px]">
                                     <div className="player1 flex items-center justify-between w-[50%] ">
                                         <div className="avatarwithuser flex items-center">
                                             <div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
@@ -95,58 +116,21 @@ export default function Overview({listFreinds,RecentGame,avatar}: any) {
                                         </div>
                                     </div>
                                 </div>
-                            </>)})}
-                </div>
+                        
+                        
+                        
+                        
+                        </>)
+
+
+
+
+                        })} */}
+                            {/* </>)})} */}
+                {/* </div> */}
             </div>
 
         </div>
 
-
-
-        // <>
-        // <div className="result absolute top-32 mt-5 w-full h-[95px]  justify-center items-center min-w-[900px] sm:flex  border border-red-300">
-        //                         <div className="centerel absolute w-[90%] rounded-[20px]  h-[95px] flex justify-center items-center">
-        //                             <div className="overlay relative rounded-[30px]  top-0 w-full h-[95px] flex opacity-50 bg-[#644dad]"></div>
-        //                             <div className="icons absolute flex justify-around w-full px-8 ">
-        //                                     <div className="playmtches w-[340px]  py-3 rounded-[24px] bg-[#443375] text-[#ffffff] flex justify-center items-center  cursor-pointer">
-        //                                         <h1 className="text-[25px] font-bold ">Match Played</h1>
-        //                                         <img src="/profile/match played.png" className="w-[30px] mx-4" alt="" />
-        //                                         <p className="mr-3 text-[25px] font-bold">{11}</p>
-        //                                     </div>
-        //                                      <h1 className="text-[#fff]">|</h1>
-        //                                     <div className="wins w-[210px]  py-4 rounded-[24px] bg-[#443375] text-[#ffffff] flex justify-center cursor-pointer">
-        //                                         <h1 className="text-[25px] font-bold ">Wins:</h1>
-        //                                         <img src="/profile/cupwin.png" className="w-[30px]  relative top-1 h-[25px] mx-2" alt="" />
-        //                                         <p className="mr-2 text-[25px] font-bold">{9}</p>
-        //                                     </div>
-        //                                      <h1 className="text-[#fff]">|</h1>
-        //                                     <div className="loses w-[210px]  py-4 rounded-[24px] bg-[#443375] text-[#ffffff] flex justify-center cursor-pointer">
-        //                                         <h1 className="text-[25px] font-bold">Loses:</h1>
-        //                                         <img src="/profile/loses.png" className="w-[30px]  relative top-2 h-[25px] mx-2" alt="" />
-        //                                         <p className="mr-2 text-[25px] font-bold">{2}</p>
-        //                                     </div>
-        //                             </div>
-        //                             {/* Recent game */}
-        //                         </div>
-                                
-        //                     </div>
-        //                     <br />
-        //                     <br />
-        //                     <div className="recentgame absolute top-[240px] mt-5 w-full h-[300px] flex justify-center items-center min-w-[900px] border border-red-300 ">
-        //                         <div className="centerel absolute w-[90%] rounded-[20px] items-center  h-[300px] flex ">
-        //                             <div className="overlay relative rounded-[30px]  top-0 w-full h-[300px] flex opacity-50 bg-[#644dad]"></div>
-        //                             <div className="icons absolute flex justify-start items-start flex-col w-full px-8 ">
-        //                                 <div className="loses w-[310px]  py-3 rounded-[24px] bg-[#443375] text-[#ffffff] flex justify-center cursor-pointer">
-        //                                     <h1 className="text-[25px] font-bold">Recent Game</h1>
-        //                                 </div>
-        //                                 <div className="loses w-[310px] my-2 py-4 rounded-[24px] text-[#ffffff] flex justify-center cursor-pointer">
-        //                                     <img src="/profile/level.png" className={`w-[25px] h-[25px] relative top-1 mx-2`} alt="" />
-        //                                     <h1 className="text-[25px] font-bold">No Game Found</h1>
-        //                                 </div>
-        //                             </div>
-
-        //                         </div>
-        //                     </div>
-        // </>
     );
 }

@@ -324,11 +324,11 @@ export async function GetGameOtherprofile(options: {
 
 
   export async function GetallresulteGame(options: {
-    onSuccess: (gameprofile: ResultuserGame[]) => void;
+    onSuccess: (gameprofile: ResultuserGame) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.get<ResultuserGame[]>(
+      const res = await localService.get<ResultuserGame>(
         "/api/games/all"
       );
       return options.onSuccess(res.data);
