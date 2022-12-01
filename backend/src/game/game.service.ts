@@ -26,13 +26,16 @@ export default class GameService {
     private usersService: UsersService,
   ) {}
 
-  async getAllMatchs(userId: string): Promise<GameMatch[]> {
+  async getAllMatchs(username: string): Promise<GameMatch[]> {
     return await this.gameRepository.find({
       relations: {
         winner: { profile: { user: true } },
         loser: { profile: { user: true } },
       },
-      where: [{ winner: { userId: userId } }, { loser: { userId: userId } }],
+      where: [
+        { winner: { username: username } },
+        { loser: { username: username } },
+      ],
     });
   }
 

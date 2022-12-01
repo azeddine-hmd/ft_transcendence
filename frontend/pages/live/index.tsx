@@ -25,7 +25,8 @@ interface GameOption {
 	}
 }
 var socket: any;
-let url = "http://" + "localhost" + ":8080";
+
+let url = process.env.NEXT_PUBLIC_API_BASE_URL;
 socket = io(url + "/game", { transports: ['websocket'] });
 export { socket };
 
@@ -196,7 +197,8 @@ function live() {
 					<div className="contentss w-full  h-screen py-24 px-24 lg:px-15 mx-16 xl:px-28 flex-col ">
 						<Useravatar avata={"/profile/Avatar.png"} userid={"amine ajdahim"} />
 						<div>
-							<div ><button onClick={() => ft()}>live</button><br /></div>
+
+							<div className={style.start} ><button className={style.start} onClick={() => ft()}>Matchs On linge</button><br /></div>
 							<div className=" background-color: coral  width: 200px overflow-y: scroll">
 								<div id="livegames">
 									{

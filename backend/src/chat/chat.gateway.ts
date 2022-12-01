@@ -111,7 +111,8 @@ export class ChatGateway {
   @SubscribeMessage('createRoom')
   async  createRoom(@MessageBody() createRoomDto: CreateRoomDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-    
+    if (!clientId)
+      return;
     
     let test =  await this.chatService.createRoom(createRoomDto, clientId);
     
@@ -126,6 +127,8 @@ export class ChatGateway {
     
     
     let clientId:any =  getClientId(client, this.jwtService);
+    if (!clientId)
+      return;
     let test =  await this.chatService.updateRoom(updateRoomDto, clientId);
     if(test == 1)
       this.server.emit('updateRoom', { success: false, error: "User not found" });
@@ -142,6 +145,8 @@ export class ChatGateway {
     
     
     let clientId:any =  getClientId(client, this.jwtService);
+    if (!clientId)
+      return;
     let test =  await this.chatService.addRoleToSomeUser(addRoleToSomeUserDto, clientId);
     
     
@@ -182,6 +187,8 @@ export class ChatGateway {
   {
     let messages:msgModel[] = [];
     let clientId:any =  getClientId(client, this.jwtService);
+    if (!clientId)
+      return;
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
     if (join == 1)
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "user not found", msgs: null });
@@ -255,6 +262,8 @@ export class ChatGateway {
   @SubscribeMessage('findAllRooms')
   async getRooms(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
+    if (!clientId)
+      return;
     try {
       const rooms = await this.chatService.getRooms();
       let arr:any = new Array();
@@ -279,7 +288,8 @@ export class ChatGateway {
   @SubscribeMessage('createMsg')
   async  createMsg(@MessageBody() createMsgDto: CreateMsgDto, @ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-
+    if (!clientId)
+      return;
     let test =  await this.chatService.createMsg(createMsgDto, clientId);
     if(test == 1)
       this.server.to(client.id).emit('createMsg', { created: false, error: "user not found!" });
@@ -354,7 +364,8 @@ export class ChatGateway {
   @SubscribeMessage('conversation')
   async  conversation(@ConnectedSocket() client: Socket) {
     let clientId:any =  getClientId(client, this.jwtService);
-
+    if (!clientId)
+      return;
     /*
       get from the conversation table in the database
       all the users that the current user talk with them
@@ -397,7 +408,8 @@ export class ChatGateway {
   @SubscribeMessage('getPrivateMsg')
   async  getPrivateMsg(@MessageBody() conversationDto: ConversationDto, @ConnectedSocket() client: Socket) { 
     let clientId:any =  getClientId(client, this.jwtService);
-    
+    if (!clientId)
+      return;
     let test = await this.chatService.getPrivateMsg(conversationDto, clientId);
     const blockedUsers = await this.chatService.getBlockedUsers(clientId);
     
@@ -486,6 +498,8 @@ export class ChatGateway {
 @SubscribeMessage('blockUser')
 async blockUser(@MessageBody() user:  ConversationDto, @ConnectedSocket() client: Socket) {
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   try {
     let test = await this.chatService.blockU(user, clientId);
     if (!test)
@@ -514,6 +528,8 @@ async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket)
   
   
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   try {
     let test = await this.chatService.kickUser(kick, clientId);
     if (!test)
@@ -565,6 +581,8 @@ async kickUser(@MessageBody() kick:  KickDto, @ConnectedSocket() client: Socket)
 async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   try {
     let test = await this.chatService.banUser(ban, clientId);
     if (!test)
@@ -616,7 +634,8 @@ async banUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
 @SubscribeMessage('Mute')
 async muteUser(@MessageBody() ban:  BanDto, @ConnectedSocket() client: Socket) {
   let clientId:any =  getClientId(client, this.jwtService);
-  
+  if (!clientId)
+    return;
   try {
    let test = await this.chatService.muteUser(ban, clientId);
     if (!test)
@@ -672,6 +691,8 @@ async inviteUser(@MessageBody() inviteDto:  InviteDto, @ConnectedSocket() client
   
   
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   try {
     const usr: User | null = await this.chatService.checkUserByUserName(inviteDto.user);
     const currentUser: User | null = await this.chatService.checkUser(clientId);
@@ -700,6 +721,8 @@ async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() cl
   
   
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   try {
     const usr: User | null = await this.chatService.checkUserByUserName(acceptDto.username);
     const currentUser: User | null = await this.chatService.checkUser(clientId);
@@ -730,6 +753,8 @@ async inviteAccepted(@MessageBody() acceptDto:  AcceptDto, @ConnectedSocket() cl
 @SubscribeMessage('clientId')
 async clientUsername(@ConnectedSocket() client: Socket) {
   let clientId:any =  getClientId(client, this.jwtService);
+  if (!clientId)
+    return;
   const usr: User | null = await this.chatService.checkUser(clientId);
   if (usr)
     this.server.to(client.id).emit('clientId', { user: usr.username });
@@ -775,7 +800,7 @@ async updateMsg(@ConnectedSocket() client: Socket) {
   { 
     let clientId:any =  getClientId(client, this.jwtService);
     if (!clientId)
-    return;
+      return;
     try {
       const usr: User | null = await this.chatService.checkUser(clientId);
       if (usr)

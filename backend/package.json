@@ -34,6 +34,7 @@
     "@nestjs/swagger": "^6.1.2",
     "@nestjs/typeorm": "^9.0.1",
     "@nestjs/websockets": "^9.1.4",
+    "@nodelib/fs.scandir": "^2.1.5",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/express-serve-static-core": "^4.17.31",

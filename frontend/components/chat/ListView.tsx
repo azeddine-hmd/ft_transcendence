@@ -34,9 +34,9 @@ function CreateNewRoom() {
             <div className={stylee.column}>
                 <div className={stylee.noHoverCard}>
                     <h3>Create New Room</h3>
-                    <input placeholder="title *" className={stylee.input} type="text" onInput={handleTitleChange}></input><br />
-                    <input placeholder="description *" className={stylee.input} type="text" onInput={handleDescriptionChange}></input><br />
-                    <input placeholder="password (optional)" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br />
+                    <input value={title} placeholder="title *" className={stylee.input} type="text" onInput={handleTitleChange}></input><br />
+                    <input value={description} placeholder="description *" className={stylee.input} type="text" onInput={handleDescriptionChange}></input><br />
+                    <input value={password} placeholder="password (optional)" className={stylee.input} type="password" onInput={handlePasswordChange}></input><br />
                     <div className={style.buttonsHolder}>
                         <button onClick={handleSubmitCreateNewRoom} className={style.button}>Create New Room</button>
                     </div>
@@ -134,13 +134,13 @@ export default function ListView() {
                 (channel == 'rooms') ?
                 data.map(data => {
                     return (
-                        <Card title={data.title} description={data.description} members={data.members} id={data.id} privacy={data.privacy} />
+                        <Card key={data.title} title={data.title} description={data.description} members={data.members} id={data.id} privacy={data.privacy} />
                     );
                 })
                 :
                 dms.map(data => {
                     return (
-                        <DM displayName={data.displayName} username={data.username} userId={data.userId} avatar={data.avatar} />
+                        <DM key={data.displayName} displayName={data.displayName} username={data.username} userId={data.userId} avatar={data.avatar} />
                     );
                 })
                 }
