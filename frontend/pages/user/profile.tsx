@@ -52,6 +52,7 @@ export default function Profile() {
                 onSuccess: (profile: ProfileResponse) => {
                     setusername(profile.username);
                     setcurrnetdispayname(profile.displayName);
+                    setdefaultuser(profile.displayName)
                     setavatar(profile.avatar);
                     if (profile.tfa)
                         settfa(profile.tfa);
