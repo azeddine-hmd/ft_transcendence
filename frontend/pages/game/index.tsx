@@ -77,7 +77,6 @@ function Game() {
 	
 
 	const Refreche = () => {
-		
 		socket.emit("leaveGame", playerName + " " + mode + " " + gameIndex)
 		getResult();
 		socket.off("ballPos");
