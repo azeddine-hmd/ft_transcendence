@@ -75,8 +75,7 @@ function Game() {
 	const router = useRouter()
 
 	const Refreche = () => {
-		setscr1(game.player1.score)
-		setscr2(game.player2.score)
+		
 		socket.emit("leaveGame", playerName + " " + mode + " " + gameIndex)
 		
 		socket.off("ballPos");
@@ -281,18 +280,19 @@ function Game() {
 	function getResult() {
 		if (Number(game.player1.score) > Number(game.player2.score)) {
 			if (playerName === p1)
-				setLoserWiner("loser");
-			else
 				setLoserWiner("winer");
+			else
+				setLoserWiner("loser");
 		}
 		if (Number(game.player1.score) < Number(game.player2.score)) {
 			if (playerName === p1)
-				setLoserWiner("winer");
+				setLoserWiner("loser");
 			else
 				setLoserWiner("loser");
-			setscr1(game.player1.score)
-			setscr2(game.player2.score)
+			
 		}
+		setscr1(game.player1.score)
+		setscr2(game.player2.score)
 		game.ball.speed.x = 0;
 		game.ball.speed.y = 0;
 		game.ball.x = canvas.width / 2 - ballHeight / 2;
@@ -319,7 +319,7 @@ function Game() {
 
 	return (
 		<>
-			{isWinerLoser !== "" ? <div><Popup msg={`You are ${isWinerLoser}`} /></div> : ""}
+			{isWinerLoser !== "" ? <div><Popup msg={`${isWinerLoser}`} /></div> : ""}
 			<div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
 				<img src="/profile/bg.png" className="  w-full h-screen min-w-full " alt="" />
 				<div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
@@ -336,7 +336,7 @@ function Game() {
 										<div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
 											<img src={"/profile/Avatar.png"} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
 										</div>
-										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{pone}</div>
+										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{ptwo}</div>
 									</div>
 									<div className="resultnum text-[19px] text-[#bdb6d0] ">
 										{scr2}
@@ -348,7 +348,7 @@ function Game() {
 										{scr1}
 									</div>
 									<div className="avatarwithuser flex items-center">
-										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{ptwo}</div>
+										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{pone}</div>
 										<div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
 											<img src={"/profile/Avatar.png"} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
 										</div>
