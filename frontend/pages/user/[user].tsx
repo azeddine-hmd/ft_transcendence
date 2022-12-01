@@ -9,13 +9,16 @@ import Useravatar from "../../components/profile/Useravatar";
 import Infouser from "../../components/profile/Infouser";
 import Link from "next/link";
 import styles from "../../styles/Profile/user.module.css"
-import Overview from "../../components/profile/overview";
+// import Overview from "../../components/profile/overview";
 import axios from "axios";
 import { style } from "@mui/system/Stack/createStack";
 import { IoConstructOutline } from "react-icons/io5";
 import { ProfilesUser } from "../../network/dto/payload/profileuser";
 import MatchHistory from "../../components/profile/match_history";
 import { FriendsResponse } from "../../network/dto/response/friends-response.dto";
+import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
+import { GameProfile } from "../../network/dto/response/gameprofile.dto";
+import Overview from "../../components/profile/overviewotheruser";
 
 
 
@@ -42,7 +45,7 @@ export default function User(){
          const [listFreinds,setlistFreinds] = useState([{}]);
 
         //  console.log("user: " +userid);
-
+        const[RecentGame, setRecentGame] = useState<GameProfile[]>([]);
          useEffect(() => {
                  Apis.CurrentProfile(
                      {
@@ -73,6 +76,9 @@ export default function User(){
                         }
                     })
                 }},[userid])
+                useEffect(() => {
+                   
+                },[])
         return (
     
             <>
@@ -146,7 +152,7 @@ export default function User(){
                                         <div className="firstbtn flex py-2 px-2 flex-col md:flex-row md:justify-between w-full">
                                             <div className="btns flex flex-grow ">
                                                 <h1 onClick={() => setview_history(false)} style={{ background: view_history ? "#5d48a3db" : "#705bb1" }} className=" flex-grow md:flex-grow sm:text-[25px] md:px-4 lg:px-9 font-bold   py-4 rounded-[19px] bg-[#705bb1] text-[#cec0fb] flex justify-center  cursor-pointer">Overview</h1>
-                                                <h1 onClick={() => setview_history(true)} style={{ background: view_history ? "#705bb1" : "#5d48a3db" }} className="sm:text-[25px] flex-grow md:flex-grow font-bold md:px-4 lg:px-9  mx-1 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1>
+                                                {/* <h1 onClick={() => setview_history(true)} style={{ background: view_history ? "#705bb1" : "#5d48a3db" }} className="sm:text-[25px] flex-grow md:flex-grow font-bold md:px-4 lg:px-9  mx-1 py-4 rounded-[19px] bg-[#5d48a3db] text-[#cec0fb] flex justify-center  cursor-pointer">Match History</h1> */}
                                                 {/* <h1 onClick={() => setopenfriends(!openfriends)} className="sm:text-[25px] font-bold  mx-2 py-4 rounded-[19px] flex-grow md:flex-grow bg-[#5d48a3db] md:px-4 lg:px-9 text-[#cec0fb] flex justify-center  cursor-pointer">Friends</h1> */}
                                             </div>
                                         
@@ -156,7 +162,7 @@ export default function User(){
                                     {view_history ?
                                         <MatchHistory listFreinds={listFreinds} avatar={avatar} userid={username} />
 
-                                        : <Overview RecentGame={listFreinds} avatar={avatar} />}
+                                        : <Overview RecentGame={RecentGame} avatar={avatar} />}
 
                                 </div>
                             </div>

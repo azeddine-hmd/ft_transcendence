@@ -8,10 +8,20 @@ import { ErrorResponse } from "../../network/dto/response/error-response.dto";
 
 export default function Infouser({ avatar, userid, displayname }: any) {
 
-    const [allinfogame, setallinfogame] = useState<GameProfile[]>({});
+    const [allinfogame, setallinfogame] = useState<GameProfile>({
+        total_games: 0,
+        total_wins: 0,
+        total_loss: 0,
+        percent_pation: 0,
+        rank: 0,
+        points: 0,
+        xp: 0,
+        level: 0,
+        percent_level: 0,
+    });
     useEffect(() => {
         Apis.GetGameprofile({
-            onSuccess: (gameprofile: GameProfile[]) => {
+            onSuccess: (gameprofile: GameProfile) => {
                 setallinfogame(gameprofile);
                 console.log(gameprofile);
                

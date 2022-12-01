@@ -282,13 +282,20 @@ export class GameGateway {
 	async handleConnection(client: Socket, ...args: any[]) {
 		try {
 			await this.usersSocketService.authenticate(client);
+			await this.usersSocketService.setStates(client.user.userId, 'in game');
 		} catch (exception) {
 			handleWsException(client, exception);
 		}
 	}
 
-	handleDisconnect(client: Socket, ...args: any[]) {
+	async handleDisconnect(client: Socket, ...args: any[]) {
 		if (client.user) {
+			try {
+				await this.usersSocketService.setStates(client.user.userId, '');
+			} catch (exception) {
+				console.log(exception);
+			}
+
 			client.emit("ok", client.user.username);
 			if (!client.user.username)
 				return

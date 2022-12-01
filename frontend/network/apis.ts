@@ -270,11 +270,11 @@ export namespace Apis {
 
 
   export async function GetGameprofile(options: {
-    onSuccess: (gameprofile: GameProfile[]) => void;
+    onSuccess: (gameprofile: GameProfile) => void;
     onFailure: (err: ErrorResponse) => void;
   }) {
     try {
-      const res = await localService.get<GameProfile[]>(
+      const res = await localService.get<GameProfile>(
         "/api/games"
       );
       return options.onSuccess(res.data);
@@ -292,6 +292,37 @@ export namespace Apis {
       error: "bad request",
     });
   }
+
+//==================================================================================================
+export async function GetGameOtherprofile(options: {
+  username:ProfilesUser;
+  onSuccess: (gameprofile: GameProfile) => void;
+  onFailure: (err: ErrorResponse) => void;
+}) {
+  try {
+    const res = await localService.get<GameProfile>(
+      "/api/games"
+    );
+    return options.onSuccess(res.data);
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      const error = err as AxiosError<ErrorResponse>;
+      if (error && error.response && error.response.data) {
+        return options.onFailure(error.response.data);
+      }
+    }
+  }
+  return options.onFailure({
+    statusCode: 400,
+    message: networkError,
+    error: "bad request",
+  });
+}
+//==================================================================================================
+
+
+
+
   export async function GetallresulteGame(options: {
     onSuccess: (gameprofile: ResultuserGame[]) => void;
     onFailure: (err: ErrorResponse) => void;
@@ -299,6 +330,30 @@ export namespace Apis {
     try {
       const res = await localService.get<ResultuserGame[]>(
         "/api/games/all"
+      );
+      return options.onSuccess(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        const error = err as AxiosError<ErrorResponse>;
+        if (error && error.response && error.response.data) {
+          return options.onFailure(error.response.data);
+        }
+      }
+    }
+    return options.onFailure({
+      statusCode: 400,
+      message: networkError,
+      error: "bad request",
+    });
+  }
+  export async function GetresulteGameotheruser(options: {
+    username: ProfilesUser;
+    onSuccess: (gameprofile: GameProfile[]) => void;
+    onFailure: (err: ErrorResponse) => void;
+  }) {
+    try {
+      const res = await localService.get<GameProfile[]>(
+        `/api/games/username/${options.username.username}`
       );
       return options.onSuccess(res.data);
     } catch (err: any) {
