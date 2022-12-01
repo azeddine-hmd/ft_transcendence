@@ -34,7 +34,7 @@ var isWatching: boolean = false;
 var oldMode: string = "";
 var oldIndex: number = -1;
 
-function live() {
+function Live() {
 	let buttomSearch: any = [];
 	buttomSearch[0] = "search";
 	var p1: string;
@@ -177,7 +177,8 @@ function live() {
 			game.player1.y = Number(array1[6]);
 			game.player2.y = Number(array1[7]);
 			drawGame();
-		}); socket.on("endGame", (_data: string) => {
+		}); 
+		socket.on("endGame", (_data: string) => {
 			socket.off("ballPos");
 			setTimeout(() => {
 				router.reload();
@@ -204,7 +205,8 @@ function live() {
 									{
 										easyGames.map((elm: any, index: number) =>
 											elm ?
-												<button onClick={() => join("Easy", index)} className="w-[100%]">
+											<div onClick={() => join("Easy", index)}>
+												<button  className="w-[100%]">
 													<div className="resultplayers   w-[100%]  flex justify-center ">
 														<div className="justcenter flex justify-between items-center rounded-[20px] w-[80%] h-[110px] px-7 bg-[#49367c] my-5 bg-opacity-90">
 															<div className="player1 flex items-center justify-between w-[50%] ">
@@ -231,7 +233,7 @@ function live() {
 															</div>
 														</div>
 													</div>
-												</button>
+												</button></div>
 												: null)
 									}
 									{
@@ -277,4 +279,4 @@ function live() {
 		</>
 	);
 }
-export default live;
+export default Live;
