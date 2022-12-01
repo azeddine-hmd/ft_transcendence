@@ -30,7 +30,7 @@ interface GameOption {
 	}
 }
 // let url = "";
-// if (proess.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
+// if (process.env.REACT_APP_IP == "" || process.env.REACT_APP_IP == undefined)
 // 	url = "http://localhost";
 // else
 // 	url = "http://".concat(process.env.REACT_APP_IP);
@@ -67,18 +67,18 @@ function Game() {
 	const [username, setUsername] = React.useState("");
 	const [mode, chanScopeSet] = React.useState("Easy");
 	const [is, set] = React.useState(true);
-	const [isWinerLoser, setLoserWiner] = React.useState("");
+	const [isWinerLoser, setLoserWiner] = useState("");
 	const [pone, setName] = React.useState("");
 	const [ptwo, setName1] = React.useState("");
 	const [scr1, setscr1] = React.useState(0);
 	const [scr2, setscr2] = React.useState(0);
 	const router = useRouter()
 
+	
+
 	const Refreche = () => {
-		setscr1(game.player1.score)
-		setscr2(game.player2.score)
 		socket.emit("leaveGame", playerName + " " + mode + " " + gameIndex)
-		
+		getResult();
 		socket.off("ballPos");
 		router.push('/game')
 	}
@@ -87,6 +87,8 @@ function Game() {
 		canvas = document.getElementById('canvas');
 		initilizeGame();
 		socket.on("abcd", (...args: any) => {
+			setscr1(0)
+		setscr2(0)
 			addEventListener('mousemove', playerMove);
 			set(false);
 			p1 = args[0];
@@ -242,57 +244,16 @@ function Game() {
 		}
 	}
 
-
-
-	// function playerMove(event: any) {
-	// 	var code = event.keyCode;
-	// 	// up : 38
-	// 	// down : 40
-	// 	if (code !== 38 && code !== 40)
-	// 		return
-	// 	if (playerName === p1) {
-	// 		console.log("befor ", px);
-	// 		px = code === 38 ? game.player1.y - 10 : game.player1.y + 10
-	// 		console.log("after", px);
-	// 		if (px < 0)
-	// 			px = 0;
-	// 		else if (px > canvas.height - playerHeight)
-	// 			px = canvas.height - playerHeight;
-	// 		if (playerName && px != null) {
-	// 			socket.emit('getPlayer', _mode + " " + gameIndex + " " + p1 + " " + Number(px));
-	// 		}
-	// 	}
-	// 	else if (playerName === p2) 
-	// 	{
-	// 		console.log("befor", py);
-	// 		py = code === 38 ? game.player2.y - 10 : game.player2.y + 10
-	// 		console.log("after", py);
-	// 		if (py < 0)
-	// 			py = 0;
-	// 		else if (py > canvas.height - playerHeight)
-	// 			py = canvas.height - playerHeight;
-	// 		if (playerName && py != null) {
-	// 			console.log(py);
-	// 			socket.emit('getPlayer', _mode + " " + gameIndex + " " + p2 + " " + Number(py));
-	// 		}
-	// 	}
-	// }
-
 	function getResult() {
-		if (Number(game.player1.score) > Number(game.player2.score)) {
-			if (playerName === p1)
-				setLoserWiner("loser");
-			else
-				setLoserWiner("winer");
+		if (Number(game.player1.score) > Number(game.player2.score) || Number(game.player1.score) < Number(game.player2.score)) {
+				console.log("hello");
+				
+				setLoserWiner("Game Over");
+				setPop(true);
+			
 		}
-		if (Number(game.player1.score) < Number(game.player2.score)) {
-			if (playerName === p1)
-				setLoserWiner("winer");
-			else
-				setLoserWiner("loser");
-			setscr1(game.player1.score)
-			setscr2(game.player2.score)
-		}
+		setscr1(game.player1.score)
+		setscr2(game.player2.score)
 		game.ball.speed.x = 0;
 		game.ball.speed.y = 0;
 		game.ball.x = canvas.width / 2 - ballHeight / 2;
@@ -316,10 +277,23 @@ function Game() {
 			// callAlert();
 		},
 	});
-
+	const [popup, setPop] = useState(false);
+	console.log(isWinerLoser);
+	
 	return (
 		<>
-			{isWinerLoser !== "" ? <div><Popup msg={`You are ${isWinerLoser}`} /></div> : ""}
+			{popup ? <div className="popup absolute justify-center  z-50 w-full items-center h-full flex  ">
+                <div className="bgopaci absolute top-0 left-0 w-full h-full  min-w-full bg-opacity-95  bg-[#463573] " onClick={() => console.log("close")}></div>
+                <div className="popupsettings absolute z-10 bg-white w-[50%] sm:w-[75%] md:w-[60%] lg:w-[50%] xl:w-[40%] 2xl:w-[600px] h-[20%] rounded-[18px]">
+                    <div className="closebtn w-full flex justify-end p-8">
+                        <button className="text-[23px]  flex justify-end text-[#000] w-[30px] " onClick={() => setPop(false)} ><img src="/profile/popup/exit.png" alt="" /></button>
+                    </div>
+                    <div className="avatar flex relative justify-center flex-col h-[40%] items-center w-full ">
+                        <h1 className="text-[100px] text-[#f44646]">Game Over</h1>
+                    </div>
+                </div>
+            </div>
+			: <></>}
 			<div className="homepage overflow-y-scroll h-full w-full  min-w-full relative">
 				<img src="/profile/bg.png" className="  w-full h-screen min-w-full " alt="" />
 				<div className="bgopaci absolute top-0 opacity-90 left-0 w-full h-full  min-w-full  bg-[#463573] "></div>
@@ -336,19 +310,19 @@ function Game() {
 										<div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
 											<img src={"/profile/Avatar.png"} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
 										</div>
-										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{pone}</div>
+										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{ptwo}</div>
 									</div>
 									<div className="resultnum text-[19px] text-[#bdb6d0] ">
 										{scr2}
 									</div>
 								</div>
-								<div className="vs  text-[19px] font-bold  px-4 text-[#6ae84a]">VS</div>
+								<div className="vs  text-[19px] font-bold  px-4 text-[#dde4db]">VS</div>
 								<div className="player2 flex items-center justify-between w-[50%]">
 									<div className="resultnum text-[19px] text-[#bdb6d0] ">
 										{scr1}
 									</div>
 									<div className="avatarwithuser flex items-center">
-										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{ptwo}</div>
+										<div className="uername text-[#bdb6d0] text-[19px] font-bold  px-4">{pone}</div>
 										<div className="avatar rounded-[50%] relative min-w-[70px] min-h-[70px] h-[80px] w-[80px] lg:w-[92px] lg:h-[90px] flex justify-center items-center bg-[#453176] ">
 											<img src={"/profile/Avatar.png"} className={`rounded-[50%] w-[47px] sm:w-[75px] lg:w-[90px] sm:p-1  min-w-[70px] min-h-[70px]   relative bottom-[2px] `} alt="" />
 										</div>

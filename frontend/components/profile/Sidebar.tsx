@@ -52,11 +52,16 @@ export default function Sidebar() {
         
        {
           label: 'Game',
-          url: "/game",
+          url: "/startGame",
           icon: "/profile/level.png",
           active: true,
         },
-        
+        {
+            label: 'Live',
+            url: "/live",
+            icon: "/profile/level.png",
+            active: true,
+          },
       ];
 
     return (

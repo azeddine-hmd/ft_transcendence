@@ -16,11 +16,11 @@ import GameService from './game.service';
 /*-------------------------------------------------------*/
 const canvas_height = 600
 const canvas_width = 600
-var sBall = 3
+var sBall = 4
 const playerHeight = 75
 const playerWith = 10
 const ballHeight = 10
-const final_score = 3
+const final_score = 5
 let _game: any =
 	[
 		[
