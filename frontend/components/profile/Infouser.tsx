@@ -149,12 +149,12 @@ export default function Infouser({avatar,userid,displayname,booling}:any){
                                             }
                                         }}>{relation}</button>
 
-                                        {relation === "Unfriend" ? <button onClick={()=> {
+                                         <button onClick={()=> {
                                             if(blockstatus === "Block")
                                                 sendblockRequest(userid);
                                             else
                                                 sendUnblockRequest(userid);
-                                        }}>{blockstatus}</button>:null}
+                                        }}>{blockstatus}</button>
                                     </div>
                                     
                                     </div>

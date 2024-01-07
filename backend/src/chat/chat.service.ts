@@ -60,8 +60,7 @@ export class ChatService {
 /*********************************************CHAT TOOLS*********************************************/
 
   async checkUser(auth: any)
-  {
-    
+  {    
     let checkuser = await this.userRepository.createQueryBuilder('user')
     .select()
     .where("user.userId = :id", { id: auth })
@@ -362,8 +361,12 @@ export class ChatService {
   }
 
   async joinRoom(joinRoomDto: JoinRoomDto, auth: any) {
+
+    
     let u1:User = new User();
     let checkuser = await this.checkUser(auth);
+
+    
     if(checkuser == null)
       return 1;
     let checkroom = await this.checkRoom(joinRoomDto.roomId);

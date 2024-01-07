@@ -190,6 +190,7 @@ export class ChatGateway {
     if (!clientId)
       return;
     let join =  await this.chatService.joinRoom(joinRoomDto, clientId);
+    
     if (join == 1)
       this.server.to(client.id).emit('joinRoom', { role: "", room: -1, error: "user not found", msgs: null });
     else if (join == 2)
