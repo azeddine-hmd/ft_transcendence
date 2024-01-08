@@ -17,3 +17,8 @@ docker compose up --build
 ## OpenApi
 you can find all backend api documentation (following OpenApi specification) by visiting: `$BACKEND_BASE_URL/api`.
 ui was generated using [Swagger UI](https://swagger.io/tools/swagger-ui/).
+
+## Screenshots
+![Imgur](https://i.imgur.com/ODbZrQq.png)
+![Imgur](https://i.imgur.com/HwjpNir.png)
+![Imgur](https://i.imgur.com/wvzn5eU.png)
