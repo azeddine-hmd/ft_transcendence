@@ -41,7 +41,7 @@ export class ProfilesService {
     });
     if (!profile) throw new InternalServerErrorException();
     profile.avatar =
-      this.envService.get('BACKEND_HOST') + '/api/images/' + filename;
+      this.envService.get('BACKEND_DOMAIN') + '/api/images/' + filename;
     await this.profilesRepository.save(profile);
     return profile.avatar;
   }

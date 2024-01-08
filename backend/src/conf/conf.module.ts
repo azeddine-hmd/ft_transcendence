@@ -6,7 +6,7 @@ import { EnvService } from './env.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.postgres.env', '.env', '.profile.env'],
+      envFilePath: ['.env'],
       expandVariables: true,
     }),
   ],

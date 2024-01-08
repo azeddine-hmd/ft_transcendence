@@ -33,17 +33,17 @@ async function bootstrap() {
 
   const envService = app.get(EnvService);
 
-  envService.get('FRONTEND_HOST');
-
   app.enableCors({
-    origin: [envService.get('FRONTEND_HOST'), envService.get('BACKEND_HOST')],
+    origin: [envService.get('FRONTEND_DOMAIN')],
     methods: ['GET', 'POST', 'HEAD', 'OPTIONS', 'DELETE'],
     credentials: true,
   });
 
-  await app.listen(envService.get<number>('PORT'));
-
-  Logger.log(`BACKEND_HOST: ${envService.get('BACKEND_HOST')}`);
+  await app.listen(envService.get<number>('BACKEND_PORT'), () => {
+    Logger.log(
+      `server is listening on url: ${envService.get('BACKEND_DOMAIN')}`,
+    );
+  });
 }
 
 bootstrap();

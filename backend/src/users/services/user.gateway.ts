@@ -18,7 +18,7 @@ import { UsersSocketService } from './users-socket.service';
 @WebSocketGateway({
   transports: ['websocket'],
   namespace: 'states',
-  cors: [process.env.BACKEND_HOST, process.env.FRONTEND_HOST],
+  cors: [process.env.FRONTEND_DOMAIN],
   cookie: true,
 })
 export class UserGateway implements OnGatewayConnection, OnGatewayDisconnect {

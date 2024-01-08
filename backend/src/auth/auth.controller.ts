@@ -57,7 +57,7 @@ export class AuthController {
     );
     intraAuthUrl.searchParams.set(
       'redirect_uri',
-      this.envService.get('BACKEND_HOST') + this.envService.get('REDIRECT_URI'),
+      this.envService.get('BACKEND_DOMAIN') + this.envService.get('REDIRECT_URI'),
     );
     intraAuthUrl.searchParams.set(
       'response_type',
@@ -78,7 +78,7 @@ export class AuthController {
   ) {
     if (req.user === undefined) throw new UnauthorizedException();
     const login = await this.authService.login(req.user, false);
-    const frontendHost = this.envService.get('FRONTEND_HOST');
+    const frontendHost = this.envService.get('FRONTEND_DOMAIN');
     res.cookie('refresh_token', login.tokens.refreshToken, {
       ...refreshCookieOptions,
     });
