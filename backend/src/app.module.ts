@@ -26,12 +26,18 @@ import { UsersModule } from 'src/users/users.module';
         synchronize: envServcie.get('SYCHRONIZE'),
       }),
     }),
-    ServeStaticModule.forRoot({
-      rootPath: '/backend/uploads',
-      serveRoot: '/api/images',
-      serveStaticOptions: {
-        index: false,
-      },
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (envService: EnvService) => [
+        {
+          rootPath: envService.get('UPLOAD_BASE_PATH'),
+          serveRoot: '/static',
+          serveStaticOptions: {
+            index: false,
+          },
+        },
+      ],
     }),
     UsersModule,
     ProfilesModule,

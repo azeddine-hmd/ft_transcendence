@@ -134,10 +134,9 @@ function ballMove(m: any, i: any) {
 @WSAuthGuard
 @WebSocketGateway({
 	namespace: 'game',
-	cors: [process.env.FRONTEND_HOST, process.env.BACKEND_HOST],
+	cors: [process.env.FRONTEND_DOMAIN],
 	cookie: true,
 })
-
 export class GameGateway {
 	@WebSocketServer()
 	server: Server;

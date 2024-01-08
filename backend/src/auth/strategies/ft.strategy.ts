@@ -15,7 +15,7 @@ export class FtStrategy extends PassportStrategy(Strategy) {
     super({
       clientID: envService.get('CLIENT_ID'),
       clientSecret: envService.get('SECRET'),
-      callbackURL: envService.get('BACKEND_HOST') + '/api/auth/42/callback',
+      callbackURL: envService.get('BACKEND_DOMAIN') + '/api/auth/42/callback',
       scope: 'public',
       profileFields: {
         ftId: (obj: any) => String(obj.id),

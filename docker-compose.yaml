@@ -2,42 +2,75 @@ version: '3'
 
 services:
 
-  database:
-    container_name: database
+  db:
+    container_name: transcendence-db
     image: 'postgres:latest'
+    user: root
+    restart: always
     ports:
       - 5432:5432
-    env_file:
-      - ./backend/.postgres.env
+    volumes:
+      - ./.postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
 
   backend:
-    container_name: backend
-    build:
-      context: ./docker
-      dockerfile: backend.dockerfile
-    volumes:
-      - ./backend:/backend
-      - ./backend/uploads:/backend/uploads
+    image: transcendence-backend
+    container_name: transcendence-backend
+    build: ./backend
+    user: root
     depends_on:
-      - database
+      - db
     ports:
-      - 8080:8080
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    volumes:
+      - ./backend/uploads:/usr/src/app/uploads
+      - ./backend:/usr/src/app
+    env_file:
+      - ./backend/.env
     environment:
-      - MODE=prod
-      - PORT=8080
-      - BACKEND_HOST=http://10.11.3.11:8080
-      - FRONTEND_HOST=http://10.11.3.11:3000
+      - NODE_ENV=${NODE_ENV}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - BACKEND_PORT=${BACKEND_PORT}
+      - BACKEND_PROTOCOL=${BACKEND_PROTOCOL}
+      - BACKEND_HOST=${BACKEND_HOST}
+      - BACKEND_DOMAIN=${BACKEND_DOMAIN}
+      - FRONTEND_PROTOCOL=${FRONTEND_PROTOCOL}
+      - FRONTEND_HOST=${FRONTEND_HOST}
+      - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
+
 
   frontend:
-    container_name: frontend
-    build:
-      context: ./docker
-      dockerfile: frontend.dockerfile
+    image: transcendence-frontend
+    container_name: transcendence-frontend
+    build: ./frontend
+    user: root
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT} 
     volumes:
       - ./frontend:/frontend
-    ports:
-      - 3000:3000
+    env_file:
+      - ./frontend/.env.local
     environment:
-      - MODE=prod
-      - PORT=3000
-      - BACKEND_HOST=http://10.11.3.11:8080
+      - NODE_ENV=${NODE_ENV}
+      - BACKEND_PROTOCOL=${BACKEND_PROTOCOL}
+      - BACKEND_HOST=${BACKEND_HOST}
+      - BACKEND_DOMAIN=${BACKEND_DOMAIN}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - FRONTEND_PROTOCOL=${FRONTEND_PROTOCOL}
+      - FRONTEND_HOST=${FRONTEND_HOST}
+      - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
+
+  adminer:
+    image: adminer
+    container_name: transcendence-adminer
+    ports: 
+      - 8080:8080
