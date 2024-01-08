@@ -30,7 +30,7 @@ import { ResultuserGame } from "../../network/dto/response/resultgameuser.dto";
 export default function Profile() {
     const router = useRouter();
     const [username, setusername] = useState('')
-    const [avatar, setavatar] = useState("http://localhost:8080/api/images/default-avatar.png");
+    const [avatar, setavatar] = useState(process.env.NEXT_PUBLIC_API_BASE_URL + "/static/default-avatar.png");
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [view_history, setview_history] = useState(false);
     const [opensettings, setopensettings] = useState(false);
