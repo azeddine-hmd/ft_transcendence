@@ -19,10 +19,6 @@ if (typeof window !== 'undefined') {
 
 let backendHost = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-
-// let socket = io('http://localhost:8080', { transports: ['websocket'], auth: {
-  //   token: token
-  // }});
 const URL = backendHost + "/chat";
 
 let socket:Socket = io(URL, {
